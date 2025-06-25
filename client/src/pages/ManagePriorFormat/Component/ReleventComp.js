@@ -1,7 +1,7 @@
 import React, { useState, useEffect, } from 'react';
 import { Container, Row, Col, Spinner } from 'reactstrap';
 import { motion } from 'framer-motion';
-import { fetchESPData, setFetchESPData, setESPData } from '../../ManageEmployees/ManageBibliography/BibliographySLice/BibliographySlice';
+import { fetchESPData, googleBiblioData } from '../../ManageEmployees/ManageBibliography/BibliographySLice/BibliographySlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { mapFamilyMemberData } from '../ReusableComp/Functions';
 import { FaFileWord } from "react-icons/fa";
@@ -15,7 +15,13 @@ const ReleventComp = () => {
 
     const dispatch = useDispatch();
     const data = useSelector(state => state.patentSlice.fetchESPData);
-    console.log(data, 'fetchESPDatafetchESPData');
+    const bibliographyGoogleData = useSelector(state => state.patentSlice.bibliographyGoogleData);
+
+    console.log(bibliographyGoogleData, 'bibliographyGoogleData')
+
+    const googleClassCPC = bibliographyGoogleData.classifications?.map(map => map.leafCode).join(', ');
+    console.log('googleClassCPC', googleClassCPC)
+
 
     const [patentNumber, setPatentNumber] = useState('');
     const [famId, setfamId] = useState("");
@@ -28,10 +34,20 @@ const ReleventComp = () => {
         const trimmedNumber = patentNumber.trim();
         setLoading(true);
         try {
-            await fetchESPData(trimmedNumber, dispatch, 'relavent' );
+            await fetchESPData(trimmedNumber, dispatch, 'relavent');
         } catch (error) {
             setErrorValidation(true);
             setfamId("");
+
+            try {
+                setErrorValidation(false);
+                await googleBiblioData(trimmedNumber, dispatch);
+                console.log("✅ Google fallback succeeded");
+            } catch (googleError) {
+                setErrorValidation(true);
+                console.error("❌ Google fallback failed:", googleError);
+            }
+
             console.error("Espacenet fetch error:", error);
         } finally {
             setLoading(false);
@@ -239,7 +255,7 @@ const formattedDescriptions = convertDescriptionToKeyValue(descriptionText);
 
     return (
 
-        <Container className="mt-4">
+        <Container className="mt-4 mb-5">
             <Row className="mb-3 align-items-center justify-content-between">
                 <Col>
                     <motion.h4
@@ -317,12 +333,13 @@ const formattedDescriptions = convertDescriptionToKeyValue(descriptionText);
                             </motion.button>
                         </Col>
                     </Row>
+                    {console.log('bibliographyGoogleData.title', bibliographyGoogleData.title)}
 
                     {[
-                        { label: 'Publication Number (URL)', value: famId, icon: 'fas fa-link', id: 'url', placeholder: 'Enter URL' },
-                        { label: 'Title', value: inventionTitle(), id: 'title', placeholder: 'Enter Title' },
-                        { label: 'Inventor(s)', value: inventorNames, icon: 'fas fa-users', id: 'inventors', placeholder: 'Semicolon (;) separated' },
-                        { label: 'Assignee(s)', value: applicantNames, icon: 'fas fa-user', id: 'assignees', placeholder: 'Comma (,) separated' }
+                        { label: 'Publication Number (URL)', value: famId || bibliographyGoogleData.pageUrl, icon: 'fas fa-link', id: 'url', placeholder: 'Enter URL' },
+                        { label: 'Title', value: inventionTitle() || bibliographyGoogleData.title?.trim(), id: 'title', placeholder: 'Enter Title' },
+                        { label: 'Inventor(s)', value: inventorNames || bibliographyGoogleData.inventor, icon: 'fas fa-users', id: 'inventors', placeholder: 'Semicolon (;) separated' },
+                        { label: 'Assignee(s)', value: applicantNames || bibliographyGoogleData.assignees, icon: 'fas fa-user', id: 'assignees', placeholder: 'Comma (,) separated' }
                     ].map(({ label, value, icon, id, placeholder }, i) => (
                         <Row key={i} className="mb-3 align-items-center">
                             <Col md={4}><label htmlFor={id} className="form-label fw-semibold">{label}</label></Col>
@@ -349,9 +366,9 @@ const formattedDescriptions = convertDescriptionToKeyValue(descriptionText);
                     ))}
 
                     {[
-                        { label: 'Grant/Publication Date', value: publicationDate(), id: 'pubDate' },
-                        { label: 'Filing/Application Date (Optional)', value: applicationDate(), id: 'applicationDate' },
-                        { label: 'Priority Date (Optional)', value: priorityDates, id: 'priorityDate' }
+                        { label: 'Grant/Publication Date', value: publicationDate() || bibliographyGoogleData.publicationDate , id: 'pubDate' },
+                        { label: 'Filing/Application Date (Optional)', value: applicationDate() || bibliographyGoogleData.applicationDate , id: 'applicationDate' },
+                        { label: 'Priority Date (Optional)', value: priorityDates || bibliographyGoogleData.priorityDate , id: 'priorityDate' }
                     ].map(({ label, value, id }, i) => (
                         <Row key={i} className="mb-3 align-items-center">
                             <Col md={4}><label htmlFor={id} className="form-label fw-semibold">{label}</label></Col>
@@ -368,7 +385,7 @@ const formattedDescriptions = convertDescriptionToKeyValue(descriptionText);
                     ))}
 
                     {[
-                        { label: 'IPC/CPC Classification', value: `${ipcrFormatted}${ipcFormatted}${classData.cpc}`, id: 'ipc' },
+                        { label: 'IPC/CPC Classification', value: `${ipcrFormatted}${ipcFormatted}${classData.cpc}` || googleClassCPC, id: 'ipc' },
                         { label: 'US Classification (Optional)', value: classData.US_Classification, id: 'usClassification' },
                         { label: 'Family Member(s)', value: famData?.map(f => f?.familyPatent).join(', '), id: 'familyMember' }
                     ].map(({ label, value, id }, i) => (

@@ -5,7 +5,7 @@ import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { BASE_URL } from '../../../../config';
+import { fetchIpcDefinitions } from '../BibliographySLice/BibliographySlice';
 
 
 const styles = {
@@ -545,6 +545,8 @@ const IPCDefinition = () => {
 
     const rootItem = definition?.definition?.['world-patent-data']?.['classification-scheme']?.['cpc']?.['class-scheme']?.['classification-item'];
     const params = definition?.param || [];
+
+    
     // const cpcItems = getIpcClassificationTitles(rootItem, params);
     // console.log('cpcItems ', cpcItems,);
 
@@ -888,68 +890,157 @@ const IPCDefinition = () => {
 
 
 
-const handleFileUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
 
-    setUploadedFileName(file.name);
-    setLoading(true);
-    setUploadProgress(10);
+//  Updated Api call
+// const handleFileUpload = async (e) => {
+//     const file = e.target.files[0];
+//     if (!file) return;
 
-    try {
-        const data = await file.arrayBuffer();
-        setUploadProgress(25);
+//     setUploadedFileName(file.name);
+//     setLoading(true);
+//     setUploadProgress(10);
 
-        const workbook = await XLSX.read(data, { type: 'buffer' });
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        setUploadProgress(40);
+//     try {
+//         const data = await file.arrayBuffer();
+//         setUploadProgress(25);
 
-        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-        if (jsonData.length < 2) {
-            setError('Sheet does not have enough rows.');
-            setLoading(false);
-            toast.error("Invalid Excel file. Please check the format or download the sample file.", {
-                position: "top-right"
-            });
-            return;
-        }
+//         const workbook = await XLSX.read(data, { type: 'buffer' });
+//         const sheetName = workbook.SheetNames[0];
+//         const worksheet = workbook.Sheets[sheetName];
+//         setUploadProgress(40);
 
-        const rows = jsonData.slice(1);
-        const classCodes = rows
-            .map(row => row[1])
-            .filter(val => val !== undefined && val !== null && val !== '')
-            .map(val => val.replace(/\s+/g, '').trim());
+//         const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+//         if (jsonData.length < 2) {
+//             setError('Sheet does not have enough rows.');
+//             setLoading(false);
+//             toast.error("Invalid Excel file. Please check the format or download the sample file.", {
+//                 position: "top-right"
+//             });
+//             return;
+//         }
 
-        setUploadProgress(55);
+//         const rows = jsonData.slice(1);
+//         const classCodes = rows
+//             .map(row => row[1])
+//             .filter(val => val !== undefined && val !== null && val !== '')
+//             .map(val => val.replace(/\s+/g, '').trim());
 
-        const commaSeparated = classCodes.join(',');
+//         setUploadProgress(55);
 
-        const response = await axios.get(`${BASE_URL}/api/ipc-definition/${encodeURIComponent(commaSeparated)}`);
-        // const response = await axios.get(`http://localhost:8080/api/ipc-definition/${encodeURIComponent(commaSeparated)}`);
-        setUploadProgress(75);
+//         const commaSeparated = classCodes.join(',');
 
-        const rootItem = response.data?.definition?.['world-patent-data']?.['classification-scheme']?.['cpc']?.['class-scheme']?.['classification-item'];
-        const params = response.data?.param || [];
+//         const response = await axios.get(`${BASE_URL}/api/ipc-definition/${encodeURIComponent(commaSeparated)}`);
+//         // const response = await axios.get(`http://localhost:8080/api/ipc-definition/${encodeURIComponent(commaSeparated)}`);
+//         setUploadProgress(75);
 
-        const ipcMap = await getIpcClassificationTitles(rootItem, params);
-        setDefinition(ipcMap);
-        setUploadProgress(90);
+//         const rootItem = response.data?.definition?.['world-patent-data']?.['classification-scheme']?.['cpc']?.['class-scheme']?.['classification-item'];
+//         const params = response.data?.param || [];
 
-        const objectRows = rows.map((row, index) => {
-            const classCode = row[1]?.trim();
-            if (!classCode) return null;
+//         const ipcMap = await getIpcClassificationTitles(rootItem, params);
+//         setDefinition(ipcMap);
+//         setUploadProgress(90);
 
-            return {
-                'S.No': index + 1,
-                'Class': classCode,
-            };
-        }).filter(Boolean);
+//         const objectRows = rows.map((row, index) => {
+//             const classCode = row[1]?.trim();
+//             if (!classCode) return null;
 
-        setUploadedRows(objectRows);
-        setUploadProgress(100);
+//             return {
+//                 'S.No': index + 1,
+//                 'Class': classCode,
+//             };
+//         }).filter(Boolean);
 
-        if (response.status === 200) {
+//         setUploadedRows(objectRows);
+//         setUploadProgress(100);
+
+//         if (response.status === 200) {
+//             toast.success("Correct Excel file format. File processed successfully.", {
+//                 position: "top-right",
+//                 autoClose: 3000,
+//                 hideProgressBar: false,
+//                 closeOnClick: true,
+//                 pauseOnHover: true,
+//                 draggable: true,
+//                 progress: undefined,
+//             });
+//         }
+
+//     } catch (err) {
+//         console.error(err);
+//         toast.error("❌ Invalid file format. Please download or view the sample file for correct structure.", {
+//             position: "top-right",
+//             autoClose: 5000,
+//             closeOnClick: true,
+//             pauseOnHover: true,
+//         });
+//     } finally {
+//         setTimeout(() => setUploadProgress(0), 1000);
+//         setLoading(false);
+//     }
+// };   
+
+
+
+    const handleFileUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        setUploadedFileName(file.name);
+        setLoading(true);
+        setUploadProgress(10);
+
+        try {
+            const data = await file.arrayBuffer();
+            setUploadProgress(25);
+
+            const workbook = await XLSX.read(data, { type: 'buffer' });
+            const sheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[sheetName];
+            setUploadProgress(40);
+
+            const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+            if (jsonData.length < 2) {
+                setError('Sheet does not have enough rows.');
+                setLoading(false);
+                toast.error("Invalid Excel file. Please check the format or download the sample file.", {
+                    position: "top-right"
+                });
+                return;
+            }
+
+            const rows = jsonData.slice(1);
+            const classCodes = rows
+                .map(row => row[1])
+                .filter(val => val !== undefined && val !== null && val !== '')
+                .map(val => val.replace(/\s+/g, '').trim());
+
+            setUploadProgress(55);
+
+            const commaSeparated = classCodes.join(',');
+
+            const responseData = await fetchIpcDefinitions(commaSeparated);
+            setUploadProgress(75);
+
+            const rootItem = responseData?.definition?.['world-patent-data']?.['classification-scheme']?.['cpc']?.['class-scheme']?.['classification-item'];
+            const params = responseData?.param || [];
+
+            const ipcMap = await getIpcClassificationTitles(rootItem, params);
+            setDefinition(ipcMap);
+            setUploadProgress(90);
+
+            const objectRows = rows.map((row, index) => {
+                const classCode = row[1]?.trim();
+                if (!classCode) return null;
+
+                return {
+                    'S.No': index + 1,
+                    'Class': classCode,
+                };
+            }).filter(Boolean);
+
+            setUploadedRows(objectRows);
+            setUploadProgress(100);
+
             toast.success("Correct Excel file format. File processed successfully.", {
                 position: "top-right",
                 autoClose: 3000,
@@ -957,23 +1048,24 @@ const handleFileUpload = async (e) => {
                 closeOnClick: true,
                 pauseOnHover: true,
                 draggable: true,
-                progress: undefined,
             });
-        }
 
-    } catch (err) {
-        console.error(err);
-        toast.error("❌ Invalid file format. Please download or view the sample file for correct structure.", {
-            position: "top-right",
-            autoClose: 5000,
-            closeOnClick: true,
-            pauseOnHover: true,
-        });
-    } finally {
-        setTimeout(() => setUploadProgress(0), 1000);
-        setLoading(false);
-    }
-};
+        } catch (err) {
+            console.error(err);
+            toast.error("❌ Invalid file format. Please download or view the sample file for correct structure.", {
+                position: "top-right",
+                autoClose: 5000,
+                closeOnClick: true,
+                pauseOnHover: true,
+            });
+        } finally {
+            setTimeout(() => setUploadProgress(0), 1000);
+            setLoading(false);
+        }
+    };
+
+
+
 
     const handleClearFile = () => {
         setUploadedFileName('');

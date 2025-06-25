@@ -3,10 +3,13 @@ import axios from "axios";
 import { TabContent, TabPane, Spinner, Card, CardBody, } from "reactstrap";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaCode } from "react-icons/fa";
-import { BASE_URL } from "../../../../config";
-
+import { fetchGoogleCPCData } from "../BibliographySLice/BibliographySlice";
+import { useDispatch } from "react-redux";
 
 const SourceContent = ({ activeTab }) => {
+
+  const dispatch = useDispatch();
+
   const [classNumber, setClassNumber] = useState("");
   const [dataLoading, setDataLoading] = useState(false);
   const [definitionData, setDefinitionData] = useState([]);
@@ -18,11 +21,7 @@ const SourceContent = ({ activeTab }) => {
 
     setDataLoading(true);
     try {
-      const response = await axios.get(
-        `${BASE_URL}/cpc/google/${classNumber.trim()}`
-        // `http://localhost:8080/cpc/google/${classNumber.trim()}`
-      );
-      setDefinitionData(response.data || []);
+      await dispatch(fetchGoogleCPCData(classNumber, setDefinitionData))
       setExpandedIndex(null);
     } catch (error) {
       console.error("API Error:", error.message);
@@ -59,7 +58,7 @@ const SourceContent = ({ activeTab }) => {
           </div>
         </form>
 
-        {definitionData.map((item, index) => {
+        {definitionData?.classifications?.map((item, index) => {
           const lastEntry = item.hierarchy[item.hierarchy.length - 1];
           const leafCode = Object.keys(lastEntry)[0];
           const leafCodeDefinition = Object.values(lastEntry)[0];

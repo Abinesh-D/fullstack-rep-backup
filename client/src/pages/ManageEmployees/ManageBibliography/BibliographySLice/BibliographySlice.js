@@ -1,6 +1,8 @@
 import { createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { BASE_URL } from '../../../../config';
+import { useDispatch } from 'react-redux';
+
 
 
 const initialState = {
@@ -15,6 +17,8 @@ const initialState = {
   fetchLegalStatus: [],
   classifyData: [],
   chatBoxData: [],
+  googlePatentData: [],
+  bibliographyGoogleData: [],
 
 };
 
@@ -62,18 +66,25 @@ const patentSlice = createSlice({
     setChatBoxData: (state, action) => {
       state.chatBoxData = action.payload;
     },
-
+    setGooglePatentData: (state, action) => {
+      state.googlePatentData = action.payload;
+    },
+      setBibliographyGoogleData: (state, action) => {
+      state.bibliographyGoogleData = action.payload;
+    },
 
 
     resetPatentData: () => initialState,
   },
 });
 
+
+
+
 // ChatBox API COHERE
 export const retrieveChatBoxData = async (message, dispatch) => {
   try {
     const response = await axios.post(`${BASE_URL}/api/chatbox/chat`, { message: message });
-
 
     console.log(response, 'responsefor chat')
     if (response.status === 200 && response.data) {
@@ -174,6 +185,55 @@ export const fetchGooglePatentData = async (patentNumber, dispatch) => {
 
 
 
+// Google CPC fetch against Patent number
+export const fetchGoogleCPCData = async (classNumber, setDefinitionData ) => {
+  console.log(classNumber, 'fetchGoogleCPCData')
+  try {
+    const response = await axios.get(`${BASE_URL}/cpc/google/${classNumber.trim()}`);
+    console.log(response.data, 'responseresponseresponse')
+    setDefinitionData(response.data || []);
+
+  } catch (err) {
+    console.error('Error fetching patent data:', err);
+    throw err;
+  }
+};
+
+
+
+export const googleBiblioData = async (classNumber, dispatch) => {
+
+  console.log('classNumber', classNumber)
+  const trimmed = classNumber.trim();
+  if (!trimmed) throw new Error("Invalid patent number for Google fallback");
+
+  try {
+    const response = await axios.get(`${BASE_URL}/cpc/google/${encodeURIComponent(trimmed)}`);
+
+    console.log('response.datagoogleBiblioData', response.data)
+    dispatch(setBibliographyGoogleData(response.data));
+    return response.data;
+  } catch (err) {
+    console.error('❌ googleBiblioData error:', err.message || err);
+    throw err;
+  }
+};
+
+
+
+export const fetchIpcDefinitions = async (commaSeparatedCodes) => {
+  try {
+    const response = await axios.get(
+      `${BASE_URL}/api/ipc-definition/${encodeURIComponent(commaSeparatedCodes)}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching IPC definitions:", error);
+    throw error;
+  }
+};
+
+
 export const fetchESPData = async (patentNumber, dispatch, type) => {
   try {
     const trimmedNumber = patentNumber.trim();
@@ -206,10 +266,18 @@ export const fetchESPData = async (patentNumber, dispatch, type) => {
       dispatch(setESPData([]));
     }
 
+    // try {
+    //   await dispatch(googleBiblioData(patentNumber, false, dispatch));
+
+    // } catch (error) {
+    //   console.log(error, "error")
+    // }
     console.error("❌ Patent fetch error:", error.message || error);
     throw error;
   }
 };
+
+
 
 export const fetchLegalStatusData = async (patentNumber, dispatch) => {
   try {
@@ -232,6 +300,7 @@ export const fetchLegalStatusData = async (patentNumber, dispatch) => {
 
 export const { setPatentData, setEspaceApiData, resetPatentData, setGoogleApiData, setLensOrgApiData, setFreePatentApiData,
   setPatentLoading, setLensPageUrl, setFetchESPData, setESPData, setFetchLegalStatus, setClassifyData, setChatBoxData,
+  setGooglePatentData, setBibliographyGoogleData,
 } = patentSlice.actions;
 export default patentSlice.reducer;
 

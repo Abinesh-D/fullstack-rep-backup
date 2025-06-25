@@ -53,7 +53,7 @@ async function getAccessToken(retryCount = 0) {
 //   } else if (formatted.startsWith("US") && formatted.length > 13) {
 //     formatted = formatted.split('').filter((_, i) => i !== 6).join('');
 //   } 
-  
+
 
 //   const regex = /^([A-Z]+\d+)([A-Z]+\d*)$/;
 //   const match = formatted.match(regex);
@@ -69,7 +69,11 @@ function formatPatentNumberWithDot(patentNumber) {
 
   if (formatted.startsWith("WO19")) {
     formatted = formatted.split('').filter((_, i) => ![2, 3, 6].includes(i)).join('');
-  } else if (formatted.startsWith("US") && formatted.length > 13) {
+  }
+  else if (formatted.length === 14) {
+    return formatted;
+  }
+  else if (formatted.startsWith("US") && formatted.length > 13) {
     formatted = formatted.split('').filter((_, i) => i !== 6).join('');
   }
 
@@ -88,11 +92,7 @@ function formatPatentNumberWithDot(patentNumber) {
   }
 
   return formatted;
-}
-
-
-
-
+};
 
 router.get("/:patentNumber", async (req, res) => {
   const { patentNumber } = req.params;
@@ -107,6 +107,7 @@ router.get("/:patentNumber", async (req, res) => {
 
     const token = await getAccessToken();
     const familyUrl = `https://ops.epo.org/3.2/rest-services/family/publication/docdb/${formattedNumber}`;
+    // const biblioUrl = `https://ops.epo.org/3.2/rest-services/published-data/publication/docdb/US2009020334.A1/biblio`;
     const biblioUrl = `https://ops.epo.org/3.2/rest-services/published-data/publication/docdb/${formattedNumber}/biblio`;
 
     const headers = {
@@ -114,7 +115,12 @@ router.get("/:patentNumber", async (req, res) => {
       Accept: "application/xml",
     };
 
-    const [biblioResponse, familyResponse] = await Promise.all([axios.get(biblioUrl, { headers }), axios.get(familyUrl, { headers }),]);
+    const [biblioResponse,
+      familyResponse
+    ] = await Promise.all([axios.get(biblioUrl, { headers }),
+    axios.get(familyUrl, { headers }),
+    ]
+    );
 
     const parser = new xml2js.Parser({
       explicitArray: false,
@@ -371,8 +377,7 @@ module.exports = router;
 // let cachedToken = null;
 // let tokenExpiry = null; 
 
-// async function getAccessToken() {
-//   const now = Date.now();
+// async function getAccessToken() {//   const now = Date.now();
 //   console.log(now, tokenExpiry, 'now')
 
 //   if (cachedToken && tokenExpiry && now < tokenExpiry) {
