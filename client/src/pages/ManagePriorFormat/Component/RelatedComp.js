@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Container, Row, Col, Spinner } from 'reactstrap';
-import { fetchESPData } from '../../ManageEmployees/ManageBibliography/BibliographySLice/BibliographySlice';
+import { fetchESPData, googleBiblioData } from '../../ManageEmployees/ManageBibliography/BibliographySLice/BibliographySlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { motion } from 'framer-motion';
 
@@ -8,8 +8,9 @@ const RelatedComp = ({ activeTab }) => {
 
     const dispatch = useDispatch();
     const data = useSelector(state => state.patentSlice.espData);
+    const relatedBiblioGoogleData = useSelector(state => state.patentSlice.relatedBiblioGoogleData);
 
-    console.log(data, 'data', activeTab);
+    console.log('relatedBiblioGoogleData', relatedBiblioGoogleData);
 
     const [patentNumber, setPatentNumber] = useState('');
     const [famId, setfamId] = useState("");
@@ -24,11 +25,51 @@ const RelatedComp = ({ activeTab }) => {
         } catch (error) {
             setErrorValidation(true);
             setfamId("");
+
+            try {
+                setErrorValidation(false);
+                await googleBiblioData(trimmedNumber, dispatch, 'related');
+                console.log("✅ Google fallback succeeded");
+            } catch (googleError) {
+                setErrorValidation(true);
+                console.error("❌ Google fallback failed:", googleError);
+            }
+
             console.error("Espacenet fetch error:", error);
         } finally {
             setLoading(false);
         }
     };
+
+
+
+
+    //  const handleFetchPatentData = async () => {
+    //         const trimmedNumber = patentNumber.trim();
+    //         setLoading(true);
+    //         try {
+    //             await fetchESPData(trimmedNumber, dispatch, 'relavent');
+    //         } catch (error) {
+    //             setErrorValidation(true);
+    //             setfamId("");
+    
+    //             try {
+    //                 setErrorValidation(false);
+    //                 await googleBiblioData(trimmedNumber, dispatch);
+    //                 console.log("✅ Google fallback succeeded");
+    //             } catch (googleError) {
+    //                 setErrorValidation(true);
+    //                 console.error("❌ Google fallback failed:", googleError);
+    //             }
+    
+    //             console.error("Espacenet fetch error:", error);
+    //         } finally {
+    //             setLoading(false);
+    //         }
+    //     };
+
+
+
 
     useEffect(() => {
         if (data?.patentNumber) {
@@ -66,6 +107,11 @@ const RelatedComp = ({ activeTab }) => {
     const assigneeAndInventorsName = useMemo(() => {
         return applicantNames && inventorNames ? `${applicantNames} / ${inventorNames}` : '';
     }, [applicantNames, inventorNames]);
+
+    const glAssigneesAndInventor = useMemo(() => {
+        return relatedBiblioGoogleData.intentor && relatedBiblioGoogleData.assignees ?` ${relatedBiblioGoogleData.assignees} / ${relatedBiblioGoogleData.inventors}` : ''
+
+    }, [relatedBiblioGoogleData.intentors, relatedBiblioGoogleData.assignees]);
 
     const inventionTitle = () => {
         const titleData = biblioData?.['invention-title'];
@@ -189,7 +235,7 @@ const RelatedComp = ({ activeTab }) => {
                                             className="form-control"
                                             id="url"
                                             placeholder="Enter Publication Number URL"
-                                            value={famId || ''}
+                                            value={famId || relatedBiblioGoogleData.pageUrl}
                                         />
                                     </div>
                                 </motion.div>
@@ -206,7 +252,7 @@ const RelatedComp = ({ activeTab }) => {
                                     type="text"
                                     className="form-control form-control-sm"
                                     id="title"
-                                    value={memoInventionTitle || ''}
+                                    value={memoInventionTitle || relatedBiblioGoogleData.title}
                                     placeholder="Enter Title"
                                 />
                             </Col>
@@ -224,11 +270,12 @@ const RelatedComp = ({ activeTab }) => {
                                         <span className="input-group-text">
                                             <i className="fas fa-users" />
                                         </span>
+                                        {console.log('glAssigneesAndInventor', glAssigneesAndInventor)}
                                         <input
                                             type="text"
                                             className="form-control"
                                             id="inventors"
-                                            value={assigneeAndInventorsName || ''}
+                                            value={assigneeAndInventorsName || glAssigneesAndInventor}
                                             placeholder="Semicolon (;) separated"
                                         />
                                     </div>
@@ -248,7 +295,7 @@ const RelatedComp = ({ activeTab }) => {
                                     type="date"
                                     className="form-control form-control-sm"
                                     id="pubDate"
-                                    value={memoPubDate || ''}
+                                    value={memoPubDate || relatedBiblioGoogleData.publicationDate}
                                 />
                             </Col>
                         </Row>

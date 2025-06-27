@@ -98,6 +98,13 @@ const SidebarContent = (props) => {
       iconClass: "bx bxs-parking font-size-15 text-white",
     },
 
+     {
+      path: "/manage-bulk-upload",
+      label: props.t("Bulk Upload"),
+      iconClass: "bx bx-bold font-size-15 text-white",
+    },
+
+
     // {
     //   path: "/manage-employees",
     //   label: props.t("Manage Employees"),

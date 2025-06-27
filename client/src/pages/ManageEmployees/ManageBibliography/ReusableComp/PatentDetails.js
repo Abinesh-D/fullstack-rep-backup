@@ -41,13 +41,11 @@ const Section = ({ children }) => (
 );
 
 const PatentDetails = ({ data, legalData, copied, copyToClipboard, type }) => {
-  console.log('legalData,legalData,', legalData,);
 
   const [famId, setfamId] = useState("");
   // const [modalOpen, setModalOpen] = useState(false);
 
   const shortedLegalData = legalData?.['world-patent-data']?.['patent-family']?.['family-member'][0]?.legal;
-  console.log(shortedLegalData, 'shortedLegalData')
 
   // const toggleModal = () => setModalOpen(!modalOpen);
 

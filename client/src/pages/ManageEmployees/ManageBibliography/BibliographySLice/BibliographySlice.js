@@ -18,7 +18,9 @@ const initialState = {
   classifyData: [],
   chatBoxData: [],
   googlePatentData: [],
-  bibliographyGoogleData: [],
+  releventBiblioGoogleData: [],
+  relatedBiblioGoogleData: [],
+
 
 };
 
@@ -69,8 +71,11 @@ const patentSlice = createSlice({
     setGooglePatentData: (state, action) => {
       state.googlePatentData = action.payload;
     },
-      setBibliographyGoogleData: (state, action) => {
-      state.bibliographyGoogleData = action.payload;
+    setReleventBiblioGoogleData: (state, action) => {
+      state.releventBiblioGoogleData = action.payload;
+    },
+    setRelatedBiblioGoogleData: (state, action) => {
+      state.relatedBiblioGoogleData = action.payload;
     },
 
 
@@ -201,17 +206,22 @@ export const fetchGoogleCPCData = async (classNumber, setDefinitionData ) => {
 
 
 
-export const googleBiblioData = async (classNumber, dispatch) => {
+export const googleBiblioData = async (ptnNumber, dispatch, type) => {
 
-  console.log('classNumber', classNumber)
-  const trimmed = classNumber.trim();
+  console.log('ptnNumber', ptnNumber, type)
+  const trimmed = ptnNumber.trim();
   if (!trimmed) throw new Error("Invalid patent number for Google fallback");
 
   try {
     const response = await axios.get(`${BASE_URL}/cpc/google/${encodeURIComponent(trimmed)}`);
 
+    if (type === 'relavent') {
+      dispatch(setReleventBiblioGoogleData(response.data));
+
+    } else if (type === 'related') {
+      dispatch(setRelatedBiblioGoogleData(response.data));
+    }
     console.log('response.datagoogleBiblioData', response.data)
-    dispatch(setBibliographyGoogleData(response.data));
     return response.data;
   } catch (err) {
     console.error('❌ googleBiblioData error:', err.message || err);
@@ -300,7 +310,7 @@ export const fetchLegalStatusData = async (patentNumber, dispatch) => {
 
 export const { setPatentData, setEspaceApiData, resetPatentData, setGoogleApiData, setLensOrgApiData, setFreePatentApiData,
   setPatentLoading, setLensPageUrl, setFetchESPData, setESPData, setFetchLegalStatus, setClassifyData, setChatBoxData,
-  setGooglePatentData, setBibliographyGoogleData,
+  setGooglePatentData, setReleventBiblioGoogleData, setRelatedBiblioGoogleData, 
 } = patentSlice.actions;
 export default patentSlice.reducer;
 

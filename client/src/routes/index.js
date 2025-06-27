@@ -46,6 +46,12 @@ import Dashboard from "../pages/Dashboard/index";
 import ManageEmployees from '../pages/ManageEmployees/index';
 import ManagePrior from '../pages/ManagePriorFormat/index';
 
+
+
+// manage bulk uload
+import ManageBulkUpload from "../pages/ManageBulkUpload/index";
+
+
 ///manage report
 // import ReportTemplate from "../pages/ReportD3";
 // import PageTree from "../pages/ReportD3/PageTree";
@@ -94,6 +100,10 @@ const authProtectedRoutes = [
   // Manage Employees
   { path: "/manage-patent", component: <ManageEmployees /> },
   { path: "/manage-prior-format", component: <ManagePrior /> },
+
+  // Manage Bulk Upload
+  { path: "/manage-bulk-upload", component: <ManageBulkUpload /> },
+
   
   // Manage Conversation
   { path: "/chat-box", component: <ManageChat /> },

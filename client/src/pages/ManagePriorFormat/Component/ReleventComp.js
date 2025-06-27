@@ -15,11 +15,11 @@ const ReleventComp = () => {
 
     const dispatch = useDispatch();
     const data = useSelector(state => state.patentSlice.fetchESPData);
-    const bibliographyGoogleData = useSelector(state => state.patentSlice.bibliographyGoogleData);
+    const releventBiblioGoogleData = useSelector(state => state.patentSlice.releventBiblioGoogleData);
 
-    console.log(bibliographyGoogleData, 'bibliographyGoogleData')
+    console.log(releventBiblioGoogleData, 'releventBiblioGoogleData')
 
-    const googleClassCPC = bibliographyGoogleData.classifications?.map(map => map.leafCode).join(', ');
+    const googleClassCPC = releventBiblioGoogleData.classifications?.map(map => map.leafCode).join(', ');
     console.log('googleClassCPC', googleClassCPC)
 
 
@@ -41,7 +41,7 @@ const ReleventComp = () => {
 
             try {
                 setErrorValidation(false);
-                await googleBiblioData(trimmedNumber, dispatch);
+                await googleBiblioData(trimmedNumber, dispatch, 'relavent');
                 console.log("✅ Google fallback succeeded");
             } catch (googleError) {
                 setErrorValidation(true);
@@ -333,13 +333,11 @@ const formattedDescriptions = convertDescriptionToKeyValue(descriptionText);
                             </motion.button>
                         </Col>
                     </Row>
-                    {console.log('bibliographyGoogleData.title', bibliographyGoogleData.title)}
-
                     {[
-                        { label: 'Publication Number (URL)', value: famId || bibliographyGoogleData.pageUrl, icon: 'fas fa-link', id: 'url', placeholder: 'Enter URL' },
-                        { label: 'Title', value: inventionTitle() || bibliographyGoogleData.title?.trim(), id: 'title', placeholder: 'Enter Title' },
-                        { label: 'Inventor(s)', value: inventorNames || bibliographyGoogleData.inventor, icon: 'fas fa-users', id: 'inventors', placeholder: 'Semicolon (;) separated' },
-                        { label: 'Assignee(s)', value: applicantNames || bibliographyGoogleData.assignees, icon: 'fas fa-user', id: 'assignees', placeholder: 'Comma (,) separated' }
+                        { label: 'Publication Number (URL)', value: famId || releventBiblioGoogleData.pageUrl, icon: 'fas fa-link', id: 'url', placeholder: 'Enter URL' },
+                        { label: 'Title', value: inventionTitle() || releventBiblioGoogleData.title?.trim(), id: 'title', placeholder: 'Enter Title' },
+                        { label: 'Inventor(s)', value: inventorNames || releventBiblioGoogleData.inventor, icon: 'fas fa-users', id: 'inventors', placeholder: 'Semicolon (;) separated' },
+                        { label: 'Assignee(s)', value: applicantNames || releventBiblioGoogleData.assignees, icon: 'fas fa-user', id: 'assignees', placeholder: 'Comma (,) separated' }
                     ].map(({ label, value, icon, id, placeholder }, i) => (
                         <Row key={i} className="mb-3 align-items-center">
                             <Col md={4}><label htmlFor={id} className="form-label fw-semibold">{label}</label></Col>
@@ -366,9 +364,9 @@ const formattedDescriptions = convertDescriptionToKeyValue(descriptionText);
                     ))}
 
                     {[
-                        { label: 'Grant/Publication Date', value: publicationDate() || bibliographyGoogleData.publicationDate , id: 'pubDate' },
-                        { label: 'Filing/Application Date (Optional)', value: applicationDate() || bibliographyGoogleData.applicationDate , id: 'applicationDate' },
-                        { label: 'Priority Date (Optional)', value: priorityDates || bibliographyGoogleData.priorityDate , id: 'priorityDate' }
+                        { label: 'Grant/Publication Date', value: publicationDate() || releventBiblioGoogleData.publicationDate , id: 'pubDate' },
+                        { label: 'Filing/Application Date (Optional)', value: applicationDate() || releventBiblioGoogleData.applicationDate , id: 'applicationDate' },
+                        { label: 'Priority Date (Optional)', value: priorityDates || releventBiblioGoogleData.priorityDate , id: 'priorityDate' }
                     ].map(({ label, value, id }, i) => (
                         <Row key={i} className="mb-3 align-items-center">
                             <Col md={4}><label htmlFor={id} className="form-label fw-semibold">{label}</label></Col>

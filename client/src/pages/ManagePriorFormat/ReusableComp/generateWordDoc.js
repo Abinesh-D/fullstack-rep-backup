@@ -132,7 +132,8 @@ However, this patent explicitly discloses the top mount of the dispenser is twis
                             columnSpan: 2,
                             children: [
                                 new Paragraph({
-                                    children: [createTextRun("*Description not available please fill manually..!", { bold: true, color: typeof filteredDescriptions === 'object' && "FF0000" })],
+                                    children: [createTextRun("", { bold: true, color: typeof filteredDescriptions === 'object' && "FF0000" })],
+                                    // children: [createTextRun("*Description not available please fill manually..!", { bold: true, color: typeof filteredDescriptions === 'object' && "FF0000" })],
                                 }),
                             ],
                             borders: borderNone,
