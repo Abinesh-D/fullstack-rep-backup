@@ -35,6 +35,7 @@ const classifyRoute = require("./routes/classifyRoute");
 const wipoClassRoutes = require("./routes/wipoClassRoutes");
 const chatRoute = require("./routes/chatRoute");
 const cpcGoogleRoutes = require("./routes/cpcGoogleRoutes");
+const bulkBiblioData = require("./routes/bulkBiblioRoute");
 
 // ipc route
 const ipcRoute = require("./routes/ipcRoute");
@@ -49,6 +50,8 @@ app.use("/cpc/classify", classifyRoute)
 app.use("/description/data", descriptionRoute);
 app.use("/api/chatbox", chatRoute);
 app.use("/cpc/google", cpcGoogleRoutes);
+
+app.use("/bulk/biblio", bulkBiblioData)
 
 app.use("/api/classification", wipoClassRoutes);
 

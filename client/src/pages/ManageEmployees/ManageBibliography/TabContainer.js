@@ -223,7 +223,7 @@ console.log('patentSlice :>> ', patentSlice);
 
                 <TabPane tabId="3">
                   <ClassifySearch
-                  // activeTab={activeTab1}
+                  activeTab={activeTab1}
 
                   />
                 </TabPane>

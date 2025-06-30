@@ -25,10 +25,11 @@ const ReleventComp = () => {
 
     const [patentNumber, setPatentNumber] = useState('');
     const [famId, setfamId] = useState("");
+    console.log('famId', famId)
     const [loading, setLoading] = useState(false);
     const [filteredDescriptions, setFilteredDescriptions] = useState({});
     const [errorValidation, setErrorValidation] = useState(false);
-    
+
 
     const handleFetchPatentData = async () => {
         const trimmedNumber = patentNumber.trim();
@@ -69,7 +70,6 @@ const ReleventComp = () => {
     const abstractData = getEnglishAbstract(data.biblio);
 
 
-
     function convertDescriptionToKeyValue(descriptionText) {
         const result = {};
         const text = descriptionText || '';
@@ -89,13 +89,10 @@ const ReleventComp = () => {
         return result;
     };
 
-
-
     const descArray = data.descriptionData?.['world-patent-data']?.['fulltext-documents']?.['fulltext-document']?.description.p;
 
-
-const descriptionText = descArray?.join('\n') || '';
-const formattedDescriptions = convertDescriptionToKeyValue(descriptionText);
+    const descriptionText = descArray?.join('\n') || '';
+    const formattedDescriptions = convertDescriptionToKeyValue(descriptionText);
 
     useEffect(() => {
         if (data?.patentNumber !== undefined) {
@@ -143,6 +140,8 @@ const formattedDescriptions = convertDescriptionToKeyValue(descriptionText);
         return titleData?._ || '';
     }
 
+    const title = inventionTitle();
+
     const applicationDate = () => {
         const docIds = biblioData?.['application-reference']?.['document-id'];
 
@@ -160,6 +159,8 @@ const formattedDescriptions = convertDescriptionToKeyValue(descriptionText);
         return formatDate(epodocDate);
     }
 
+    const aplDate = applicationDate();
+
     const publicationDate = () => {
         const docIds = biblioData?.['publication-reference']?.['document-id'];
 
@@ -176,6 +177,9 @@ const formattedDescriptions = convertDescriptionToKeyValue(descriptionText);
 
         return formatDate(epodocDate);
     }
+
+    const pubDate = publicationDate();
+
 
     const getPriorityDates = (biblioData) => {
         let claims = biblioData?.['priority-claims']?.['priority-claim'];
@@ -250,7 +254,57 @@ const formattedDescriptions = convertDescriptionToKeyValue(descriptionText);
     const ipcFormatted = ipc ? `${ipc}, ` : '';
     const ipcrFormatted = ipcrText ? `${ipcrText}, ` : '';
 
+    const classificationsSymbol = `${ipcrFormatted}${ipcFormatted}${classData.cpc}`;
+
     const famData = mapFamilyMemberData(data);
+
+    const familyMemData = famData?.map(f => f?.familyPatent).join(', ');
+
+    useEffect(() => {
+        const isAnyMissing = [
+            inventorNames,
+            title,
+            applicantNames,
+            pubDate,
+            aplDate,
+            priorityDates,
+            classificationsSymbol,
+            familyMemData,
+            abstractData,
+            filteredDescriptions
+        ].some(
+            (val) =>
+                val === undefined ||
+                val === null ||
+                (typeof val === 'string' && val.trim() === '') ||
+                (Array.isArray(val) && val.length === 0)
+        );
+
+        if (data.biblio && isAnyMissing) {
+            (async () => {
+                try {
+                    console.log(isAnyMissing, 'isAnyMissing')
+                    setErrorValidation(false);
+                    await googleBiblioData(patentNumber.trim(), dispatch, 'relavent');
+                    console.log('✅ Google fallback succeeded');
+                } catch (googleError) {
+                    setErrorValidation(true);
+                    console.error('❌ Google fallback failed:', googleError);
+                }
+            })();
+        }
+    }, [
+        inventorNames,
+        title,
+        applicantNames,
+        pubDate,
+        aplDate,
+        priorityDates,
+        classificationsSymbol,
+        familyMemData,
+        abstractData,
+        filteredDescriptions
+    ]);
 
 
     return (
@@ -273,15 +327,15 @@ const formattedDescriptions = convertDescriptionToKeyValue(descriptionText);
                         onClick={() => generateWordDoc({
                             publicationNumber: patentNumber,
                             publicationUrl: famId,
-                            title: inventionTitle(),
+                            title: title,
                             inventors: inventorNames,
-                            assignees : applicantNames,
-                            publicationDate: publicationDate(),
-                            applicationDate: applicationDate(),
+                            assignees: applicantNames,
+                            publicationDate: pubDate,
+                            applicationDate: aplDate,
                             priorityDate: priorityDates,
-                            ipcCpcClassification: `${ipcrFormatted}${ipcFormatted}${classData.cpc}`,
+                            ipcCpcClassification: classificationsSymbol,
                             // usClassification: classData.US_Classification,
-                            familyMembers: famData?.map(f => f?.familyPatent).join(', '),
+                            familyMembers: familyMemData,
                             abstract: abstractData,
                             filteredDescriptions: filteredDescriptions,
                         })}
@@ -315,7 +369,7 @@ const formattedDescriptions = convertDescriptionToKeyValue(descriptionText);
                                 className="form-control form-control-sm"
                                 id="publicationNum"
                                 value={patentNumber?.trim() || ''}
-                                onChange={(e) => {setPatentNumber(e.target.value); setErrorValidation(false)}}
+                                onChange={(e) => { setPatentNumber(e.target.value); setErrorValidation(false) }}
                                 placeholder="Enter Publication Number"
                                 style={{ border: errorValidation ? '1px solid red' : '' }}
                             />
@@ -335,8 +389,8 @@ const formattedDescriptions = convertDescriptionToKeyValue(descriptionText);
                     </Row>
                     {[
                         { label: 'Publication Number (URL)', value: famId || releventBiblioGoogleData.pageUrl, icon: 'fas fa-link', id: 'url', placeholder: 'Enter URL' },
-                        { label: 'Title', value: inventionTitle() || releventBiblioGoogleData.title?.trim(), id: 'title', placeholder: 'Enter Title' },
-                        { label: 'Inventor(s)', value: inventorNames || releventBiblioGoogleData.inventor, icon: 'fas fa-users', id: 'inventors', placeholder: 'Semicolon (;) separated' },
+                        { label: 'Title', value: title || releventBiblioGoogleData.title?.trim(), id: 'title', placeholder: 'Enter Title' },
+                        { label: 'Inventor(s)', value: inventorNames || releventBiblioGoogleData.inventors, icon: 'fas fa-users', id: 'inventors', placeholder: 'Semicolon (;) separated' },
                         { label: 'Assignee(s)', value: applicantNames || releventBiblioGoogleData.assignees, icon: 'fas fa-user', id: 'assignees', placeholder: 'Comma (,) separated' }
                     ].map(({ label, value, icon, id, placeholder }, i) => (
                         <Row key={i} className="mb-3 align-items-center">
@@ -364,9 +418,9 @@ const formattedDescriptions = convertDescriptionToKeyValue(descriptionText);
                     ))}
 
                     {[
-                        { label: 'Grant/Publication Date', value: publicationDate() || releventBiblioGoogleData.publicationDate , id: 'pubDate' },
-                        { label: 'Filing/Application Date (Optional)', value: applicationDate() || releventBiblioGoogleData.applicationDate , id: 'applicationDate' },
-                        { label: 'Priority Date (Optional)', value: priorityDates || releventBiblioGoogleData.priorityDate , id: 'priorityDate' }
+                        { label: 'Grant/Publication Date', value: pubDate || releventBiblioGoogleData.publicationDate, id: 'pubDate' },
+                        { label: 'Filing/Application Date (Optional)', value: aplDate || releventBiblioGoogleData.applicationDate, id: 'applicationDate' },
+                        { label: 'Priority Date (Optional)', value: priorityDates || releventBiblioGoogleData.priorityDate, id: 'priorityDate' }
                     ].map(({ label, value, id }, i) => (
                         <Row key={i} className="mb-3 align-items-center">
                             <Col md={4}><label htmlFor={id} className="form-label fw-semibold">{label}</label></Col>
@@ -383,9 +437,9 @@ const formattedDescriptions = convertDescriptionToKeyValue(descriptionText);
                     ))}
 
                     {[
-                        { label: 'IPC/CPC Classification', value: `${ipcrFormatted}${ipcFormatted}${classData.cpc}` || googleClassCPC, id: 'ipc' },
+                        { label: 'IPC/CPC Classification', value: classificationsSymbol || googleClassCPC, id: 'ipc' },
                         { label: 'US Classification (Optional)', value: classData.US_Classification, id: 'usClassification' },
-                        { label: 'Family Member(s)', value: famData?.map(f => f?.familyPatent).join(', '), id: 'familyMember' }
+                        { label: 'Family Member(s)', value: familyMemData, id: 'familyMember' }
                     ].map(({ label, value, id }, i) => (
                         <Row key={i} className="mb-3 align-items-center">
                             <Col md={4}><label htmlFor={id} className="form-label fw-semibold">{label}</label></Col>
@@ -406,7 +460,7 @@ const formattedDescriptions = convertDescriptionToKeyValue(descriptionText);
                         <TiffViewer base64Data={data.drawings} />
                     </div> */}
 
-                        {/* <div>
+                    {/* <div>
                             <ParagraphDescription
                                 paragraphData={formattedDescriptions}
                                 filteredDescriptions={filteredDescriptions}
@@ -414,7 +468,7 @@ const formattedDescriptions = convertDescriptionToKeyValue(descriptionText);
                                 patentId={patentNumber}
                             />
                         </div> */}
-                    </motion.form>
+                </motion.form>
 
             )}
         </Container>

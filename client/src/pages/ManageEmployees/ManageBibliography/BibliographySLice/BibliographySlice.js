@@ -12,7 +12,10 @@ const initialState = {
   lensPageUrl: '',
   freePatentApiData: [],
   patentLoading: null,
+
   fetchESPData: [],
+  bulkESPData: [],
+
   espData: [],
   fetchLegalStatus: [],
   classifyData: [],
@@ -53,9 +56,14 @@ const patentSlice = createSlice({
     setPatentLoading: (state, action) => {
       state.patentLoading = action.payload;
     },
+
     setFetchESPData: (state, action) => {
       state.fetchESPData = action.payload;
     },
+    setBulkESPData: (state, action) => {
+      state.bulkESPData = action.payload;
+    },
+
     setFetchLegalStatus: (state, action) => {
       state.fetchLegalStatus = action.payload;
     },
@@ -244,6 +252,8 @@ export const fetchIpcDefinitions = async (commaSeparatedCodes) => {
 };
 
 
+
+// Single Patent Biblio Data
 export const fetchESPData = async (patentNumber, dispatch, type) => {
   try {
     const trimmedNumber = patentNumber.trim();
@@ -289,6 +299,47 @@ export const fetchESPData = async (patentNumber, dispatch, type) => {
 
 
 
+// Bulk Patent Biblio Data
+export const fetchBulkESPData = async (patentNumber, dispatch, type) => {
+  try {
+
+    console.log(patentNumber, 'patentNum')
+    // const trimmedNumber = patentNumber.trim();
+    // if (!trimmedNumber) throw new Error("Patent number is required.");
+
+    const response = await axios.get(`${BASE_URL}/bulk/biblio/${patentNumber}`);
+
+    console.log('fetchESPData', response.data);
+
+    if (response.status === 200 && response.data) {
+      if (type === 'relavent') {
+        dispatch(setBulkESPData(response.data));
+
+      } else if (type === 'related') {
+        dispatch(setESPData(response.data));
+      }
+
+      console.log('response.data :>> ', response.data);
+
+      return response.data;
+    } else {
+      throw new Error("Patent data not found or invalid response.");
+    }
+
+  } catch (error) {
+
+    if (type === 'relavent') {
+      dispatch(setFetchESPData([]));
+    } else if (type === 'related') {
+      dispatch(setESPData([]));
+    }
+
+    console.error("❌ Patent fetch error:", error.message || error);
+    throw error;
+  }
+};
+
+
 export const fetchLegalStatusData = async (patentNumber, dispatch) => {
   try {
     if (!patentNumber) throw new Error("Patent number is required.");
@@ -308,7 +359,7 @@ export const fetchLegalStatusData = async (patentNumber, dispatch) => {
 };
 
 
-export const { setPatentData, setEspaceApiData, resetPatentData, setGoogleApiData, setLensOrgApiData, setFreePatentApiData,
+export const { setPatentData, setEspaceApiData, setBulkESPData, resetPatentData, setGoogleApiData, setLensOrgApiData, setFreePatentApiData,
   setPatentLoading, setLensPageUrl, setFetchESPData, setESPData, setFetchLegalStatus, setClassifyData, setChatBoxData,
   setGooglePatentData, setReleventBiblioGoogleData, setRelatedBiblioGoogleData, 
 } = patentSlice.actions;

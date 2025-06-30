@@ -71,10 +71,8 @@ function formatPatentNumberWithDot(patentNumber) {
         if (/^[A-Z]+$/i.test(kind)) {
             return `${base}${kind.slice(0, -1)}.${kind.slice(-1)}`;
         }
-
         return `${base}.${kind}`;
     }
-
     return formatted;
 };
 
@@ -82,7 +80,6 @@ router.get("/:patentNumber", async (req, res) => {
     const { patentNumber } = req.params;
 
     const patentList = patentNumber.split(",").map(p => p.trim()).filter(Boolean);
-
 
     if (!patentList) {
         return res.status(400).json({ error: "Patent number is required" });
@@ -131,10 +128,7 @@ router.get("/:patentNumber", async (req, res) => {
             };
         }
     }));
-
     res.json(results);
-
-
 });
 
 module.exports = router;

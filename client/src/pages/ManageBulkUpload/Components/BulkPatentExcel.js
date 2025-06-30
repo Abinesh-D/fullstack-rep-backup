@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { useSelector } from 'react-redux';
+import React, { useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import * as XLSX from 'xlsx';
-import {mapFamilyMemberData} from '../ReusableComponent/BulkFunction';
+import { fetchBulkESPData } from '../../ManageEmployees/ManageBibliography/BibliographySLice/BibliographySlice';
+
 
 const styles = {
   page: {
@@ -64,12 +65,13 @@ const styles = {
 
 const ExcelPatentUploader = ({ onUpload }) => {
 
-  const fetchESPData = useSelector(state => state.patentSlice.fetchESPData)
+  const dispatch = useDispatch();
 
+  const bulkESPData = useSelector(state => state.patentSlice.bulkESPData)
+
+  const [famId, setfamId] = useState([]);
   const [fileName, setFileName] = useState(null);
-  const [patentNumbers, setPatentNumbers] = useState([]);
-
-  console.log('ExcelPatentUploader', fetchESPData)
+  const [patentNumbers, setPatentNumbers] = useState("");
 
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
@@ -92,28 +94,46 @@ const ExcelPatentUploader = ({ onUpload }) => {
         .filter((val) => val !== undefined && val !== '')
         .map((val) => String(val).trim());
 
-      setPatentNumbers(extractedNumbers);
-      if (onUpload) onUpload(extractedNumbers);
+      const commaSeparated = extractedNumbers.join(', ');
+
+      setPatentNumbers(commaSeparated);
+      if (onUpload) onUpload(commaSeparated);
+
+      bulkBiblioApiCall(commaSeparated);
+
     };
 
     reader.readAsArrayBuffer(file);
+
+
+  };
+
+
+
+  const bulkBiblioApiCall = async (patentNumbers) => {
+    try {
+      await fetchBulkESPData(patentNumbers, dispatch, "relavent");
+
+    } catch (error) {
+      console.log('error', error)
+    }
   };
 
 
   const extractAbstractText = (abstractData) => {
-      if (!abstractData) return '';
+    if (!abstractData) return '';
 
-      if (Array.isArray(abstractData)) {
-        return abstractData
-          .map(item => item?.p)
-          .filter(Boolean)
-          .join(' ');
-      }
-      if (typeof abstractData === 'object' && abstractData?.p) {
-        return abstractData.p;
-      }
-      return '';
-    };
+    if (Array.isArray(abstractData)) {
+      return abstractData
+        .map(item => item?.p)
+        .filter(Boolean)
+        .join(' ');
+    }
+    if (typeof abstractData === 'object' && abstractData?.p) {
+      return abstractData.p;
+    }
+    return '';
+  };
 
 
   const inventionTitle = (biblioArray) => {
@@ -133,10 +153,133 @@ const ExcelPatentUploader = ({ onUpload }) => {
   };
 
 
+  const publicationDateFunction = (biblioData) => {
+    const docIds = biblioData?.['publication-reference']?.['document-id'];
+
+    const epodocDate = Array.isArray(docIds)
+      ? docIds.find(doc => doc?.$?.['document-id-type'] === 'epodoc')?.date
+      : docIds?.$?.['document-id-type'] === 'epodoc'
+        ? docIds.date
+        : null;
+
+    const formatDate = (dateStr) =>
+      dateStr && /^\d{8}$/.test(dateStr)
+        ? `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6)}`
+        : '';
+
+    return formatDate(epodocDate);
+  }
+
+
+  const applicationDateFunction = (biblioData) => {
+    const docIds = biblioData?.['application-reference']?.['document-id'];
+
+    const epodocDate = Array.isArray(docIds)
+      ? docIds.find(doc => doc?.$?.['document-id-type'] === 'epodoc')?.date
+      : docIds?.$?.['document-id-type'] === 'epodoc'
+        ? docIds.date
+        : null;
+
+    const formatDate = (dateStr) =>
+      dateStr && /^\d{8}$/.test(dateStr)
+        ? `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6)}`
+        : '';
+
+    return formatDate(epodocDate);
+  }
+
+
+  const getPriorityDates = (biblioData) => {
+    let claims = biblioData?.['priority-claims']?.['priority-claim'];
+    if (!claims) return '';
+
+    if (!Array.isArray(claims)) claims = [claims];
+
+    for (const claim of claims) {
+      let doc = claim?.['document-id'];
+      if (!doc) continue;
+
+      if (!Array.isArray(doc)) doc = [doc];
+
+      const epodoc = doc.find(d => d?.$?.['document-id-type'] === 'epodoc');
+      const rawDate = epodoc?.date?.trim();
+
+      if (rawDate && /^\d{8}$/.test(rawDate)) {
+        return `${rawDate.slice(0, 4)}-${rawDate.slice(4, 6)}-${rawDate.slice(6, 8)}`;
+      }
+    }
+    return '';
+  };
+
+
+
+
+  const classifications = (biblioData) => {
+    const patentClassifications = biblioData?.['patent-classifications']?.['patent-classification'];
+
+    if (!Array.isArray(patentClassifications)) {
+      return { cpc: '', US_Classification: '' };
+    }
+
+    const cpcSet = new Set();
+    const usSet = new Set();
+
+    patentClassifications.forEach((item) => {
+      const { 'classification-scheme': scheme, section, class: classValue, subclass, 'main-group': mainGroup, subgroup } = item;
+
+      if (scheme?.$?.scheme === 'CPCI' && section && classValue && subclass && mainGroup && subgroup) {
+        const cpcCode = `${section}${classValue}${subclass}${mainGroup}/${subgroup}`;
+        cpcSet.add(cpcCode);
+      }
+
+      if (scheme?.$?.scheme === 'UC') {
+        const classificationSymbol = item['classification-symbol'];
+        if (classificationSymbol) {
+          usSet.add(classificationSymbol);
+        }
+      }
+    });
+
+    return {
+      cpc: cpcSet.size ? Array.from(cpcSet).join(', ') : '',
+      US_Classification: usSet.size ? Array.from(usSet).join(', ') : ''
+    };
+  };
+
+
+
+
   const normalizeText = text => text?.replace(/\s+/g, '').trim();
 
-  // Family members
-  const mappedValue = fetchESPData.map((map) => {
+
+
+  useEffect(() => {
+    if (!Array.isArray(bulkESPData)) return;
+
+    const result = [];
+
+    for (const map of bulkESPData) {
+      if (!map?.patentNumber) continue;
+
+      const familyMember = map.family?.["world-patent-data"]?.["patent-family"]?.["family-member"];
+      const familyID = Array.isArray(familyMember)
+        ? familyMember[0]?.["$"]?.["family-id"]
+        : familyMember?.["$"]?.["family-id"];
+
+      if (familyID) {
+        result.push({
+          [map.patentNumber]: `https://worldwide.espacenet.com/patent/search/family/0${familyID}/publication/${map.patentNumber}?q=${map.patentNumber}`
+        });
+      }
+    }
+
+    setfamId(result);
+  }, [bulkESPData]);
+
+
+
+  // Bulk Biblio
+  const mappedValue = bulkESPData.map((map) => {
 
     const biblioArray = map?.biblio?.['world-patent-data']?.['exchange-documents']?.['exchange-document']?.['bibliographic-data'];
 
@@ -149,7 +292,6 @@ const ExcelPatentUploader = ({ onUpload }) => {
     const abstractText = extractAbstractText(abstractData);
 
     const invention = inventionTitle(biblioArray);
-
 
     const inventorsData = biblioArray?.parties?.inventors?.inventor;
 
@@ -173,9 +315,7 @@ const ExcelPatentUploader = ({ onUpload }) => {
       return originalInventors.join('; ');
     })();
 
-
     const applicantsData = biblioArray?.parties?.applicants?.applicant;
-
 
     const applicantNames = (() => {
       if (!applicantsData) return '';
@@ -199,23 +339,21 @@ const ExcelPatentUploader = ({ onUpload }) => {
       return originalApplicants.join('; ');
     })();
 
-    console.log('applicantNames', applicantNames)
 
+    const publicationDate = publicationDateFunction(biblioArray);
 
-    const familyMembers = map.familyData?.["world-patent-data"]?.["patent-family"]?.["family-member"];
-    const biblioDoc = map.biblio?.['world-patent-data']?.['exchange-documents']?.['exchange-document']?.['@id'];
+    const applicationDate = applicationDateFunction(biblioArray);
 
-    if (!familyMembers) {
-      return {
-        patentNumber: biblioDoc || "UNKNOWN",
-        familyMembers: []
-      };
-    }
+    const priorityDates = getPriorityDates(biblioArray);
+
+    const cpcClass = classifications(biblioArray);
+
+    const familyMembers = map.family?.["world-patent-data"]?.["patent-family"]?.["family-member"];
 
     const familyMembersArray = Array.isArray(familyMembers) ? familyMembers : [familyMembers];
 
-    const familyData = familyMembersArray.map((familyMember) => {
-      const publications = familyMember["publication-reference"]?.["document-id"] || [];
+    const familyMembersData = familyMembersArray.map((familyMember) => {
+      const publications = familyMember?.["publication-reference"]?.["document-id"] || [];
 
       const publicationInfo = (Array.isArray(publications) ? publications : [publications])
         .filter((doc) => doc?.["$"]?.["document-id-type"] === "docdb")
@@ -223,28 +361,39 @@ const ExcelPatentUploader = ({ onUpload }) => {
         .join('');
 
       return {
-        familyId: familyMember["$"]["family-id"],
+        familyId: familyMember?.["$"]?.["family-id"],
         familyPatent: publicationInfo,
-       
-
-
       };
     });
 
+    console.log('familyMembersData', familyMembersData);
+
+
+
+
     return {
       patentNumber: map.patentNumber,
-      familyMembers: familyData,
+      publicationUrl: (() => {
+        const item = famId.find(obj => obj[map.patentNumber]);
+        return item ? item[map.patentNumber] : '';
+      })(),
+
+      familyMembersData: familyMembersData,
       abstractText: abstractText,
       ipcrText: ipcrText,
+      cpcClass: cpcClass,
       invention: invention,
       inventorNames: inventorNames,
       applicantNames: applicantNames,
-      
+      publicationDate: publicationDate,
+      applicationDate: applicationDate,
+      priorityDates: priorityDates,
+
     };
   });
 
-
-console.log('mappedValue', mappedValue)
+  console.log('mappedValue', mappedValue)
+  const count = patentNumbers?.split(',').map(val => val.trim()).filter(val => val !== '').length || 0;
 
 
   return (
@@ -256,7 +405,16 @@ console.log('mappedValue', mappedValue)
           Upload an Excel (.xls, .xlsx) file with patent numbers in the first column
         </p>
 
-        <label htmlFor="excel-upload" style={styles.uploadBox}>
+        <label htmlFor="excel-upload" style={styles.uploadBox}
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={(e) => {
+            e.preventDefault();
+            const file = e.dataTransfer.files[0];
+            if (file && (file.name.endsWith('.xlsx') || file.name.endsWith('.xls'))) {
+              handleFileUpload({ target: { files: [file] } });
+            }
+          }}
+        >
           <div>📤 Click or drag Excel file here</div>
           <input
             id="excel-upload"
@@ -270,7 +428,7 @@ console.log('mappedValue', mappedValue)
         {fileName && (
           <div style={styles.infoBox}>
             <div><strong>📂 File:</strong> {fileName}</div>
-            <div><strong>🔢 Total Patents:</strong> {patentNumbers.length}</div>
+            <div><strong>🔢 Total Patents:</strong> {count} </div>
           </div>
         )}
       </div>
