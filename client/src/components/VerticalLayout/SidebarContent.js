@@ -98,7 +98,14 @@ const SidebarContent = (props) => {
       iconClass: "bx bxs-parking font-size-15 text-white",
     },
 
-     {
+    {
+      path: "/manage-mapping",
+      label: props.t("Manage Mapping"),
+      iconClass: "mdi mdi-microsoft-word font-size-15 text-white",
+    },
+
+
+    {
       path: "/manage-bulk-upload",
       label: props.t("Bulk Upload"),
       iconClass: "bx bx-bold font-size-15 text-white",

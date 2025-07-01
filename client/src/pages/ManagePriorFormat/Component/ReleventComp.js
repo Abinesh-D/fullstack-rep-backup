@@ -270,8 +270,8 @@ const ReleventComp = () => {
             priorityDates,
             classificationsSymbol,
             familyMemData,
-            abstractData,
-            filteredDescriptions
+            // abstractData,
+            // filteredDescriptions
         ].some(
             (val) =>
                 val === undefined ||
@@ -302,9 +302,11 @@ const ReleventComp = () => {
         priorityDates,
         classificationsSymbol,
         familyMemData,
-        abstractData,
-        filteredDescriptions
+        // abstractData,
+        // filteredDescriptions
     ]);
+
+    const cpcSymbol = releventBiblioGoogleData.classifications?.map(map => map.leafCode)
 
 
     return (
@@ -325,18 +327,18 @@ const ReleventComp = () => {
                 <Col className="d-flex justify-content-end">
                     <button
                         onClick={() => generateWordDoc({
-                            publicationNumber: patentNumber,
-                            publicationUrl: famId,
-                            title: title,
-                            inventors: inventorNames,
-                            assignees: applicantNames,
-                            publicationDate: pubDate,
-                            applicationDate: aplDate,
-                            priorityDate: priorityDates,
-                            ipcCpcClassification: classificationsSymbol,
+                            publicationNumber: patentNumber || releventBiblioGoogleData.patentNumber,
+                            publicationUrl: famId || releventBiblioGoogleData.pageUrl,
+                            title: title || releventBiblioGoogleData.title,
+                            inventors: inventorNames || releventBiblioGoogleData.inventors,
+                            assignees: applicantNames || releventBiblioGoogleData.assignees,
+                            publicationDate: pubDate || releventBiblioGoogleData.publicationDate,
+                            applicationDate: aplDate || releventBiblioGoogleData.applicationDate,
+                            priorityDate: priorityDates || releventBiblioGoogleData.priorityDate,
+                            familyMembers: familyMemData || releventBiblioGoogleData,
+                            abstract: abstractData || releventBiblioGoogleData.abstract,
+                            ipcCpcClassification: classificationsSymbol || cpcSymbol,
                             // usClassification: classData.US_Classification,
-                            familyMembers: familyMemData,
-                            abstract: abstractData,
                             filteredDescriptions: filteredDescriptions,
                         })}
                         className="btn btn-sm btn-outline-primary d-flex align-items-center gap-2"

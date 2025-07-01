@@ -46,7 +46,8 @@ import Dashboard from "../pages/Dashboard/index";
 import ManageEmployees from '../pages/ManageEmployees/index';
 import ManagePrior from '../pages/ManagePriorFormat/index';
 
-
+// Manage Mapping
+import ManageMapping from "../pages/ManageMapping/index";
 
 // manage bulk uload
 import ManageBulkUpload from "../pages/ManageBulkUpload/index";
@@ -70,7 +71,9 @@ import MindMap from "../pages/ManageMindMap/Components/MindMap";
 import ManageChat from '../pages/ManageConversation/index';
 
 // Manage Classification
-import ManageClassification from "../pages/ManageClassifications/index"
+import ManageClassification from "../pages/ManageClassifications/index";
+import MappingProjectCreation from "../pages/ManageMapping/components/MappingProjectCreation";
+
 
 
 //Pages
@@ -83,6 +86,7 @@ import PagesPricing from "../pages/Utility/pages-pricing";
 import Pages404 from "../pages/Utility/pages-404";
 import Pages500 from "../pages/Utility/pages-500";
 import { components } from "react-select";
+import { path } from "d3";
 
 const authProtectedRoutes = [
   { path: "/dashboard", component: <Dashboard /> },
@@ -100,6 +104,11 @@ const authProtectedRoutes = [
   // Manage Employees
   { path: "/manage-patent", component: <ManageEmployees /> },
   { path: "/manage-prior-format", component: <ManagePrior /> },
+
+  // Manage Mapping
+  { path: "/manage-mapping", component: <ManageMapping /> },
+  { path: "/project-mapping-creation", component: <MappingProjectCreation /> },
+
 
   // Manage Bulk Upload
   { path: "/manage-bulk-upload", component: <ManageBulkUpload /> },
