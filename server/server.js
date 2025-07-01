@@ -37,6 +37,8 @@ const chatRoute = require("./routes/chatRoute");
 const cpcGoogleRoutes = require("./routes/cpcGoogleRoutes");
 const bulkBiblioData = require("./routes/bulkBiblioRoute");
 
+
+
 // ipc route
 const ipcRoute = require("./routes/ipcRoute");
 app.use("/api/ipc-definition", ipcRoute);
@@ -51,7 +53,9 @@ app.use("/description/data", descriptionRoute);
 app.use("/api/chatbox", chatRoute);
 app.use("/cpc/google", cpcGoogleRoutes);
 
-app.use("/bulk/biblio", bulkBiblioData)
+app.use("/bulk/biblio", bulkBiblioData);
+
+
 
 app.use("/api/classification", wipoClassRoutes);
 
@@ -63,6 +67,16 @@ app.use("/patent", patentRoutes);
 
 app.use("/api/lens", lensRoutes)
 app.use("/api/espacenet", espRoutes)
+
+
+//  --------------------- LIVE ------------------------------ 
+const liveEspPatentBiblioRoute = require("./routes/liveEspPatentBiblioRoute");
+app.use("/live/espbiblio", liveEspPatentBiblioRoute);
+
+const liveGoogPatentBiblioRoute = require("./routes/liveGooglePatentBiblioRoute");
+app.use("/live/googlebiblio", liveGoogPatentBiblioRoute);
+
+
 
 
 

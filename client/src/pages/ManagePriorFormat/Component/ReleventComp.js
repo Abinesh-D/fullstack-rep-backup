@@ -17,15 +17,10 @@ const ReleventComp = () => {
     const data = useSelector(state => state.patentSlice.fetchESPData);
     const releventBiblioGoogleData = useSelector(state => state.patentSlice.releventBiblioGoogleData);
 
-    console.log(releventBiblioGoogleData, 'releventBiblioGoogleData')
-
     const googleClassCPC = releventBiblioGoogleData.classifications?.map(map => map.leafCode).join(', ');
-    console.log('googleClassCPC', googleClassCPC)
-
 
     const [patentNumber, setPatentNumber] = useState('');
     const [famId, setfamId] = useState("");
-    console.log('famId', famId)
     const [loading, setLoading] = useState(false);
     const [filteredDescriptions, setFilteredDescriptions] = useState({});
     const [errorValidation, setErrorValidation] = useState(false);
@@ -283,7 +278,6 @@ const ReleventComp = () => {
         if (data.biblio && isAnyMissing) {
             (async () => {
                 try {
-                    console.log(isAnyMissing, 'isAnyMissing')
                     setErrorValidation(false);
                     await googleBiblioData(patentNumber.trim(), dispatch, 'relavent');
                     console.log('✅ Google fallback succeeded');

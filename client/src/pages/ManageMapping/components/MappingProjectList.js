@@ -22,18 +22,18 @@ import { ToastContainer } from "react-toastify";
 import ProjectModal from "../ReusableComponents/ProjectModal ";
 
 const projectTypeOptions = [
-  { value: "1", label: "Quick Patentability Report" },
-  { value: "2", label: "Novelty/Patentability Report" },
-  { value: "3", label: "Quick Invalidity Report" },
-  { value: "4", label: "FTO Report - Chemistry" },
-  { value: "5", label: "FTO Report - Life Science" },
+    { value: "1", label: "Quick Patentability Report" },
+    { value: "2", label: "Novelty/Patentability Report" },
+    { value: "3", label: "Quick Invalidity Report" },
+    { value: "4", label: "FTO Report - Chemistry" },
+    { value: "5", label: "FTO Report - Life Science" },
 ];
 
 
 const ContactsList = () => {
 
-  //meta title
-  document.title = "Project List | MCRPL";
+    //meta title
+    document.title = "Project List | MCRPL";
 
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -46,7 +46,7 @@ const ContactsList = () => {
 
     const toggle = () => {
         setModal(!modal);
-    } 
+    }
 
     const handleCreate = () => {
         console.log("Project Name:", projectName);
@@ -191,11 +191,11 @@ const ContactsList = () => {
                                 to="/project-mapping-creation"
                                 className="text-success"
 
-                                onClick={() => {handleGo(rowData)}}
+                                onClick={() => { handleGo(rowData) }}
                             >
                                 <Button
                                     size="sm"
-                                    color="primary"                                    
+                                    color="primary"
                                 >
                                     Go &rarr;
                                 </Button>

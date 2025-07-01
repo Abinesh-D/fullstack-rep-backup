@@ -83,7 +83,7 @@ router.get("/:patentNumber", async (req, res) => {
 
   try {
     const formattedNumber = formatPatentNumberWithDot(patentNumber);
-    console.log(formattedNumber, 'formattedNumber')
+    console.log(formattedNumber, 'formattedNumber', "espPatentRoute")
 
     const token = await getAccessToken();
     const familyUrl = `https://ops.epo.org/3.2/rest-services/family/publication/docdb/${formattedNumber}`;

@@ -25,6 +25,11 @@ const initialState = {
   relatedBiblioGoogleData: [],
 
 
+  // LIVE INITIAL STATE
+  liveEpoRelevantData: [],
+  liveEpoRelatedData: [],
+  liveGoogleRelevantData: [],
+  liveGoogleRelatedData: [],
 };
 
 
@@ -86,6 +91,21 @@ const patentSlice = createSlice({
       state.relatedBiblioGoogleData = action.payload;
     },
 
+    // LIVE SET STATE
+
+    setLiveEpoRelevantData: (state, action) => {
+      state.liveEpoRelevantData = action.payload;
+    },
+    setLiveEpoRelatedData: (state, action) => {
+      state.liveEpoRelatedData = action.payload;
+    },
+    setLiveGoogleRelevantData: (state, action) => {
+      state.liveGoogleRelevantData = action.payload;
+    },
+    setLiveGoogleRelatedData: (state, action) => {
+      state.liveGoogleRelatedData = action.payload;
+    },
+
 
     resetPatentData: () => initialState,
   },
@@ -99,7 +119,6 @@ export const retrieveChatBoxData = async (message, dispatch) => {
   try {
     const response = await axios.post(`${BASE_URL}/api/chatbox/chat`, { message: message });
 
-    console.log(response, 'responsefor chat')
     if (response.status === 200 && response.data) {
       dispatch(setChatBoxData(response.data));
     }
@@ -115,9 +134,6 @@ export const retrieveClassificationData = async (classifyNumber, dispatch, setSh
   try {
     if (!classifyNumber) throw new Error("Patent number is required.");
     const response = await axios.get(`${BASE_URL}/cpc/classify/${encodeURIComponent(classifyNumber)}`);
-
-
-    console.log('classifyNumberResponse', response.data);
 
     if (response.status === 200 && response.data) {
       dispatch(setClassifyData(response.data));
@@ -140,11 +156,8 @@ export const retrieveEspacePatentData = async (patentNumber, dispatch, setShowAl
 
     const response = await axios.get(`${BASE_URL}/api/espacenet/${trimmedNumber}`);
 
-    console.log('retrieveEspacePatentData', response.data);
-
     if (response.status === 200 && response.data) {
       dispatch(setEspaceApiData(response.data));
-      console.log('response.data :>> ', response.data);
 
       if (setShowAlert) setShowAlert(true);
       return response.data;
@@ -166,8 +179,6 @@ export const retrieveLensPatentData = (patentNumber, dispatch, setShowAlert) => 
       const res = await axios.post(`${BASE_URL}/api/lens/get-patent-data`, {
         patentNumber: patentNumber.trim()
       });
-      console.log('res.data :>> ', res.data);
-
       const { formattedData, fullData, url } = res.data;
       if (res.status === 200) {
         dispatch(setLensOrgApiData(formattedData));
@@ -188,7 +199,6 @@ export const fetchGooglePatentData = async (patentNumber, dispatch) => {
   try {
     const response = await axios.get(`${BASE_URL}/patent/${patentNumber.trim()}`);
 
-    console.log('fetchGooglePatentData', response.data);
     dispatch(setGoogleApiData(response.data));
   } catch (err) {
     console.error('Error fetching patent data:', err);
@@ -200,10 +210,8 @@ export const fetchGooglePatentData = async (patentNumber, dispatch) => {
 
 // Google CPC fetch against Patent number
 export const fetchGoogleCPCData = async (classNumber, setDefinitionData ) => {
-  console.log(classNumber, 'fetchGoogleCPCData')
   try {
     const response = await axios.get(`${BASE_URL}/cpc/google/${classNumber.trim()}`);
-    console.log(response.data, 'responseresponseresponse')
     setDefinitionData(response.data || []);
 
   } catch (err) {
@@ -216,7 +224,6 @@ export const fetchGoogleCPCData = async (classNumber, setDefinitionData ) => {
 
 export const googleBiblioData = async (ptnNumber, dispatch, type) => {
 
-  console.log('ptnNumber', ptnNumber, type)
   const trimmed = ptnNumber.trim();
   if (!trimmed) throw new Error("Invalid patent number for Google fallback");
 
@@ -229,7 +236,6 @@ export const googleBiblioData = async (ptnNumber, dispatch, type) => {
     } else if (type === 'related') {
       dispatch(setRelatedBiblioGoogleData(response.data));
     }
-    console.log('response.datagoogleBiblioData', response.data)
     return response.data;
   } catch (err) {
     console.error('❌ googleBiblioData error:', err.message || err);
@@ -261,8 +267,6 @@ export const fetchESPData = async (patentNumber, dispatch, type) => {
 
     const response = await axios.get(`${BASE_URL}/esp/patentdata/${trimmedNumber}`);
 
-    console.log('fetchESPData', response.data);
-
     if (response.status === 200 && response.data) {
       if (type === 'relavent') {
         dispatch(setFetchESPData(response.data));
@@ -270,8 +274,6 @@ export const fetchESPData = async (patentNumber, dispatch, type) => {
       } else if (type === 'related') {
         dispatch(setESPData(response.data));
       }
-
-      console.log('response.data :>> ', response.data);
 
       return response.data;
     } else {
@@ -298,18 +300,14 @@ export const fetchESPData = async (patentNumber, dispatch, type) => {
 };
 
 
-
 // Bulk Patent Biblio Data
 export const fetchBulkESPData = async (patentNumber, dispatch, type) => {
   try {
 
-    console.log(patentNumber, 'patentNum')
     // const trimmedNumber = patentNumber.trim();
     // if (!trimmedNumber) throw new Error("Patent number is required.");
 
     const response = await axios.get(`${BASE_URL}/bulk/biblio/${patentNumber}`);
-
-    console.log('fetchESPData', response.data);
 
     if (response.status === 200 && response.data) {
       if (type === 'relavent') {
@@ -318,8 +316,6 @@ export const fetchBulkESPData = async (patentNumber, dispatch, type) => {
       } else if (type === 'related') {
         dispatch(setESPData(response.data));
       }
-
-      console.log('response.data :>> ', response.data);
 
       return response.data;
     } else {
@@ -359,9 +355,72 @@ export const fetchLegalStatusData = async (patentNumber, dispatch) => {
 };
 
 
+
+// ------------------ REPORT MAKING API'S ----------------------
+
+// RELEVANT DATA API
+
+export const EPO_API_DATA = async (patentNumber, dispatch, type) => {
+  try {
+    const trimmedNumber = patentNumber.trim();
+    if (!trimmedNumber) throw new Error("Patent number is required.");
+
+    const response = await axios.get(`${BASE_URL}/live/espbiblio/${trimmedNumber}`);
+
+    if (response.status === 200 && response.data) {
+      if (type === 'relavent') {
+        dispatch(setLiveEpoRelevantData(response.data));
+
+      } else if (type === 'related') {
+        dispatch(setLiveEpoRelatedData(response.data));
+      }
+
+      return response.data;
+    } else {
+      throw new Error("Patent data not found or invalid response.");
+    }
+
+  } catch (error) {
+
+    if (type === 'relavent') {
+      dispatch(setLiveEpoRelevantData([]));
+    } else if (type === 'related') {
+      dispatch(setLiveEpoRelatedData([]));
+    }
+    console.error("❌ Patent fetch error:", error.message || error);
+    throw error;
+  }
+};
+
+
+// LIVE GOOGLE API CALL
+export const GOOGLE_API_DATA = async (ptnNumber, dispatch, type) => {
+
+  const trimmed = ptnNumber.trim();
+  if (!trimmed) throw new Error("Invalid patent number for Google fallback");
+
+  try {
+    const response = await axios.get(`${BASE_URL}/live/googlebiblio/${encodeURIComponent(trimmed)}`);
+
+    if (type === 'relavent') {
+      dispatch(setReleventBiblioGoogleData(response.data));
+
+    } else if (type === 'related') {
+      dispatch(setRelatedBiblioGoogleData(response.data));
+    }
+    return response.data;
+  } catch (err) {
+    console.error('❌ googleBiblioData error:', err.message || err);
+    throw err;
+  }
+};
+
 export const { setPatentData, setEspaceApiData, setBulkESPData, resetPatentData, setGoogleApiData, setLensOrgApiData, setFreePatentApiData,
   setPatentLoading, setLensPageUrl, setFetchESPData, setESPData, setFetchLegalStatus, setClassifyData, setChatBoxData,
-  setGooglePatentData, setReleventBiblioGoogleData, setRelatedBiblioGoogleData, 
+  setGooglePatentData, setReleventBiblioGoogleData, setRelatedBiblioGoogleData,
+  
+  // LIVE STATE EXPORT
+  setLiveEpoRelevantData, setLiveEpoRelatedData, setLiveGoogleRelevantData, setLiveGoogleRelatedData
 } = patentSlice.actions;
 export default patentSlice.reducer;
 

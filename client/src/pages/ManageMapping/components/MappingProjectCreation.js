@@ -1,18 +1,319 @@
-import React, { useState } from "react";
-import { Card, CardBody, Col, Container, Form, Input, Label, NavItem, NavLink, Row, TabContent, TabPane, Button } from "reactstrap";
+import React, { useState, useEffect } from "react";
+import { Card, CardBody, Col, Container, Form, Input, Label, NavItem, NavLink, Row, TabContent, TabPane, Button, Spinner } from "reactstrap";
 import classnames from "classnames";
 import { Link } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
 import Breadcrumbs from "../../../components/Common/Breadcrumb";
+
+import { GOOGLE_API_DATA, EPO_API_DATA } from "../../ManageEmployees/ManageBibliography/BibliographySLice/BibliographySlice";
+import { mapFamilyMemberData } from "../../ManagePriorFormat/ReusableComp/Functions";
+
 
 const MappingProjectCreation = () => {
 
-    //meta title
+    const dispatch = useDispatch();
+    const data = useSelector(state => state.patentSlice.liveEpoRelevantData);
+    const releventBiblioGoogleData = useSelector(state => state.patentSlice.liveGoogleRelevantData);
 
+    //meta title
     document.title = "Project Form | MCRPL";
 
-    const [activeTab, setactiveTab] = useState(1)
+    const [activeTab, setactiveTab] = useState(1);
+    const [passedSteps, setPassedSteps] = useState([1]);
 
-    const [passedSteps, setPassedSteps] = useState([1])
+    const [analystComments, setAnalystComments] = useState('');
+    const [relevantExcerpts, setRelevantExcerpts] = useState('');
+
+    const googleClassCPC = releventBiblioGoogleData.classifications?.map(map => map.leafCode).join(', ');
+
+    const [patentNumber, setPatentNumber] = useState('');
+    const [famId, setfamId] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [filteredDescriptions, setFilteredDescriptions] = useState({});
+    const [errorValidation, setErrorValidation] = useState(false);
+
+
+    const handleFetchPatentData = async () => {
+        const trimmedNumber = patentNumber.trim();
+        setLoading(true);
+        try {
+            await EPO_API_DATA(trimmedNumber, dispatch, 'relavent');
+        } catch (error) {
+            setErrorValidation(true);
+            setfamId("");
+
+            try {
+                setErrorValidation(false);
+                await GOOGLE_API_DATA(trimmedNumber, dispatch, 'relavent');
+                console.log("✅ Google fallback succeeded");
+            } catch (googleError) {
+                setErrorValidation(true);
+                console.error("❌ Google fallback failed:", googleError);
+            }
+
+            console.error("Espacenet fetch error:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
+
+    
+        function getEnglishAbstract(biblio) {
+            const abstractArray = biblio?.['world-patent-data']?.['exchange-documents']?.['exchange-document']?.abstract;
+            if (Array.isArray(abstractArray)) {
+                const englishEntry = abstractArray.find(entry => entry?.$?.lang === 'en');
+                return englishEntry?.p || 'No English abstract found.';
+            } else if (typeof abstractArray === 'object') {
+                return abstractArray.p;
+            }
+    
+            return null;
+        }
+    
+        const abstractData = getEnglishAbstract(data.biblio);
+    
+    
+        function convertDescriptionToKeyValue(descriptionText) {
+            const result = {};
+            const text = descriptionText || '';
+    
+            const matches = text.matchAll(/\[\d{4}\][\s\S]*?(?=\[\d{4}\]|$)/g);
+    
+            for (const match of matches) {
+                const entry = match[0].trim();
+                const keyMatch = entry.match(/^\[(\d{4})\]/);
+                if (keyMatch) {
+                    const key = keyMatch[1];
+                    const value = entry.replace(/^\[\d{4}\]/, '').trim();
+                    result[key] = value;
+                }
+            }
+    
+            return result;
+        };
+    
+        const descArray = data.descriptionData?.['world-patent-data']?.['fulltext-documents']?.['fulltext-document']?.description.p;
+    
+        const descriptionText = descArray?.join('\n') || '';
+        const formattedDescriptions = convertDescriptionToKeyValue(descriptionText);
+    
+        useEffect(() => {
+            if (data?.patentNumber !== undefined) {
+                let familyIDs = [];
+                const familyMember = data.familyData?.["world-patent-data"]?.["patent-family"]?.["family-member"];
+                if (Array.isArray(familyMember)) {
+                    familyIDs = data.familyData["world-patent-data"]?.["patent-family"]?.["family-member"][0]?.["$"]?.["family-id"];
+                } else if (typeof familyMember === 'object') {
+                    familyIDs = data.familyData["world-patent-data"]?.["patent-family"]?.["family-member"]?.["$"]?.["family-id"];
+                }
+                setfamId(`https://worldwide.espacenet.com/patent/search/family/0${familyIDs}/publication/${data?.patentNumber}?q=${data?.patentNumber}`);
+            }
+        }, [data])
+    
+        const biblioData = data?.biblio?.['world-patent-data']?.['exchange-documents']?.['exchange-document']?.['bibliographic-data'];
+    
+        const inventorsData = biblioData?.parties?.inventors?.inventor;
+    
+        const inventorsArray = Array.isArray(inventorsData) ? inventorsData : inventorsData ? [inventorsData] : [];
+    
+        const inventorNames = inventorsArray.filter(item =>
+            ['epodoc', 'original', 'docdb'].includes(item?.$?.['data-format'])).map(item => item?.['inventor-name']?.name
+                ?.replace(/,\s*;/g, ';')?.replace(/,\s*$/, '')?.trim()).filter(Boolean).join('; ');
+    
+        const applicantsData = biblioData?.parties?.applicants?.applicant;
+    
+        const applicantsArray = Array.isArray(applicantsData) ? applicantsData : applicantsData ? [applicantsData] : [];
+    
+        const applicantNames = applicantsArray.filter(app => ['epodoc', 'original', 'docdb'].includes(app?.$?.['data-format']))
+            .map(app => app?.['applicant-name']?.name?.replace(/,+$/, '').trim()).filter(Boolean).join(', ');
+    
+        const inventionTitle = () => {
+            const titleData = biblioData?.['invention-title'];
+    
+            if (Array.isArray(titleData)) {
+                const enTitle = titleData.find(t => t?.$?.lang === 'en');
+                if (enTitle) {
+                    return enTitle._ || '';
+                }
+                return titleData[0]._ || '';
+            }
+            else if (titleData?.$?.lang === 'en') {
+                return titleData._ || '';
+            }
+            return titleData?._ || '';
+        }
+    
+        const title = inventionTitle();
+    
+        const applicationDate = () => {
+            const docIds = biblioData?.['application-reference']?.['document-id'];
+    
+            const epodocDate = Array.isArray(docIds)
+                ? docIds.find(doc => doc?.$?.['document-id-type'] === 'epodoc')?.date
+                : docIds?.$?.['document-id-type'] === 'epodoc'
+                    ? docIds.date
+                    : null;
+    
+            const formatDate = (dateStr) =>
+                dateStr && /^\d{8}$/.test(dateStr)
+                    ? `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6)}`
+                    : '';
+    
+            return formatDate(epodocDate);
+        }
+    
+        const aplDate = applicationDate();
+    
+        const publicationDate = () => {
+            const docIds = biblioData?.['publication-reference']?.['document-id'];
+    
+            const epodocDate = Array.isArray(docIds)
+                ? docIds.find(doc => doc?.$?.['document-id-type'] === 'epodoc')?.date
+                : docIds?.$?.['document-id-type'] === 'epodoc'
+                    ? docIds.date
+                    : null;
+    
+            const formatDate = (dateStr) =>
+                dateStr && /^\d{8}$/.test(dateStr)
+                    ? `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6)}`
+                    : '';
+    
+            return formatDate(epodocDate);
+        }
+    
+        const pubDate = publicationDate();
+    
+    
+        const getPriorityDates = (biblioData) => {
+            let claims = biblioData?.['priority-claims']?.['priority-claim'];
+            if (!claims) return '';
+    
+            if (!Array.isArray(claims)) claims = [claims];
+    
+            for (const claim of claims) {
+                let doc = claim?.['document-id'];
+                if (!doc) continue;
+    
+                if (!Array.isArray(doc)) doc = [doc];
+    
+                const epodoc = doc.find(d => d?.$?.['document-id-type'] === 'epodoc');
+                const rawDate = epodoc?.date?.trim();
+    
+                if (rawDate && /^\d{8}$/.test(rawDate)) {
+                    return `${rawDate.slice(0, 4)}-${rawDate.slice(4, 6)}-${rawDate.slice(6, 8)}`;
+                }
+            }
+            return '';
+        };
+    
+        const priorityDates = getPriorityDates(biblioData);
+    
+        const classifications = () => {
+            const patentClassifications = biblioData?.['patent-classifications']?.['patent-classification'];
+    
+            if (!Array.isArray(patentClassifications)) {
+                return { cpc: '', US_Classification: '' };
+            }
+    
+            const cpcSet = new Set();
+            const usSet = new Set();
+    
+            patentClassifications.forEach((item) => {
+                const { 'classification-scheme': scheme, section, class: classValue, subclass, 'main-group': mainGroup, subgroup } = item;
+    
+                if (scheme?.$?.scheme === 'CPCI' && section && classValue && subclass && mainGroup && subgroup) {
+                    const cpcCode = `${section}${classValue}${subclass}${mainGroup}/${subgroup}`;
+                    cpcSet.add(cpcCode);
+                }
+    
+                if (scheme?.$?.scheme === 'UC') {
+                    const classificationSymbol = item['classification-symbol'];
+                    if (classificationSymbol) {
+                        usSet.add(classificationSymbol);
+                    }
+                }
+            });
+    
+            return {
+                cpc: cpcSet.size ? Array.from(cpcSet).join(', ') : '',
+                US_Classification: usSet.size ? Array.from(usSet).join(', ') : ''
+            };
+        };
+    
+        const classData = classifications();
+    
+        const ipcrRaw = biblioData?.['classifications-ipcr']?.['classification-ipcr'];
+        const ipc = biblioData?.['classification-ipc']?.text || '';
+    
+        const extractIPCCode = (text) => {
+            const match = text?.match(/[A-H][0-9]{2}[A-Z]\s*\d+\/\s*\d+/);
+            return match ? match[0].replace(/\s+/g, '') : '';
+        };
+    
+        const ipcrText = Array.isArray(ipcrRaw)
+            ? ipcrRaw.map(item => extractIPCCode(item?.text)).filter(Boolean).join(', ')
+            : extractIPCCode(ipcrRaw?.text) || '';
+    
+        const ipcFormatted = ipc ? `${ipc}, ` : '';
+        const ipcrFormatted = ipcrText ? `${ipcrText}, ` : '';
+    
+        const classificationsSymbol = `${ipcrFormatted}${ipcFormatted}${classData.cpc}`;
+    
+        const famData = mapFamilyMemberData(data);
+    
+        const familyMemData = famData?.map(f => f?.familyPatent).join(', ');
+    
+        useEffect(() => {
+            const isAnyMissing = [
+                inventorNames,
+                title,
+                applicantNames,
+                pubDate,
+                aplDate,
+                priorityDates,
+                classificationsSymbol,
+                familyMemData,
+                // abstractData,
+                // filteredDescriptions
+            ].some(
+                (val) =>
+                    val === undefined ||
+                    val === null ||
+                    (typeof val === 'string' && val.trim() === '') ||
+                    (Array.isArray(val) && val.length === 0)
+            );
+    
+            if (data.biblio && isAnyMissing) {
+                (async () => {
+                    try {
+                        setErrorValidation(false);
+                        await GOOGLE_API_DATA(patentNumber.trim(), dispatch, 'relavent');
+                        console.log('✅ Google fallback succeeded');
+                    } catch (googleError) {
+                        setErrorValidation(true);
+                        console.error('❌ Google fallback failed:', googleError);
+                    }
+                })();
+            }
+        }, [
+            inventorNames,
+            title,
+            applicantNames,
+            pubDate,
+            aplDate,
+            priorityDates,
+            classificationsSymbol,
+            familyMemData,
+            // abstractData,
+            // filteredDescriptions
+        ]);
+    
+        const cpcSymbol = releventBiblioGoogleData.classifications?.map(map => map.leafCode)
+    
+
+
 
     function toggleTab(tab) {
         if (activeTab !== tab) {
@@ -23,7 +324,6 @@ const MappingProjectCreation = () => {
             }
         }
     }
-
 
 
     return (
@@ -149,7 +449,12 @@ const MappingProjectCreation = () => {
 
                                                 <TabPane tabId={2}>
                                                     <h4 className="fw-bold mb-4">1. Publication Details</h4>
-                                                    <Form>
+                                                    { loading ? 
+                                                        <div className="blur-loading-overlay text-center mt-4">
+                                                            <Spinner color="primary" />
+                                                            <p className="mt-2 text-primary">Loading Relevant References...</p>
+                                                        </div> : 
+                                                         <Form>
                                                         <Row>
                                                             <Col lg="4">
                                                                 <div className="mb-3">
@@ -159,12 +464,16 @@ const MappingProjectCreation = () => {
                                                                         id="publication-number"
                                                                         className="form-control"
                                                                         placeholder="Enter Publication Number"
-                                                                    />
-                                                                </div>
-                                                            </Col>
-                                                            <Col lg="2 d-grid align-items-end">
+                                                                        value={data.patentNumber || ''}
+                                                                        onChange={(e) => { setPatentNumber(e.target.value); setErrorValidation(false) }}
+                                                                        style={{ border: errorValidation ? '1px solid red' : '' }}
+                                                                        />
+
+                                                                    </div>
+                                                                </Col>
+                                                                <Col className="d-grid align-items-end">
                                                                 <div className="mb-3">
-                                                                    <Button color="success" className="w-100">Submit</Button>
+                                                                    <Button color="success" onClick={handleFetchPatentData} className="w-100">Submit</Button>
                                                                 </div>
                                                             </Col>
 
@@ -176,6 +485,7 @@ const MappingProjectCreation = () => {
                                                                         id="publication-url"
                                                                         className="form-control"
                                                                         placeholder="Enter Publication Number URL"
+                                                                        value={famId || releventBiblioGoogleData.pageUrl}
                                                                     />
                                                                 </div>
                                                             </Col>
@@ -191,6 +501,7 @@ const MappingProjectCreation = () => {
                                                                         id="title"
                                                                         className="form-control"
                                                                         placeholder="Enter Title"
+                                                                        value={title || releventBiblioGoogleData.title?.trim()}
                                                                     />
                                                                 </div>
                                                             </Col>
@@ -202,6 +513,7 @@ const MappingProjectCreation = () => {
                                                                         id="filing-date"
                                                                         className="form-control"
                                                                         placeholder="dd-mm-yyyy"
+                                                                        value={aplDate || releventBiblioGoogleData.applicationDate}
                                                                     />
                                                                 </div>
                                                             </Col>
@@ -216,6 +528,7 @@ const MappingProjectCreation = () => {
                                                                         id="assignees"
                                                                         className="form-control"
                                                                         placeholder="Enter Assignees: Comma(,) Separated Values"
+                                                                        value={applicantNames || releventBiblioGoogleData.assignees}
                                                                     />
                                                                 </div>
                                                             </Col>
@@ -228,6 +541,7 @@ const MappingProjectCreation = () => {
                                                                         id="grant-date"
                                                                         className="form-control"
                                                                         placeholder="dd-mm-yyyy"
+                                                                        value={pubDate || releventBiblioGoogleData.publicationDate}
                                                                     />
                                                                 </div>
                                                             </Col>
@@ -242,6 +556,7 @@ const MappingProjectCreation = () => {
                                                                         id="inventors"
                                                                         className="form-control"
                                                                         placeholder="Enter Inventors: Semicolon(;) Separated Values"
+                                                                        value={inventorNames || releventBiblioGoogleData.inventors}
                                                                     />
                                                                 </div>
                                                             </Col>
@@ -254,6 +569,7 @@ const MappingProjectCreation = () => {
                                                                         id="priority-date"
                                                                         className="form-control"
                                                                         placeholder="dd-mm-yyyy"
+                                                                        value={priorityDates || releventBiblioGoogleData.priorityDate}
                                                                     />
                                                                 </div>
                                                             </Col>
@@ -268,6 +584,7 @@ const MappingProjectCreation = () => {
                                                                         id="ipc-cpc"
                                                                         className="form-control"
                                                                         placeholder="Enter IPC/CPC Classification: Comma(,) Separated Values"
+                                                                        value={classificationsSymbol || googleClassCPC}
                                                                     />
                                                                 </div>
                                                             </Col>
@@ -294,45 +611,50 @@ const MappingProjectCreation = () => {
                                                                         className="form-control"
                                                                         rows="3"
                                                                         placeholder="Enter Family Members: Comma(,) Separated Values"
+                                                                        value={familyMemData}
                                                                     />
                                                                 </div>
-                                                            </Col>
-                                                        </Row>
-                                                        <Row>
-                                                            <Col lg="12">
-                                                                <div className="mb-3">
-                                                                    <Label for="analyst-comments">Analyst Comments</Label>
-                                                                    <textarea
-                                                                        id="analyst-comments"
-                                                                        className="form-control"
-                                                                        rows="3"
-                                                                        placeholder="Enter Comments"
-                                                                    />
-                                                                </div>
-                                                            </Col>
-                                                        </Row>
+                                                                </Col>
+                                                            </Row>
+                                                            <Row>
+                                                                <Col lg="12">
+                                                                    <div className="mb-3">
+                                                                        <Label for="analyst-comments">Analyst Comments</Label>
+                                                                        <textarea
+                                                                            id="analyst-comments"
+                                                                            className="form-control"
+                                                                            rows="3"
+                                                                            placeholder="Enter Comments"
+                                                                            value={analystComments}
+                                                                            onChange={(e) => setAnalystComments(e.target.value)}
+                                                                        />
+                                                                    </div>
+                                                                </Col>
+                                                            </Row>
 
-                                                        <Row>
-
-                                                            <Col lg="12">
-                                                                <div className="mb-3">
-                                                                    <Label for="relevant-excerpts">Relevant Excerpts</Label>
-                                                                    <textarea
-                                                                        id="relevant-excerpts"
-                                                                        className="form-control"
-                                                                        rows="3"
-                                                                        placeholder="Enter Relevant Excerpts"
-                                                                    />
-                                                                </div>
-                                                            </Col>
-
-                                                        </Row>
-                                                        <Col lg="2">
+                                                            <Row>
+                                                                <Col lg="12">
+                                                                    <div className="mb-3">
+                                                                        <Label for="relevant-excerpts">Relevant Excerpts</Label>
+                                                                        <textarea
+                                                                            id="relevant-excerpts"
+                                                                            className="form-control"
+                                                                            rows="3"
+                                                                            placeholder="Enter Relevant Excerpts"
+                                                                            value={relevantExcerpts}
+                                                                            onChange={(e) => setRelevantExcerpts(e.target.value)}
+                                                                        />
+                                                                    </div>
+                                                                </Col>
+                                                            </Row>
+                                                            <Col lg="2">
                                                             <div className="mb-3">
                                                                 <Button color="info" className="w-100">+ Add Relevant </Button>
                                                             </div>
                                                         </Col>
                                                     </Form>
+                                                    }
+                                                   
                                                     <p>TableContainer for relevant</p>
 
 
