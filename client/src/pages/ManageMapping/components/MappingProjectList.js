@@ -41,6 +41,7 @@ const ContactsList = () => {
     const [modal, setModal] = useState(false);
     const [projectName, setProjectName] = useState('');
     const [projectType, setProjectType] = useState('');
+    
     const [newProject, setNewProject] = useState("");
 
 

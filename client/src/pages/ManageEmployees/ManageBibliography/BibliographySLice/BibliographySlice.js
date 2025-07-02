@@ -403,10 +403,10 @@ export const GOOGLE_API_DATA = async (ptnNumber, dispatch, type) => {
     const response = await axios.get(`${BASE_URL}/live/googlebiblio/${encodeURIComponent(trimmed)}`);
 
     if (type === 'relavent') {
-      dispatch(setReleventBiblioGoogleData(response.data));
+      dispatch(setLiveGoogleRelevantData(response.data));
 
     } else if (type === 'related') {
-      dispatch(setRelatedBiblioGoogleData(response.data));
+      dispatch(setLiveGoogleRelatedData(response.data));
     }
     return response.data;
   } catch (err) {

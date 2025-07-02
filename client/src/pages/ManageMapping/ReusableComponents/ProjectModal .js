@@ -20,6 +20,9 @@ const ProjectModal = ({
     onCreate,
     projectTypeOptions
 }) => {
+
+
+
     return (
         <Modal isOpen={isOpen} toggle={toggle} centered>
             <ModalHeader toggle={toggle}>Create New Project</ModalHeader>
@@ -45,7 +48,7 @@ const ProjectModal = ({
                     >
                         <option value="">--Select Report Type--</option>
                         {projectTypeOptions.map((type) => (
-                            <option key={type.value} value={type.value}>
+                            <option key={type.value} value={type.label}>
                                 {type.label}
                             </option>
                         ))}

@@ -103,7 +103,7 @@ const ReleventComp = () => {
     }, [data])
 
     const biblioData = data?.biblio?.['world-patent-data']?.['exchange-documents']?.['exchange-document']?.['bibliographic-data'];
-
+    console.log(biblioData, "relevantbiblioData")
     const inventorsData = biblioData?.parties?.inventors?.inventor;
 
     const inventorsArray = Array.isArray(inventorsData) ? inventorsData : inventorsData ? [inventorsData] : [];
@@ -300,8 +300,6 @@ const ReleventComp = () => {
         // filteredDescriptions
     ]);
 
-    const cpcSymbol = releventBiblioGoogleData.classifications?.map(map => map.leafCode)
-
 
     return (
 
@@ -331,7 +329,7 @@ const ReleventComp = () => {
                             priorityDate: priorityDates || releventBiblioGoogleData.priorityDate,
                             familyMembers: familyMemData || releventBiblioGoogleData,
                             abstract: abstractData || releventBiblioGoogleData.abstract,
-                            ipcCpcClassification: classificationsSymbol || cpcSymbol,
+                            ipcCpcClassification: classificationsSymbol || googleClassCPC,
                             // usClassification: classData.US_Classification,
                             filteredDescriptions: filteredDescriptions,
                         })}

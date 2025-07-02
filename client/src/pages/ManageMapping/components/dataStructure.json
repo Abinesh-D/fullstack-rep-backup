@@ -1,0 +1,88 @@
+{
+    "projectName": "Project ABC",
+    "projectType": "Patent Analysis",
+    "createdOn": "2025-07-02T00:00:00.000Z",
+    "stages": {
+        "introduction": {
+            "projectTitle": "New Drug Discovery",
+            "projectSubTitle": "Cancer Treatment Innovation",
+            "searchFeatures": "Automated Classification + AI Matching"
+        },
+        "relevantReferences": {
+            "publicationDetails": [
+                {
+                    "publicationNumber": "US1234567A",
+                    "publicationUrl": "https://patents.google.com/patent/US1234567A/en",
+                    "title": "Patent Title Here",
+                    "filingDate": "2023-06-01",
+                    "assignees": [
+                        "Pfizer Inc",
+                        "Moderna"
+                    ],
+                    "grantDate": "2024-01-10",
+                    "inventors": [
+                        "John Doe",
+                        "Jane Smith"
+                    ],
+                    "priorityDate": "2022-09-15",
+                    "ipcClassification": [
+                        "A61K",
+                        "C07D"
+                    ],
+                    "usClassification": [
+                        "424/400",
+                        "514/291"
+                    ],
+                    "familyMembers": [
+                        "EP1234567A1",
+                        "WO2023012345A1"
+                    ],
+                    "comments": "This is a very relevant publication.",
+                    "excerpts": "Key technical advantages mentioned..."
+                }
+            ],
+            "nonPatentLiteratures": [
+                {
+                    "title": "NPL Product Name",
+                    "url": "https://example.com/npl",
+                    "publicationDate": "2022-11-20",
+                    "comments": "Reviewed journal with strong relevance.",
+                    "excerpts": "The article highlights matching claims."
+                }
+            ],
+            "overallSummary": "The search reveals both patent and NPL support for the concept."
+        },
+        "relatedReferences": [
+            {
+                "publicationNumber": "US7654321B1",
+                "publicationUrl": "https://patents.google.com/patent/US7654321B1/en",
+                "title": "Related Patent Example",
+                "assigneeOrInventor": "Smith; Johnson",
+                "familyMembers": [
+                    "JP2020123456A"
+                ],
+                "publicationDate": "2020-05-15"
+            }
+        ],
+        "searchMetadata": {
+            "baseSearchTerms": [
+                "patents",
+                "live",
+                "alive"
+            ],
+            "keyStrings": [
+                "Google Patents",
+                "Orbit",
+                "Scholar"
+            ],
+            "dataAvailability": [
+                "Yes",
+                "Partial"
+            ]
+        },
+        "summary": {
+            "patents": "Summary of patents that align with the project scope...",
+            "nonPatentLiterature": "Summary of journals, websites, and books..."
+        }
+    }
+}
