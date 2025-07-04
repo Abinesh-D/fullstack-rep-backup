@@ -1,25 +1,22 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, createContext, useContext, } from "react";
 import { Link } from "react-router-dom";
 import withRouter from "../../../components/Common/withRouter";
 import TableContainer from "../ReusableComponents/TableContainer";
-import { Card, CardBody, Col, Container, Row, Modal, ModalHeader, ModalBody, Label, Input, FormGroup, Button, ModalFooter } from "reactstrap";
+import { Card, CardBody, Col, Container, Row } from "reactstrap";
 
-import * as Yup from "yup";
-import { useFormik } from "formik";
-
-//Import Breadcrumb
-import Breadcrumbs from "../../../components/Common/Breadcrumb";
 import DeleteModal from "../ReusableComponents/DeleteModal";
+import { toast } from "react-toastify";
 
-import { isEmpty } from "lodash";
 import { useNavigate } from "react-router-dom";
 
 //redux
 import { useSelector, useDispatch } from "react-redux";
-import { createSelector } from "reselect";
-import Spinners from "../../../components/Common/Spinner";
+
 import { ToastContainer } from "react-toastify";
 import ProjectModal from "../ReusableComponents/ProjectModal ";
+import axios from "axios";
+import { setReportRowData } from "../../ManageEmployees/ManageBibliography/BibliographySLice/BibliographySlice";
+
 
 const projectTypeOptions = [
     { value: "1", label: "Quick Patentability Report" },
@@ -29,129 +26,138 @@ const projectTypeOptions = [
     { value: "5", label: "FTO Report - Life Science" },
 ];
 
+const ProjectContext = createContext();
 
-const ContactsList = () => {
+export const useProject = () => useContext(ProjectContext);
+
+const MappingProjectList = () => {
 
     //meta title
     document.title = "Project List | MCRPL";
 
+    const reportRowData = useSelector(state => state.patentSlice.reportData);
+    console.log('reportRowData', reportRowData)
+
     const dispatch = useDispatch();
-    const navigate = useNavigate();
+    const navigate = useNavigate();   
 
     const [modal, setModal] = useState(false);
     const [projectName, setProjectName] = useState('');
     const [projectType, setProjectType] = useState('');
-    
+
+    const [reportData, setReportData] = useState([]);
+    const [mode, setMode] = useState(null);
+    const [selectedProjectId, setSelectedProjectId] = useState(null);
+
+
     const [newProject, setNewProject] = useState("");
 
 
-    const toggle = () => {
+    const toggle = (mode, editRow) => {
+        if (mode === '0') {
+            setMode(null);
+            setProjectName("");
+            setProjectType("");
+        }
+        if (mode === "1") {
+            setMode(mode);
+            setProjectName(editRow.projectName);
+            setProjectType(editRow.projectType);
+        }
         setModal(!modal);
     }
 
-    const handleCreate = () => {
-        console.log("Project Name:", projectName);
-        console.log("Project Type:", projectType);
+
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [selectedProject, setSelectedProject] = useState(null);
+
+    const toggleDeleteModal = () => setIsDeleteModalOpen(!isDeleteModalOpen);
+
+    const handleReportDelete = (deleteRow) => {
+        setSelectedProject(deleteRow);
+        toggleDeleteModal();
+    };
+
+
+    const fetchProjects = async () => {
+        try {
+            const res = await axios.get("http://localhost:8080/live/projectname");
+            setReportData(res.data);
+        } catch (err) {
+            console.error("❌ Error fetching:", err);
+        }
+    };
+
+    useEffect(() => {
+        fetchProjects();
+    }, []);
+
+
+    const handleProjectEdit = (editRow) => {
+        setProjectName(editRow.projectName);
+        setProjectType(editRow.projectType);
+        setSelectedProjectId(editRow._id);
+        setMode("1");
         toggle();
     };
 
+
+
+    const handleProjectCreate = async () => {
+
+        const payload = {
+            projectName,
+            projectType
+        };
+
+        if (mode === "1") {
+            try {
+                await axios.put(
+                    `http://localhost:8080/live/projectname/${selectedProjectId}`,
+                    payload
+                );
+                toggle();
+                fetchProjects();
+            } catch (err) {
+                console.error("❌ Update failed:", err);
+            }
+        } else {
+            try {
+                await axios.post(
+                    "http://localhost:8080/live/projectname",
+                    payload
+                );
+                toggle();
+                fetchProjects();
+            } catch (err) {
+                console.error("❌ Creation failed:", err);
+            }
+        }
+
+    };
+
+
     const handleGo = (rowData) => {
-        console.log(rowData, 'rowDatahandleGo')
+        console.log(rowData, 'rowDatahandleGo');
+        dispatch(setReportRowData(rowData)); 
+        sessionStorage.setItem("_id", rowData._id);
+    };
 
-    }
 
-    const data = [
-        {
-            id: 1,
-            projectName: "MindMap Visualizer",
-            projectType: "Frontend",
-            createdOn: "2024-11-12",
-        },
-        {
-            id: 2,
-            projectName: "Patent Scraper Tool",
-            projectType: "Backend",
-            createdOn: "2024-10-25",
-        },
-        {
-            id: 3,
-            projectName: "Incentive Dashboard",
-            projectType: "Fullstack",
-            createdOn: "2024-09-01",
-        },
-        {
-            id: 4,
-            projectName: "Image Analyzer",
-            projectType: "ML Pipeline",
-            createdOn: "2025-01-15",
-        },
-        {
-            id: 5,
-            projectName: "Excel Upload Processor",
-            projectType: "Data Tool",
-            createdOn: "2025-06-01",
-        },
-        // {
-        //     id: 6,
-        //     projectName: "Report Analyzer",
-        //     projectType: "Data Tool",
-        //     createdOn: "2024-08-19",
-        // },
-        // {
-        //     id: 7,
-        //     projectName: "User Management System",
-        //     projectType: "Fullstack",
-        //     createdOn: "2025-02-03",
-        // },
-        // {
-        //     id: 8,
-        //     projectName: "Dashboard Designer",
-        //     projectType: "Frontend",
-        //     createdOn: "2024-12-22",
-        // },
-        // {
-        //     id: 9,
-        //     projectName: "Log Monitoring Service",
-        //     projectType: "Backend",
-        //     createdOn: "2025-03-10",
-        // },
-        // {
-        //     id: 10,
-        //     projectName: "API Gateway Manager",
-        //     projectType: "Backend",
-        //     createdOn: "2024-11-30",
-        // },
-        // {
-        //     id: 11,
-        //     projectName: "Realtime Notification Engine",
-        //     projectType: "Fullstack",
-        //     createdOn: "2025-04-18",
-        // },
-        // {
-        //     id: 12,
-        //     projectName: "AI Chat Assistant",
-        //     projectType: "ML Pipeline",
-        //     createdOn: "2025-05-20",
-        // },
-        // {
-        //     id: 13,
-        //     projectName: "File Upload Portal",
-        //     projectType: "Frontend",
-        //     createdOn: "2024-07-14",
-        // },
-        // {
-        //     id: 14,
-        //     projectName: "Image Compression API",
-        //     projectType: "Backend",
-        //     createdOn: "2025-06-25",
-        // },
-        // {
-        //     id: 15,
-        //     projectName: "Keyword Extraction Service",
-        //     projectType: "ML Pipeline",
-        //     createdOn: "2025-01-05",
-        // },
-    ];
+
+
+    const confirmDelete = async () => {
+        try {
+            await axios.delete(`http://localhost:8080/live/projectname/${selectedProject._id}`);
+
+            toast.success("Project deleted successfully!");
+            toggleDeleteModal();
+            fetchProjects();
+        } catch (error) {
+            console.error("Delete failed:", error);
+            toast.error("Failed to delete project.");
+        }
+    };
 
 
 
@@ -187,221 +193,112 @@ const ContactsList = () => {
                 cell: ({ row }) => {
                     const rowData = row.original;
                     return (
-                        <div className="d-flex gap-3">
-                            <Link
-                                to="/project-mapping-creation"
-                                className="text-success"
 
-                                onClick={() => { handleGo(rowData) }}
-                            >
-                                <Button
-                                    size="sm"
-                                    color="primary"
-                                >
-                                    Go &rarr;
-                                </Button>
-                                {/* <i className="mdi mdi-pencil font-size-18" /> */}
-                            </Link>
+                        <div className="d-flex justify-content-center align-items-center gap-3">
                             <Link
                                 to="#"
-                                className="text-danger"
-                            //   onClick={() => handleDelete(rowData)}
+                                data-bs-toggle="tooltip"
+                                data-bs-placement="top"
+                                title="Edit Project"
+                                onClick={() => handleProjectEdit(rowData, "1")}
                             >
-                                <i className="mdi mdi-delete font-size-18" />
+                                <i className="mdi mdi-pencil text-success font-size-18"></i>
+                            </Link>
+
+                            <Link
+                                to="/project-mapping-creation"
+                                data-bs-toggle="tooltip"
+                                data-bs-placement="top"
+                                title="Go to Project"
+                                onClick={() => handleGo(rowData)}
+                                state={{ selectedProject: rowData }}
+                            >
+                                <i className="mdi mdi-arrow-right font-size-18 text-primary"></i>
+                            </Link>
+
+                            <Link
+                                to="#"
+                                data-bs-toggle="tooltip"
+                                data-bs-placement="top"
+                                title="Delete Project"
+                                onClick={() => handleReportDelete(rowData)}
+                            >
+                                <i className="mdi mdi-delete text-danger font-size-18"></i>
                             </Link>
                         </div>
                     );
                 },
             },
         ],
-        []
+        [reportData]
     );
 
 
-//   const [contact, setContact] = useState();
+    return (
+        <React.Fragment>
+            <DeleteModal
+                isOpen={isDeleteModalOpen}
+                toggle={toggleDeleteModal}
+                onConfirm={confirmDelete}
+                projectName={selectedProject?.projectName || "this project"}
 
-//   const validation = useFormik({
-//     enableReinitialize: true,
+            />
+            <div className="">
+                <Container fluid>
+                    {/* <Breadcrumbs title="Contacts" breadcrumbItem="User List" /> */}
+                    <Row>
+                        {
+                            //   isLoading ? <Spinners setLoading={setLoading} />
+                            true ?
+                                <Col lg="12">
+                                    <Card>
+                                        <CardBody>
+                                            <TableContainer
+                                                columns={columns}
+                                                data={reportData || []}
+                                                isGlobalFilter={true}
+                                                isPagination={true}
+                                                SearchPlaceholder="Search..."
+                                                isCustomPageSize={true}
+                                                isAddButton={true}
+                                                handleCreate={(e) => toggle(e)}
+                                                buttonClass="btn btn-success btn-rounded waves-effect waves-light addContact-modal mb-2"
+                                                buttonName="New Project"
+                                                tableClass="align-middle table-nowrap table-hover dt-responsive nowrap w-100 dataTable no-footer dtr-inline"
+                                                theadClass="table-light"
+                                                paginationWrapper="dataTables_paginate paging_simple_numbers pagination-rounded"
+                                                pagination="pagination"
+                                            />
+                                        </CardBody>
+                                    </Card>
+                                </Col>
+                                : <>Else</>
 
-//     initialValues: {
-//       name: (contact && contact.name) || "",
-//       designation: (contact && contact.designation) || "",
-//       tags: (contact && contact.tags) || "",
-//       email: (contact && contact.email) || "",
-//       projects: (contact && contact.projects) || "",
-//     },
-//     validationSchema: Yup.object({
-//       name: Yup.string().required("Please Enter Your Name"),
-//       designation: Yup.string().required("Please Enter Your Designation"),
-//       tags: Yup.array().required("Please Enter Tag"),
-//       email: Yup.string().matches(
-//         /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/,
-//         "Please Enter Valid Email"
-//       ).required("Please Enter Your Email"),
-//       projects: Yup.string().required("Please Enter Your Project"),
-//     }),
-//     onSubmit: values => {
-//       if (isEdit) {
-//         const updateUser = {
-//           id: contact.id,
-//           name: values.name,
-//           designation: values.designation,
-//           tags: values.tags,
-//           email: values.email,
-//           projects: values.projects,
-//         };
-//         // update user
-//         setIsEdit(false);
-//         validation.resetForm();
-//       } else {
-//         const newUser = {
-//           id: Math.floor(Math.random() * (30 - 20)) + 20,
-//           name: values["name"],
-//           designation: values["designation"],
-//           email: values["email"],
-//           tags: values["tags"],
-//           projects: values["projects"],
-//         };
-//         // save new user
-//         validation.resetForm();
-//       }
-//       toggle();
-//     },
-//   });
+                        }
 
-//   const ContactsProperties = createSelector(
-//     (state) => state.contacts,
-//     (Contacts) => ({
-//       users: Contacts.users,
-//       loading: Contacts.loading
-//     })
-//   );
-
-//   const {
-//     users, loading
-//   } = useSelector(ContactsProperties);
-
-//   const [modal, setModal] = useState(false);
-//   const [isEdit, setIsEdit] = useState(false);
-//   const [isLoading, setLoading] = useState(loading)
-
-//   useEffect(() => {
-//     if (users && !users.length) {
-//       setIsEdit(false);
-//     }
-//   }, [dispatch, users]);
-
-//   useEffect(() => {
-//     setContact(users);
-//     setIsEdit(false);
-//   }, [users]);
-
-//   useEffect(() => {
-//     if (!isEmpty(users) && !!isEdit) {
-//       setContact(users);
-//       setIsEdit(false);
-//     }
-//   }, [users]);
-
-//   const toggle = () => {
-//     setModal(!modal);
-//   };
-
-//   const handleUserClick = arg => {
-//     const user = arg;
-
-//     setContact({
-//       id: user.id,
-//       name: user.name,
-//       designation: user.designation,
-//       email: user.email,
-//       tags: user.tags,
-//       projects: user.projects,
-//     });
-//     setIsEdit(true);
-
-//     toggle();
-//   };
-
-//   //delete customer
-//   const [deleteModal, setDeleteModal] = useState(false);
-
-//   const onClickDelete = (users) => {
-//     setContact(users.id);
-//     setDeleteModal(true);
-//   };
-
-//   const handleDeleteUser = () => {
-//     if (contact && contact.id) {
-//     }
-//     setDeleteModal(false);
-//   };
-
-
-
-
-  return (
-    <React.Fragment>
-      {/* <DeleteModal
-        show={deleteModal}
-        onDeleteClick={handleDeleteUser}
-        onCloseClick={() => setDeleteModal(false)}
-      /> */}
-      <div className="">
-        <Container fluid>
-          {/* <Breadcrumbs title="Contacts" breadcrumbItem="User List" /> */}
-                  <Row>
-                      {
-                          //   isLoading ? <Spinners setLoading={setLoading} />
-                          true ?
-                              <Col lg="12">
-                                  <Card>
-                                      <CardBody>
-                                          <TableContainer
-                                              columns={columns}
-                                              data={data || []}
-                                              isGlobalFilter={true}
-                                              isPagination={true}
-                                              SearchPlaceholder="Search..."
-                                              isCustomPageSize={true}
-                                              isAddButton={true}
-                                              handleCreate={handleCreate}
-                                              buttonClass="btn btn-success btn-rounded waves-effect waves-light addContact-modal mb-2"
-                                              buttonName="New Project"
-                                              tableClass="align-middle table-nowrap table-hover dt-responsive nowrap w-100 dataTable no-footer dtr-inline"
-                                              theadClass="table-light"
-                                              paginationWrapper="dataTables_paginate paging_simple_numbers pagination-rounded"
-                                              pagination="pagination"
-                                          />
-                                      </CardBody>
-                                  </Card>
-                              </Col>
-                              : <>Else</>
-
-                      }
-
-                      {
-                          < ProjectModal
-                              isOpen={modal}
-                              toggle={toggle}
-                              projectName={projectName}
-                              setProjectName={setProjectName}
-                              projectType={projectType}
-                              setProjectType={setProjectType}
-                              onCreate={handleCreate}
-                              type={newProject}
-                              projectTypeOptions={projectTypeOptions}
-                          />
-                      }
-                  </Row>
-              </Container>
-          </div>
-          <ToastContainer />
-    </React.Fragment>
-  );
+                        {
+                            < ProjectModal
+                                mode={mode}
+                                isOpen={modal}
+                                toggle={toggle}
+                                projectName={projectName}
+                                setProjectName={setProjectName}
+                                projectType={projectType}
+                                setProjectType={setProjectType}
+                                onCreate={handleProjectCreate}
+                                type={newProject}
+                                projectTypeOptions={projectTypeOptions}
+                            />
+                        }
+                    </Row>
+                </Container>
+            </div>
+            <ToastContainer />
+        </React.Fragment>
+    );
 };
 
-export default withRouter(ContactsList);
+export default withRouter(MappingProjectList);
 
 
 

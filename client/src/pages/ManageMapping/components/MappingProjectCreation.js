@@ -1,27 +1,44 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Card, CardBody, Col, Container, Form, Input, Label, NavItem, NavLink, Row, TabContent, TabPane, Button, Spinner } from "reactstrap";
 import classnames from "classnames";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useLocation  } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import Breadcrumbs from "../../../components/Common/Breadcrumb";
-import { GOOGLE_API_DATA, EPO_API_DATA } from "../../ManageEmployees/ManageBibliography/BibliographySLice/BibliographySlice";
+import { GOOGLE_API_DATA, EPO_API_DATA, fetchProjects, fetchPublicationDetails } from "../../ManageEmployees/ManageBibliography/BibliographySLice/BibliographySlice";
 import { mapFamilyMemberData } from "../../ManagePriorFormat/ReusableComp/Functions";
 import { FaFileWord } from "react-icons/fa";
+import axios from "axios";
+import RelevantRefComponent from "./ChildComponent/RelevantRefComponent";
+import IntroductionTab from "./ChildComponent/IntroductionTab ";
+
 
 
 const MappingProjectCreation = () => {
+    document.title = "Project Form | MCRPL";
+    const id = sessionStorage.getItem("_id");
+
+
+    const location = useLocation();
+
+    const { selectedProject } = location.state || {};
+    console.log(selectedProject, "selectedProject")
 
     const dispatch = useDispatch();
+    const navigate = useNavigate();
+
     const data = useSelector(state => state.patentSlice.liveEpoRelevantData);
     const relatedData = useSelector(state => state.patentSlice.liveEpoRelatedData);
 
+    const fullReportData = useSelector(state => state.patentSlice.fullReportData);
+    const introduction = fullReportData.filter(fil => fil._id === id)[0]?.stages?.introduction || [];
+
+    const reportRowData = useSelector(state => state.patentSlice.reportRowData);
+
+    console.log('introductionintroduction', introduction)
+
+
     const releventBiblioGoogleData = useSelector(state => state.patentSlice.liveGoogleRelevantData);
     const relatedBiblioGoogleData = useSelector(state => state.patentSlice.liveGoogleRelatedData);
-
-    console.log(releventBiblioGoogleData, "releventBiblioGoogleData")
-
-    //meta title
-    document.title = "Project Form | MCRPL";
 
     const [activeTab, setactiveTab] = useState(1);
     const [passedSteps, setPassedSteps] = useState([1]);
@@ -38,15 +55,12 @@ const MappingProjectCreation = () => {
     const [loading, setLoading] = useState(false);
     const [relatedLoading, setRelatedLoading] = useState(false);
 
-    const [filteredDescriptions, setFilteredDescriptions] = useState({});
-
     const [errorValidation, setErrorValidation] = useState(false);
     const [relatedErrorValidation, setRelatedErrorValidation] = useState(false);
 
     const [usClassification, setUsClassification] = useState('');
 
     const [overallSummary, setOverallSummary] = useState("");
-
 
     const [baseSearchTerm, setBaseSearchTerm] = useState("");
     const [keyString, setKeyString] = useState("");
@@ -62,6 +76,7 @@ const MappingProjectCreation = () => {
         searchFeatures: ''
     });
 
+
     const [nplPatentFormData, setNplPatentFormData] = useState({
         title: "",
         url: "",
@@ -70,6 +85,23 @@ const MappingProjectCreation = () => {
         excerpts: "",
     });
 
+    const [relevantFormData, setrelevantFormData] = useState([]);
+
+
+
+    useEffect(() => {
+        const getPublicationDetails = async () => {
+            await fetchPublicationDetails(id, setrelevantFormData);
+        }
+
+        getPublicationDetails();
+
+    }, []);
+
+
+    useEffect(() => {
+        fetchProjects(dispatch);
+    }, []);
 
     const handleNplChange = (e) => {
         const { id, value } = e.target;
@@ -84,20 +116,15 @@ const MappingProjectCreation = () => {
 
     const handleSaveBaseSearchTerm = () => {
         console.log("Base Search Term:", baseSearchTerm);
-        // Save to DB or State array logic here
     };
 
     const handleSaveKeyString = () => {
         console.log("Key String:", keyString);
-        // Save to DB or State array logic here
     };
 
     const handleSaveDataAvailability = () => {
         console.log("Data Availability Value:", dataAvailabilityValue);
-        // Save to DB or State array logic here
     };
-
-
 
 
     const handleRelevantChange = (e) => {
@@ -111,12 +138,10 @@ const MappingProjectCreation = () => {
 
     const handleSaveAppendix2Patents = () => {
         console.log("Appendix 2 - Patents:", appendix2Patents);
-        // Save to backend or state array here
     };
 
     const handleSaveAppendix2NPL = () => {
         console.log("Appendix 2 - Non-Patent Literature:", appendix2NPL);
-        // Save to backend or state array here
     };
 
 
@@ -126,14 +151,15 @@ const MappingProjectCreation = () => {
     const handleFetchPatentData = async () => {
         const trimmedNumber = patentNumber.trim();
         setLoading(true);
+        setErrorValidation(false);
         try {
             await EPO_API_DATA(trimmedNumber, dispatch, 'relavent');
         } catch (error) {
-            setErrorValidation(true);
+            // setErrorValidation(true);
             setfamId("");
 
             try {
-                setErrorValidation(false);
+                // setErrorValidation(false);
                 await GOOGLE_API_DATA(trimmedNumber, dispatch, 'relavent');
                 console.log("✅ Google fallback succeeded");
             } catch (googleError) {
@@ -203,7 +229,6 @@ const MappingProjectCreation = () => {
     }, [data])
 
     const biblioData = data?.biblio?.['world-patent-data']?.['exchange-documents']?.['exchange-document']?.['bibliographic-data'];
-    console.log(biblioData, "biblioDatabiblioData")
     const inventorsData = biblioData?.parties?.inventors?.inventor;
 
     const inventorsArray = Array.isArray(inventorsData) ? inventorsData : inventorsData ? [inventorsData] : [];
@@ -402,7 +427,6 @@ const MappingProjectCreation = () => {
 
     const googleClassCPC = releventBiblioGoogleData.classifications?.map(map => map.leafCode).join(', ');
 
-    console.log(title, "title", applicantNames, "applicantNames", inventorNames, "inventorNames")
 
     // -------------------------- Related --------------------------
 
@@ -594,27 +618,41 @@ const MappingProjectCreation = () => {
 
 
 
-    const handleRelevantSubmit = (e) => {
+    const handleRelevantSubmit = async (e) => {
         e.preventDefault();
 
         const relevantFormData = {
-            patentNumber: patentNumber,
-            familyID :famId || releventBiblioGoogleData.pageUrl,
+            patentNumber: patentNumber || '',
+            publicationUrl: famId || releventBiblioGoogleData.pageUrl,
             title: title || releventBiblioGoogleData.title?.trim(),
-            applicationDate: aplDate || releventBiblioGoogleData.applicationDate,
-            publicationDate: pubDate || releventBiblioGoogleData.publicationDate,
+            filingDate: aplDate || releventBiblioGoogleData.applicationDate,
+            grantDate: pubDate || releventBiblioGoogleData.publicationDate,
             priorityDate: priorityDates || releventBiblioGoogleData.priorityDate,
-            assignee: applicantNames || releventBiblioGoogleData.assignees,
-            inventors: inventorNames || releventBiblioGoogleData.inventors,
-            classifications: classificationsSymbol || googleClassCPC,
-            usClassification: usClassification,
-            familyMemData: familyMemData,
-            analystComments: analystComments,
-            relevantExcerpts: relevantExcerpts,
+            assignee: (applicantNames || releventBiblioGoogleData.assignees || "").split(",").map(a => a.trim()),
+            inventors: (inventorNames || releventBiblioGoogleData.inventors || "").split(";").map(i => i.trim()),
+            classifications: (classificationsSymbol || googleClassCPC || "").split(",").map(c => c.trim()),
+            usClassification: (usClassification || "").split(",").map(u => u.trim()),
+            familyMembers: (familyMemData || "").split(",").map(f => f.trim()),
+            analystComments: analystComments || "",
+            relevantExcerpts: relevantExcerpts || "",
+        };
 
+
+        try {
+            const response = await axios.post(
+                `http://localhost:8080/live/projectname/add-relevant-data/${id}`,
+                relevantFormData,
+                { headers: { "Content-Type": "application/json" } }
+            );
+            if (response.status === 200) {
+                setrelevantFormData(prevData => [...prevData, response.data]);
+            }
+
+        } catch (error) {
+            console.error("❌ Error saving publication detail:", error);
         }
-        console.log('relevantFormData', relevantFormData)        
     };
+
 
     const handleRelatedSubmit = (e) => {
         e.preventDefault();
@@ -630,9 +668,36 @@ const MappingProjectCreation = () => {
             familyMemData: familyMemData,
 
         }
-        console.log('relatedFormData', relatedFormData)
     };
 
+
+    const handleIntroSave = async () => {
+        const introData = {
+            projectTitle: projectFormData.projectTitle || introduction.projectTitle,
+            projectSubTitle: projectFormData.projectSubTitle || introduction.projectSubTitle,
+            searchFeatures: projectFormData.searchFeatures || introduction.searchFeatures,
+        }
+
+        try {
+            await axios.post(`http://localhost:8080/live/projectname/update-introduction/${selectedProject._id}`, introData,
+                {
+                    headers: {
+                        "Content-Type": "application/json"
+                    }
+                }
+            );
+
+        } catch (error) {
+            console.error("❌ Error saving introduction:", error);
+            if (error.response) {
+                console.error("Server responded with:", error.response.data);
+            } else if (error.request) {
+                console.error("No response received:", error.request);
+            } else {
+                console.error("Axios error:", error.message);
+            }
+        }
+    };
 
 
     function toggleTab(tab) {
@@ -645,17 +710,38 @@ const MappingProjectCreation = () => {
         }
     }
 
+    const gotoBack = () => {
+        navigate("/manage-mapping");
+    }
 
     return (
         <React.Fragment>
             <div className="page-content">
                 <Container fluid={true}>
-                    <Breadcrumbs title="Creating Mapping Project" breadcrumbItem="Form Wizard" />
+                    <Breadcrumbs title="Creating Mapping Project" labelName="Back" isBackButtonEnable={true} gotoBack={gotoBack} />
                     <Row >
                         <Col lg="12">
                             <Card>
                                 <CardBody>
-                                    <h4 className="card-title mb-4">Project Creation</h4>
+                                    {
+                                        selectedProject && (
+                                            <p
+                                                style={{
+                                                    fontSize: "10px",
+                                                    color: "#198754",
+                                                    fontWeight: "600",
+                                                    backgroundColor: "#f1fdf7",
+                                                    padding: "8px 12px",
+                                                    borderRadius: "6px",
+                                                    display: "inline-block",
+                                                }}
+                                            >
+                                                {selectedProject.projectName} /-- {selectedProject.projectType}
+                                            </p>
+                                        )
+                                    }
+
+
                                     <div className="wizard clearfix">
                                         <div className="steps clearfix">
                                             <ul>
@@ -722,70 +808,57 @@ const MappingProjectCreation = () => {
 
                                         <div className="content clearfix">
                                             <TabContent activeTab={activeTab} className="body">
-
                                                 <TabPane tabId={1}>
-                                                    <Row>
-                                                        <Col lg="6">
-                                                            <div className="mb-3">
-                                                                <Label for="project-title-input">Project Title</Label>
-                                                                <Input
-                                                                    type="text"
-                                                                    name="projectTitle"
-                                                                    className="form-control"
-                                                                    id="project-title-input"
-                                                                    placeholder="Enter Project Title"
-                                                                    value={projectFormData.projectTitle}
-                                                                    onChange={handleRelevantChange}
-                                                                />
-                                                            </div>
-                                                        </Col>
-
-                                                        <Col lg="6">
-                                                            <div className="mb-3">
-                                                                <Label for="project-subtitle-input">Project Sub Title</Label>
-                                                                <Input
-                                                                    type="text"
-                                                                    name="projectSubTitle"
-                                                                    className="form-control"
-                                                                    id="project-subtitle-input"
-                                                                    placeholder="Enter Project Sub Title"
-                                                                    value={projectFormData.projectSubTitle}
-                                                                    onChange={handleRelevantChange}
-                                                                />
-                                                            </div>
-                                                        </Col>
-                                                    </Row>
-
-                                                    <Row>
-                                                        <Col lg="12">
-                                                            <div className="mb-3">
-                                                                <Label for="search-features-input">Search Features</Label>
-                                                                <textarea
-                                                                    id="search-features-input"
-                                                                    className="form-control"
-                                                                    rows="3"
-                                                                    name="searchFeatures"
-                                                                    placeholder="Describe search features here"
-                                                                    value={projectFormData.searchFeatures}
-                                                                    onChange={handleRelevantChange}
-                                                                />
-                                                            </div>
-                                                        </Col>
-                                                    </Row>
-                                                    <p className="text-danger">
-                                                        ⚠️ Please click the <strong>Save</strong> button before clicking <strong>Next</strong>. Unsaved changes will be lost.
-                                                    </p>
-
-
-                                                    <Col lg="2">
-                                                        <div className="mb-3">
-                                                            <Button color="success" className="w-100">Save</Button>
-                                                        </div>
-                                                    </Col>
-
+                                                    <IntroductionTab
+                                                        projectFormData={projectFormData}
+                                                        introduction={introduction}
+                                                        handleRelevantChange={handleRelevantChange}
+                                                        handleIntroSave={handleIntroSave}
+                                                        reportData={fullReportData.filter(fil => fil._id === id)}
+                                                        id={id}
+                                                    />
                                                 </TabPane>
 
+
+
                                                 <TabPane tabId={2}>
+                                                    <RelevantRefComponent
+                                                        loading={loading}
+                                                        patentNumber={patentNumber}
+                                                        setPatentNumber={setPatentNumber}
+                                                        errorValidation={errorValidation}
+                                                        setErrorValidation={setErrorValidation}
+                                                        handleFetchPatentData={handleFetchPatentData}
+                                                        handleRelevantSubmit={handleRelevantSubmit}
+                                                        title={title}
+                                                        aplDate={aplDate}
+                                                        applicantNames={applicantNames}
+                                                        pubDate={pubDate}
+                                                        inventorNames={inventorNames}
+                                                        priorityDates={priorityDates}
+                                                        classificationsSymbol={classificationsSymbol}
+                                                        googleClassCPC={googleClassCPC}
+                                                        usClassification={usClassification}
+                                                        setUsClassification={setUsClassification}
+                                                        familyMemData={familyMemData}
+                                                        analystComments={analystComments}
+                                                        setAnalystComments={setAnalystComments}
+                                                        relevantExcerpts={relevantExcerpts}
+                                                        setRelevantExcerpts={setRelevantExcerpts}
+                                                        releventBiblioGoogleData={releventBiblioGoogleData}
+                                                        handleNplSubmit={handleNplSubmit}
+                                                        handleNplChange={handleNplChange}
+                                                        nplPatentFormData={nplPatentFormData}
+                                                        overallSummary={overallSummary}
+                                                        setOverallSummary={setOverallSummary}
+                                                        handleOverAllSummarySave={handleOverAllSummarySave}
+                                                        famId={famId}
+                                                        relevantFormData={relevantFormData}
+                                                    />
+                                                </TabPane>
+
+
+                                                {/* <TabPane tabId={2}>
                                                     <h4 className="fw-bold mb-4">1. Publication Details</h4>
                                                     {loading ?
                                                         <div className="blur-loading-overlay text-center mt-4">
@@ -1117,7 +1190,7 @@ const MappingProjectCreation = () => {
 
 
 
-                                                </TabPane>
+                                                </TabPane> */}
 
                                                 <TabPane tabId={3}>
 
@@ -1395,7 +1468,7 @@ const MappingProjectCreation = () => {
                                                 </li>
                                                 {
                                                     activeTab === 5 ? (
-                                                        <button style={{ height:'33.75px' }} className="btn btn-sm btn-outline-primary">
+                                                        <button style={{ height: '33.75px' }} className="btn btn-sm btn-outline-primary">
                                                             <FaFileWord size={15} /> Download
                                                         </button>
                                                     ) : (

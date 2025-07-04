@@ -12,10 +12,13 @@ app.use(bodyParser.json());
 
 const PORT = process.env.PORT || 8080;
 
-const MONGO_URI = "mongodb://127.0.0.1:27017/mern_db";
+// Atlas cluster URI
+const MONGODB_URI = process.env.MONGODB_URI
 
 // MongoDB Connection
-mongoose.connect(MONGO_URI, {
+mongoose.connect(MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
 })
 .then(() => console.log("MongoDB connected"))
 .catch((err) => console.error("MongoDB connection error:", err));
@@ -81,12 +84,30 @@ app.use("/api/lens", lensRoutes)
 app.use("/api/espacenet", espRoutes)
 
 
-//  --------------------- LIVE ------------------------------ 
+
+
+
+
+
+
+              //  --------------------- LIVE ------------------------------ 
+
+// ESP Routes
 const liveEspPatentBiblioRoute = require("./routes/liveEspPatentBiblioRoute");
 app.use("/live/espbiblio", liveEspPatentBiblioRoute);
 
+// Google Routes
 const liveGoogPatentBiblioRoute = require("./routes/liveGooglePatentBiblioRoute");
 app.use("/live/googlebiblio", liveGoogPatentBiblioRoute);
+
+// Project Scema
+const cln_project_schema = require("./routes/livePatentRoute/projectRoutes");
+app.use("/live/projectname", cln_project_schema);
+
+
+
+
+
 
 
 

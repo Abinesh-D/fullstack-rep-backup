@@ -1,7 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { BASE_URL } from '../../../../config';
-import { useDispatch } from 'react-redux';
 
 
 
@@ -30,6 +29,9 @@ const initialState = {
   liveEpoRelatedData: [],
   liveGoogleRelevantData: [],
   liveGoogleRelatedData: [],
+
+  fullReportData: [],
+  reportRowData: {},
 };
 
 
@@ -104,6 +106,12 @@ const patentSlice = createSlice({
     },
     setLiveGoogleRelatedData: (state, action) => {
       state.liveGoogleRelatedData = action.payload;
+    },
+    setFullReportData: (state, action) => {
+      state.fullReportData = action.payload;
+    },
+      setReportRowData: (state, action) => {
+      state.reportRowData = action.payload;
     },
 
 
@@ -415,9 +423,40 @@ export const GOOGLE_API_DATA = async (ptnNumber, dispatch, type) => {
   }
 };
 
+
+
+export const fetchProjects = async (dispatch) => {
+  try {
+    const res = await axios.get("http://localhost:8080/live/projectname");
+    dispatch(setFullReportData(res.data));
+  } catch (err) {
+    console.error("❌ Error fetching:", err);
+  }
+};
+
+
+export const fetchPublicationDetails = async (projectId, setrelevantFormData) => {
+    try {
+        const response = await axios.get(
+            `http://localhost:8080/live/projectname/publication-details/${projectId}`
+        );
+        console.log("✅ Publication Details:", response.data.publicationDetails);
+        setrelevantFormData(response.data.publicationDetails)
+        return response.data.publicationDetails;
+    } catch (error) {
+        console.error("❌ Error fetching publication details:", error);
+        return [];
+    }
+};
+
+
+
+
+
+
 export const { setPatentData, setEspaceApiData, setBulkESPData, resetPatentData, setGoogleApiData, setLensOrgApiData, setFreePatentApiData,
   setPatentLoading, setLensPageUrl, setFetchESPData, setESPData, setFetchLegalStatus, setClassifyData, setChatBoxData,
-  setGooglePatentData, setReleventBiblioGoogleData, setRelatedBiblioGoogleData,
+  setGooglePatentData, setReleventBiblioGoogleData, setRelatedBiblioGoogleData, setFullReportData, setReportRowData,
   
   // LIVE STATE EXPORT
   setLiveEpoRelevantData, setLiveEpoRelatedData, setLiveGoogleRelevantData, setLiveGoogleRelatedData

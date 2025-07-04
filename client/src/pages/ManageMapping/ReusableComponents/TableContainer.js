@@ -165,7 +165,7 @@ const TableContainer = ({
 
         {isAddButton && <Col sm={6}>
           <div className="text-sm-end">
-            <Button type="button" className={buttonClass} onClick={handleCreate}>
+            <Button type="button" className={buttonClass} onClick={ () => handleCreate("0")}>
               <i className="mdi mdi-plus me-1"></i> {buttonName}</Button>
           </div>
         </Col>}
