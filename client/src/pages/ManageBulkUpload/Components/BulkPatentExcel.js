@@ -366,11 +366,6 @@ const ExcelPatentUploader = ({ onUpload }) => {
       };
     });
 
-    console.log('familyMembersData', familyMembersData);
-
-
-
-
     return {
       patentNumber: map.patentNumber,
       publicationUrl: (() => {

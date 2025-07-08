@@ -35,11 +35,8 @@ const MappingProjectList = () => {
     //meta title
     document.title = "Project List | MCRPL";
 
-    const reportRowData = useSelector(state => state.patentSlice.reportData);
-    console.log('reportRowData', reportRowData)
-
     const dispatch = useDispatch();
-    const navigate = useNavigate();   
+    const navigate = useNavigate();
 
     const [modal, setModal] = useState(false);
     const [projectName, setProjectName] = useState('');
@@ -138,8 +135,7 @@ const MappingProjectList = () => {
 
 
     const handleGo = (rowData) => {
-        console.log(rowData, 'rowDatahandleGo');
-        dispatch(setReportRowData(rowData)); 
+        dispatch(setReportRowData(rowData));
         sessionStorage.setItem("_id", rowData._id);
     };
 

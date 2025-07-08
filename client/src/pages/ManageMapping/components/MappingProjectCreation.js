@@ -1,15 +1,26 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Card, CardBody, Col, Container, Form, Input, Label, NavItem, NavLink, Row, TabContent, TabPane, Button, Spinner } from "reactstrap";
+import {
+    Card, CardBody, Col, Container, Form, Input, Label, NavItem, NavLink, Row, TabContent, TabPane, Button, Spinner,
+    Modal, ModalBody, ModalFooter, ModalHeader,
+} from "reactstrap";
 import classnames from "classnames";
-import { Link, useNavigate, useLocation  } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import Breadcrumbs from "../../../components/Common/Breadcrumb";
-import { GOOGLE_API_DATA, EPO_API_DATA, fetchProjects, fetchPublicationDetails } from "../../ManageEmployees/ManageBibliography/BibliographySLice/BibliographySlice";
+import {
+    GOOGLE_API_DATA, EPO_API_DATA, fetchProjects, fetchPublicationDetails, fetchProjectById,
+    fetchRelatedReferences,
+} from "../../ManageEmployees/ManageBibliography/BibliographySLice/BibliographySlice";
 import { mapFamilyMemberData } from "../../ManagePriorFormat/ReusableComp/Functions";
 import { FaFileWord } from "react-icons/fa";
 import axios from "axios";
 import RelevantRefComponent from "./ChildComponent/RelevantRefComponent";
 import IntroductionTab from "./ChildComponent/IntroductionTab ";
+import RelatedRefComponent from "./ChildComponent/RelatedrefComponent";
+import Appendix1 from "./ChildComponent/Appendix1";
+import Appendix2 from "./ChildComponent/Appendix2";
+import ReusableDeleteComp from "../ReusableComponents/ResuableDeleteComp";
+
 
 
 
@@ -17,12 +28,9 @@ const MappingProjectCreation = () => {
     document.title = "Project Form | MCRPL";
     const id = sessionStorage.getItem("_id");
 
-
     const location = useLocation();
 
     const { selectedProject } = location.state || {};
-    console.log(selectedProject, "selectedProject")
-
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
@@ -30,12 +38,8 @@ const MappingProjectCreation = () => {
     const relatedData = useSelector(state => state.patentSlice.liveEpoRelatedData);
 
     const fullReportData = useSelector(state => state.patentSlice.fullReportData);
+
     const introduction = fullReportData.filter(fil => fil._id === id)[0]?.stages?.introduction || [];
-
-    const reportRowData = useSelector(state => state.patentSlice.reportRowData);
-
-    console.log('introductionintroduction', introduction)
-
 
     const releventBiblioGoogleData = useSelector(state => state.patentSlice.liveGoogleRelevantData);
     const relatedBiblioGoogleData = useSelector(state => state.patentSlice.liveGoogleRelatedData);
@@ -43,14 +47,40 @@ const MappingProjectCreation = () => {
     const [activeTab, setactiveTab] = useState(1);
     const [passedSteps, setPassedSteps] = useState([1]);
 
-    const [analystComments, setAnalystComments] = useState('');
-    const [relevantExcerpts, setRelevantExcerpts] = useState('');
+    const [relevantForm, setRelevantForm] = useState({
+        patentNumber: '',
+        publicationUrl: '',
+        title: '',
+        filingDate: '',
+        assignee: '',
+        grantDate: '',
+        inventors: '',
+        priorityDate: '',
+        classifications: '',
+        usClassification: '',
+        familyMembers: '',
+        analystComments: '',
+        relevantExcerpts: ''
+    });
 
-    const [patentNumber, setPatentNumber] = useState('');
-    const [relatedPatentNumber, setRelatedPatentNumber] = useState('');
+    const resetRelevantForm = () => {
+        setRelevantForm({
+            patentNumber: '',
+            publicationUrl: '',
+            title: '',
+            filingDate: '',
+            assignee: '',
+            grantDate: '',
+            inventors: '',
+            priorityDate: '',
+            classifications: '',
+            usClassification: '',
+            familyMembers: '',
+            analystComments: '',
+            relevantExcerpts: ''
+        });
+    };
 
-    const [famId, setfamId] = useState("");
-    const [relatedFamId, setRelatedFamId] = useState("");
 
     const [loading, setLoading] = useState(false);
     const [relatedLoading, setRelatedLoading] = useState(false);
@@ -58,15 +88,22 @@ const MappingProjectCreation = () => {
     const [errorValidation, setErrorValidation] = useState(false);
     const [relatedErrorValidation, setRelatedErrorValidation] = useState(false);
 
-    const [usClassification, setUsClassification] = useState('');
-
     const [overallSummary, setOverallSummary] = useState("");
+    const [overallSummarrySavedData, setOverallSummarrySavedData] = useState("")
 
     const [baseSearchTerm, setBaseSearchTerm] = useState("");
+    const [baseSearchTermsList, setBaseSearchTermsList] = useState([]);
+
     const [keyString, setKeyString] = useState("");
+    const [keyStringsList, setKeyStringsList] = useState("");
+
+    const [dataAvailability, setDataAvailability] = useState("")
     const [dataAvailabilityValue, setDataAvailabilityValue] = useState("");
 
     const [appendix2Patents, setAppendix2Patents] = useState("");
+    const [appendix2SavedData, setAppendix2SavedData] = useState("");
+
+    const [appendix2SavedNPL, setAppendix2SavedNPL] = useState("")
     const [appendix2NPL, setAppendix2NPL] = useState("");
 
 
@@ -78,24 +115,185 @@ const MappingProjectCreation = () => {
 
 
     const [nplPatentFormData, setNplPatentFormData] = useState({
-        title: "",
+        nplTitle: "",
         url: "",
-        publicationDate: "",
+        nplPublicationDate: "",
         comments: "",
         excerpts: "",
     });
 
+    const nonPatentLiteratureForm = () => {
+        setNplPatentFormData({
+            nplTitle: "",
+            url: "",
+            nplPublicationDate: "",
+            comments: "",
+            excerpts: "",
+        });
+    }
+
+    const [nonPatentFormData, setNonPatentFormData] = useState([]);
+
     const [relevantFormData, setrelevantFormData] = useState([]);
+
+    const [relatedForm, setRelatedForm] = useState({
+        publicationNumber: "",
+        relatedPublicationUrl: "",
+        relatedTitle: "",
+        relatedAssignee: "",
+        relatedInventor: "",
+        relatedPublicationDate: "",
+        relatedFamilyMembers: "",
+    })
+
+    const resetRelatedForm = () => {
+        setRelatedForm({
+            publicationNumber: "",
+            relatedPublicationUrl: "",
+            relatedTitle: "",
+            relatedAssignee: "",
+            relatedInventor: "",
+            relatedPublicationDate: "",
+            relatedFamilyMembers: "",
+        })
+    }
+
+    const [relatedFormData, setRelatedFormData] = useState([]);
+
+
+
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [selectedRow, setSelectedRow] = useState(null);
+
+
+    const onDeleteClick = (rowData) => {
+        setSelectedRow(rowData);
+        setShowDeleteModal(true);
+    };
+
+    const onNplDeleteClick = (rowData) => {
+        setSelectedRow(rowData);
+        setShowDeleteModal(true);
+    };
+
+    const onRelatedDelete = (rowData) => {
+        setSelectedRow(rowData);
+        setShowDeleteModal(true);
+    }
+
+    const onSearchTermDelete = (rowData) => {
+        setSelectedRow(rowData);
+        setShowDeleteModal(true);
+    }
+
+    const onKeyStringsDelete = (rowData) => {
+        setSelectedRow(rowData);
+        setShowDeleteModal(true);
+    }
+
+    const onDataAvailabilityDelete = (rowData) => {
+        setSelectedRow(rowData);
+        setShowDeleteModal(true);
+    }
+
+
+
+    const handleRelatedReferenceDelete = async () => {
+        try {
+            const response = await axios.delete(`http://localhost:8080/live/projectname/delete-related/${id}/${selectedRow._id}`);
+            if (response.status === 200) {
+                const updatedRelatedRef = response.data.stages.relatedReferences;
+                setRelatedFormData(updatedRelatedRef);
+            }
+        } catch (error) {
+            console.error("❌ Error deleting related reference:", error);
+        } finally {
+            setShowDeleteModal(false);
+            setSelectedRow(null);
+        }
+    };
+
+    const handleNonPatentDelete = async () => {
+        try {
+            const response = await axios.delete(
+                `http://localhost:8080/live/projectname/delete-npl/${id}/${selectedRow._id}`
+            );
+
+            if (response.status === 200) {
+                const updatedNPLs = response.data.stages.relevantReferences.nonPatentLiteratures;
+                setNonPatentFormData(updatedNPLs);
+            }
+        } catch (error) {
+            console.error("❌ Error deleting NPL:", error);
+        } finally {
+            setShowDeleteModal(false);
+            setSelectedRow(null);
+        }
+    };
+
+    const handlePublicationDelete = async () => {
+        if (!selectedRow) return;
+
+        const documentId = id;
+        const publicationId = selectedRow._id;
+
+        try {
+            const response = await axios.delete(
+                `http://localhost:8080/live/projectname/delete-publication/${documentId}/${publicationId}`
+            );
+
+            if (response.status === 200) {
+
+                setrelevantFormData(prev =>
+                    prev.filter(item => item._id !== publicationId)
+                );
+            }
+        } catch (error) {
+            console.error("❌ Error deleting publication detail:", error);
+        } finally {
+            setShowDeleteModal(false);
+            setSelectedRow(null);
+        }
+    };
 
 
 
     useEffect(() => {
         const getPublicationDetails = async () => {
-            await fetchPublicationDetails(id, setrelevantFormData);
+            const response = await fetchPublicationDetails(id);
+            setrelevantFormData(response);
+        };
+        const getRelatedData = async () => {
+            const response = await fetchRelatedReferences(id);
+            setRelatedFormData(response);
         }
 
         getPublicationDetails();
+        getRelatedData();
 
+    }, [id]);
+
+
+
+
+
+  
+
+    useEffect(() => {
+        const getProject = async () => {
+            const singleProject = await fetchProjectById(id);
+            if (singleProject) {
+                setrelevantFormData(singleProject.stages.relevantReferences?.publicationDetails);
+                setNonPatentFormData(singleProject.stages.relevantReferences?.nonPatentLiteratures);
+                setOverallSummarrySavedData(singleProject.stages.relevantReferences?.overallSummary);
+                setBaseSearchTermsList(singleProject.stages.appendix1[0]?.baseSearchTerms);
+                setKeyStringsList(singleProject.stages.appendix1[0]?.keyStrings);
+                setDataAvailabilityValue(singleProject.stages.appendix1[0]?.dataAvailability);
+                setAppendix2SavedData(singleProject.stages.appendix2[0]?.patents);
+                setAppendix2SavedNPL(singleProject.stages.appendix2[0]?.nonPatentLiterature);
+            }
+        };
+        getProject();
     }, []);
 
 
@@ -114,20 +312,127 @@ const MappingProjectCreation = () => {
         }));
     };
 
-    const handleSaveBaseSearchTerm = () => {
-        console.log("Base Search Term:", baseSearchTerm);
+
+    const handleSaveBaseSearchTerm = async () => {
+        if (!baseSearchTerm.trim()) return;
+
+        try {
+            const response = await axios.post(
+                `http://localhost:8080/live/projectname/add-base-search-term/${id}`, { searchTermText: baseSearchTerm },
+                { headers: { "Content-Type": "application/json" } }
+            );
+
+            const updatedBaseSearchTerms = response.data.stages.appendix1[0]?.baseSearchTerms || [];
+            setBaseSearchTermsList(updatedBaseSearchTerms);
+            setBaseSearchTerm("");
+        } catch (err) {
+            console.error("❌ Error saving Base Search Term:", err);
+
+            if (err.response) {
+                console.error("Server responded with:", err.response.data);
+            } else if (err.request) {
+                console.error("No response received:", err.request);
+            } else {
+                console.error("Error setting up request:", err.message);
+            }
+        }
     };
 
-    const handleSaveKeyString = () => {
-        console.log("Key String:", keyString);
+
+    const handleSearchTermDelete = async () => {
+        try {
+            const response = await axios.delete(
+                `http://localhost:8080/live/projectname/delete-base-search-term/${id}/${selectedRow._id}`
+            );
+
+            if (response.status === 200) {
+                setBaseSearchTermsList(response.data.stages.appendix1[0].baseSearchTerms);
+            }
+        } catch (err) {
+            console.error("❌ Error deleting Base Search Term:", err);
+        } finally {
+            setShowDeleteModal(false);
+            setSelectedRow(null);
+        }
     };
 
-    const handleSaveDataAvailability = () => {
-        console.log("Data Availability Value:", dataAvailabilityValue);
+    const handleSaveKeyString = async () => {
+        if (!keyString.trim()) return;
+
+        try {
+            const response = await axios.post(
+                `http://localhost:8080/live/projectname/add-key-string/${id}`, { keyStringsText: keyString },
+                { headers: { "Content-Type": "application/json" } }
+
+            );
+
+            const appendixData = response.data.stages.appendix1[0]?.keyStrings;
+            setKeyStringsList(appendixData);
+            setKeyString("");
+        } catch (err) {
+            console.error("❌ Error saving Key String:", err);
+        }
     };
 
 
-    const handleRelevantChange = (e) => {
+    const handleDeleteKeyString = async () => {
+        try {
+            const response = await axios.delete(
+                `http://localhost:8080/live/projectname/delete-key-string/${id}/${selectedRow._id}`
+            );
+
+            if (response.status === 200) {
+                setKeyStringsList(response.data.stages.appendix1[0].keyStrings);
+
+            }
+        } catch (err) {
+            console.error("❌ Error deleting Key String:", err);
+        } finally {
+            setShowDeleteModal(false);
+            setSelectedRow(null);
+        }
+    };
+
+
+    const handleSaveDataAvailability = async () => {
+        if (!dataAvailability.trim()) return;
+
+        try {
+            const response = await axios.post(
+                `http://localhost:8080/live/projectname/add-data-availability/${id}`, { dataAvailableText: dataAvailability },
+                { headers: { "Content-Type": "application/json" } }
+
+            );
+
+            const appendixData = response.data.stages.appendix1[0]?.dataAvailability;
+            setDataAvailabilityValue(appendixData);
+            setDataAvailability("");
+        } catch (err) {
+            console.error("❌ Error saving dataAvailability:", err);
+        }
+    };
+
+
+    const handleDeleteDataAvailability = async () => {
+        try {
+            const response = await axios.delete(
+                `http://localhost:8080/live/projectname/delete-data-availability/${id}/${selectedRow._id}`
+            );
+
+            if (response.status === 200) {
+                setDataAvailabilityValue(response.data.stages.appendix1[0].dataAvailability);
+
+            }
+        } catch (err) {
+            console.error("❌ Error deleting dataAvailability:", err);
+        } finally {
+            setShowDeleteModal(false);
+            setSelectedRow(null);
+        }
+    };
+
+
+    const handleProjectChange = (e) => {
         const { name, value } = e.target;
         setProjectFormData(prev => ({
             ...prev,
@@ -136,32 +441,75 @@ const MappingProjectCreation = () => {
     };
 
 
-    const handleSaveAppendix2Patents = () => {
-        console.log("Appendix 2 - Patents:", appendix2Patents);
+
+    const handleRelatedInputChange = (e) => {
+        const { id, value } = e.target;
+        const key = id.replace("related-", "");
+        setRelatedForm((prev) => ({
+            ...prev,
+            [key]: value
+        }));
     };
 
-    const handleSaveAppendix2NPL = () => {
-        console.log("Appendix 2 - Non-Patent Literature:", appendix2NPL);
+
+
+
+
+    const handleSaveAppendix2Patents = async () => {
+        if (!appendix2Patents.trim()) return;
+
+        try {
+            const response = await axios.post(
+                `http://localhost:8080/live/projectname/update-appendix2-patents/${id}`,
+                { patents: appendix2Patents },
+                { headers: { "Content-Type": "application/json" } }
+            );
+
+            if (response.status === 200) {
+                console.log("✅ Appendix 2 - Patents saved:", response.data);
+            }
+        } catch (err) {
+            console.error("❌ Error saving Appendix 2 - Patents:", err);
+        }
     };
+
+    const handleSaveAppendix2NPL = async () => {
+        if (!appendix2NPL.trim()) return;
+
+        try {
+            const response = await axios.post(
+                `http://localhost:8080/live/projectname/update-appendix2-npl/${id}`,
+                { nonPatentLiterature: appendix2NPL },
+                { headers: { "Content-Type": "application/json" } }
+            );
+
+            if (response.status === 200) {
+                console.log("✅ Appendix 2 - Non-Patent Literature saved:", response.data);
+            }
+        } catch (err) {
+            console.error("❌ Error saving Appendix 2 - NPL:", err);
+        }
+    };
+
+
 
 
 
     // ------------------ Relevant -------------------------
 
     const handleFetchPatentData = async () => {
-        const trimmedNumber = patentNumber.trim();
+        const trimmedNumber = relevantForm.patentNumber.trim();
         setLoading(true);
         setErrorValidation(false);
         try {
             await EPO_API_DATA(trimmedNumber, dispatch, 'relavent');
         } catch (error) {
             // setErrorValidation(true);
-            setfamId("");
+            setRelevantForm({ publicationUrl: "" });
 
             try {
                 // setErrorValidation(false);
                 await GOOGLE_API_DATA(trimmedNumber, dispatch, 'relavent');
-                console.log("✅ Google fallback succeeded");
             } catch (googleError) {
                 setErrorValidation(true);
                 console.error("❌ Google fallback failed:", googleError);
@@ -172,7 +520,6 @@ const MappingProjectCreation = () => {
             setLoading(false);
         }
     };
-
 
 
 
@@ -215,7 +562,7 @@ const MappingProjectCreation = () => {
     const descriptionText = descArray?.join('\n') || '';
     const formattedDescriptions = convertDescriptionToKeyValue(descriptionText);
 
-    useEffect(() => {
+    const famFilterFunction = () => {
         if (data?.patentNumber !== undefined) {
             let familyIDs = [];
             const familyMember = data.familyData?.["world-patent-data"]?.["patent-family"]?.["family-member"];
@@ -224,9 +571,11 @@ const MappingProjectCreation = () => {
             } else if (typeof familyMember === 'object') {
                 familyIDs = data.familyData["world-patent-data"]?.["patent-family"]?.["family-member"]?.["$"]?.["family-id"];
             }
-            setfamId(`https://worldwide.espacenet.com/patent/search/family/0${familyIDs}/publication/${data?.patentNumber}?q=${data?.patentNumber}`);
+            return `https://worldwide.espacenet.com/patent/search/family/0${familyIDs}/publication/${data?.patentNumber}?q=${data?.patentNumber}`;
         }
-    }, [data])
+    };
+
+    const publicationUrl = famFilterFunction();
 
     const biblioData = data?.biblio?.['world-patent-data']?.['exchange-documents']?.['exchange-document']?.['bibliographic-data'];
     const inventorsData = biblioData?.parties?.inventors?.inventor;
@@ -404,8 +753,7 @@ const MappingProjectCreation = () => {
             (async () => {
                 try {
                     setErrorValidation(false);
-                    await GOOGLE_API_DATA(patentNumber.trim(), dispatch, 'relavent');
-                    console.log('✅ Google fallback relevant succeeded');
+                    await GOOGLE_API_DATA(relevantForm.patentNumber.trim(), dispatch, 'relavent');
                 } catch (googleError) {
                     setErrorValidation(true);
                     console.error('❌ Google fallback failed:', googleError);
@@ -434,18 +782,17 @@ const MappingProjectCreation = () => {
 
 
     const handleRelatedFetchPatentData = async () => {
-        const trimmedNumber = relatedPatentNumber.trim();
+        const trimmedNumber = relatedForm.publicationNumber.trim();
         setRelatedLoading(true);
         try {
             await EPO_API_DATA(trimmedNumber, dispatch, 'related');
         } catch (error) {
             setRelatedErrorValidation(true);
-            setRelatedFamId("");
+            setRelatedForm({ relatedPublicationUrl: "" });
 
             try {
                 setRelatedErrorValidation(false);
                 await GOOGLE_API_DATA(trimmedNumber, dispatch, 'related');
-                console.log("✅ Google fallback related succeeded");
             } catch (googleError) {
                 setRelatedErrorValidation(true);
                 console.error("❌ Google fallback related failed:", googleError);
@@ -458,17 +805,20 @@ const MappingProjectCreation = () => {
     };
 
 
-
-    useEffect(() => {
+    const relatedFamilyFilterFunction = () => {
         if (relatedData?.patentNumber) {
             const familyMember = relatedData.familyData?.["world-patent-data"]?.["patent-family"]?.["family-member"];
             const firstFamily = Array.isArray(familyMember) ? familyMember[0] : familyMember;
             const familyId = firstFamily?.["$"]?.["family-id"];
             if (familyId) {
-                setRelatedFamId(`https://worldwide.espacenet.com/patent/search/family/0${familyId}/publication/${relatedData?.patentNumber}?q=${relatedData?.patentNumber}`);
+                return `https://worldwide.espacenet.com/patent/search/family/0${familyId}/publication/${relatedData?.patentNumber}?q=${relatedData?.patentNumber}`;
             }
         }
-    }, [relatedData]);
+    }
+
+    const relatedPublicationUrl = relatedFamilyFilterFunction();
+
+
 
     const relatedBiblioData = relatedData?.biblio?.['world-patent-data']?.['exchange-documents']?.['exchange-document']?.['bibliographic-data'];
 
@@ -537,7 +887,8 @@ const MappingProjectCreation = () => {
         });
     }, [relatedBiblioData]);
 
-    const relatedFamilyData = relatedFamData?.map(f => f?.familyPatent).join(', ') || ''
+    const relatedFamilyData = relatedFamData?.map(f => f?.familyPatent).join(', ') || '';
+
 
     const memoInventionTitle = useMemo(() => relatedInventionTitle(), [relatedBiblioData]);
     const memoPubDate = useMemo(() => relatedPublicationDate(), [relatedBiblioData]);
@@ -568,8 +919,7 @@ const MappingProjectCreation = () => {
             (async () => {
                 try {
                     setRelatedErrorValidation(false);
-                    await GOOGLE_API_DATA(patentNumber.trim(), dispatch, 'related');
-                    console.log('✅ Google fallback related succeeded');
+                    await GOOGLE_API_DATA(relevantForm.patentNumber.trim(), dispatch, 'related');
                 } catch (googleError) {
                     setRelatedErrorValidation(true);
                     console.error('❌ Google fallback failed:', googleError);
@@ -591,29 +941,82 @@ const MappingProjectCreation = () => {
     ]);
 
 
-    const handleNplSubmit = (e) => {
-        e.preventDefault();
-        console.log("NPL Patent Form Data:", nplPatentFormData);
-
-        // Optionally reset the form after submit:
-        // setNplPatentFormData({
-        //   title: "",
-        //   url: "",
-        //   publicationDate: "",
-        //   comments: "",
-        //   excerpts: "",
-        // });
-    };
 
 
+    useEffect(() => {
+        if (data?.patentNumber || releventBiblioGoogleData?.patentNumber) {
+            const combinedForm = {
+                patentNumber: relevantForm.patentNumber.trim(),
 
-    const handleOverAllSummarySave = (e) => {
-        e.preventDefault();
-        console.log("Form Data:", {
-            ...overallSummary,
-            overallSummary,
-        });
-    };
+                publicationUrl:
+                    publicationUrl ||
+                    releventBiblioGoogleData?.pageUrl ||
+                    "",
+
+                title:
+                    title ||
+                    releventBiblioGoogleData?.title?.trim() ||
+                    "",
+
+                filingDate:
+                    aplDate ||
+                    releventBiblioGoogleData?.applicationDate ||
+                    "",
+
+                grantDate:
+                    pubDate ||
+                    releventBiblioGoogleData?.publicationDate ||
+                    "",
+
+                priorityDate:
+                    priorityDates ||
+                    releventBiblioGoogleData?.priorityDate ||
+                    "",
+
+                assignee: (applicantNames ||
+                    releventBiblioGoogleData?.assignees ||
+                    ""
+                )
+                    .split(",")
+                    .map(a => a.trim())
+                    .filter(Boolean),
+
+                inventors: (inventorNames ||
+                    releventBiblioGoogleData?.inventors ||
+                    ""
+                )
+                    .split(";")
+                    .map(i => i.trim())
+                    .filter(Boolean),
+
+                classifications: (classificationsSymbol ||
+                    googleClassCPC ||
+                    ""
+                )
+                    .split(",")
+                    .map(c => c.trim())
+                    .filter(Boolean),
+
+                usClassification: (classData.US_Classification ||
+                    releventBiblioGoogleData?.usClassification ||
+                    ""
+                )
+                    .split(",")
+                    .map(u => u.trim())
+                    .filter(Boolean),
+
+                familyMembers: (familyMemData || "")
+                    .split(",")
+                    .map(f => f.trim())
+                    .filter(Boolean),
+
+                analystComments: relevantForm.analystComments || "",
+                relevantExcerpts: relevantForm.relevantExcerpts || ""
+            };
+
+            setRelevantForm(combinedForm);
+        }
+    }, [data, releventBiblioGoogleData]);
 
 
 
@@ -621,31 +1024,16 @@ const MappingProjectCreation = () => {
     const handleRelevantSubmit = async (e) => {
         e.preventDefault();
 
-        const relevantFormData = {
-            patentNumber: patentNumber || '',
-            publicationUrl: famId || releventBiblioGoogleData.pageUrl,
-            title: title || releventBiblioGoogleData.title?.trim(),
-            filingDate: aplDate || releventBiblioGoogleData.applicationDate,
-            grantDate: pubDate || releventBiblioGoogleData.publicationDate,
-            priorityDate: priorityDates || releventBiblioGoogleData.priorityDate,
-            assignee: (applicantNames || releventBiblioGoogleData.assignees || "").split(",").map(a => a.trim()),
-            inventors: (inventorNames || releventBiblioGoogleData.inventors || "").split(";").map(i => i.trim()),
-            classifications: (classificationsSymbol || googleClassCPC || "").split(",").map(c => c.trim()),
-            usClassification: (usClassification || "").split(",").map(u => u.trim()),
-            familyMembers: (familyMemData || "").split(",").map(f => f.trim()),
-            analystComments: analystComments || "",
-            relevantExcerpts: relevantExcerpts || "",
-        };
-
-
         try {
             const response = await axios.post(
-                `http://localhost:8080/live/projectname/add-relevant-data/${id}`,
-                relevantFormData,
+                `http://localhost:8080/live/projectname/add-relevant-data/${id}`, relevantForm,
                 { headers: { "Content-Type": "application/json" } }
             );
             if (response.status === 200) {
-                setrelevantFormData(prevData => [...prevData, response.data]);
+                resetRelevantForm();
+                const updatedDetails = response.data.stages.relevantReferences.publicationDetails;
+                setrelevantFormData(updatedDetails);
+
             }
 
         } catch (error) {
@@ -654,21 +1042,146 @@ const MappingProjectCreation = () => {
     };
 
 
-    const handleRelatedSubmit = (e) => {
+
+
+    const handleNplSubmit = async (e) => {
         e.preventDefault();
 
-        const relatedFormData = {
-            patentNumber: patentNumber,
-            familyID :famId || releventBiblioGoogleData.pageUrl,
-            title: title || releventBiblioGoogleData.title?.trim(),
-            publicationDate: pubDate || releventBiblioGoogleData.publicationDate,
-            // assignee: applicantNames || releventBiblioGoogleData.assignees,
-            // inventors: inventorNames || releventBiblioGoogleData.inventors,
-            assigneesOrInventors: `${applicantNames || releventBiblioGoogleData.assignees} / ${inventorNames || releventBiblioGoogleData.inventors} `,
-            familyMemData: familyMemData,
+        try {
+            const response = await axios.post(
+                `http://localhost:8080/live/projectname/add-npl/${id}`,
+                nplPatentFormData,
+                { headers: { "Content-Type": "application/json" } }
+            );
 
+            if (response.status === 200) {
+                nonPatentLiteratureForm();
+                const updatedNplData = response.data.stages.relevantReferences.nonPatentLiteratures;
+                setNonPatentFormData(updatedNplData);
+
+            }
+        } catch (error) {
+            console.error("❌ Error saving NPL:", error);
         }
     };
+
+
+
+
+    const handleOverAllSummarySave = async () => {
+        const summaryData = {
+            overallSummary: overallSummary || "",
+        };
+
+        try {
+            await axios.post(
+                `http://localhost:8080/live/projectname/update-overall-summary/${id}`,
+                summaryData,
+                {
+                    headers: {
+                        "Content-Type": "application/json"
+                    }
+                }
+            );
+
+        } catch (error) {
+            console.error("❌ Error saving Overall Summary:", error);
+            if (error.response) {
+                console.error("Server responded with:", error.response.data);
+            } else if (error.request) {
+                console.error("No response received:", error.request);
+            } else {
+                console.error("Axios error:", error.message);
+            }
+        }
+    };
+
+
+    const handleRelevatFormInputChange = (e) => {
+        const { id, value } = e.target;
+        setRelevantForm(prev => ({
+            ...prev,
+            [id]: value
+        }));
+    };
+
+
+
+
+    useEffect(() => {
+        if (relatedData?.patentNumber || relatedBiblioGoogleData?.patentNumber) {
+            const combinedForm = {
+                publicationNumber: relatedData.patentNumber.trim(),
+
+                relatedPublicationUrl:
+                    relatedPublicationUrl ||
+                    relatedBiblioGoogleData?.pageUrl ||
+                    "",
+
+                relatedTitle:
+                    memoInventionTitle ||
+                    relatedBiblioGoogleData?.title?.trim() ||
+                    "",
+
+                relatedPublicationDate:
+                    memoPubDate ||
+                    relatedBiblioGoogleData?.publicationDate ||
+                    "",
+
+                relatedAssignee: (relatedApplicantNames ||
+                    relatedBiblioGoogleData?.assignees ||
+                    ""
+                )
+                    .split(",")
+                    .map(a => a.trim())
+                    .filter(Boolean),
+
+                relatedInventor: (relatedInventorNames ||
+                    relatedBiblioGoogleData?.inventors ||
+                    "")
+                    .split(";")
+                    .map(i => i.trim())
+                    .filter(Boolean),
+
+
+                relatedFamilyMembers: (relatedFamilyData || "")
+                    .split(",")
+                    .map(f => f.trim())
+                    .filter(Boolean),
+            };
+
+            setRelatedForm(combinedForm);
+        }
+    }, [relatedData, relatedBiblioGoogleData]);
+
+
+
+
+
+    const handleRelatedSubmit = async (e) => {
+        e.preventDefault();
+
+        try {
+            const response = await axios.post(`http://localhost:8080/live/projectname/add-related/${id}`, relatedForm,
+                { headers: { "Content-Type": "application/json" } }
+            );
+
+            if (response.status === 200) {
+                resetRelatedForm();
+                setRelatedFormData(response.data.stages.relatedReferences);
+
+            }
+        } catch (error) {
+            console.error("❌ Error saving related reference:", error);
+
+            if (error.response) {
+                console.error("Server responded with:", error.response.data);
+            } else {
+                console.error("No response received:", error.request);
+            }
+        }
+    };
+
 
 
     const handleIntroSave = async () => {
@@ -698,6 +1211,21 @@ const MappingProjectCreation = () => {
             }
         }
     };
+
+
+    const handleReportDownload = async () => {
+        console.log("Report Download");
+
+        try {
+            const getProjectValue = await fetchProjectById(id);
+            console.log('getProjectValue', getProjectValue)
+
+        } catch (error) {
+            console.log(error)
+        }
+    };
+
+
 
 
     function toggleTab(tab) {
@@ -812,7 +1340,7 @@ const MappingProjectCreation = () => {
                                                     <IntroductionTab
                                                         projectFormData={projectFormData}
                                                         introduction={introduction}
-                                                        handleRelevantChange={handleRelevantChange}
+                                                        handleProjectChange={handleProjectChange}
                                                         handleIntroSave={handleIntroSave}
                                                         reportData={fullReportData.filter(fil => fil._id === id)}
                                                         id={id}
@@ -823,629 +1351,121 @@ const MappingProjectCreation = () => {
 
                                                 <TabPane tabId={2}>
                                                     <RelevantRefComponent
-                                                        loading={loading}
-                                                        patentNumber={patentNumber}
-                                                        setPatentNumber={setPatentNumber}
-                                                        errorValidation={errorValidation}
-                                                        setErrorValidation={setErrorValidation}
+                                                        relevantForm={relevantForm}
                                                         handleFetchPatentData={handleFetchPatentData}
                                                         handleRelevantSubmit={handleRelevantSubmit}
-                                                        title={title}
-                                                        aplDate={aplDate}
-                                                        applicantNames={applicantNames}
-                                                        pubDate={pubDate}
-                                                        inventorNames={inventorNames}
-                                                        priorityDates={priorityDates}
-                                                        classificationsSymbol={classificationsSymbol}
-                                                        googleClassCPC={googleClassCPC}
-                                                        usClassification={usClassification}
-                                                        setUsClassification={setUsClassification}
-                                                        familyMemData={familyMemData}
-                                                        analystComments={analystComments}
-                                                        setAnalystComments={setAnalystComments}
-                                                        relevantExcerpts={relevantExcerpts}
-                                                        setRelevantExcerpts={setRelevantExcerpts}
-                                                        releventBiblioGoogleData={releventBiblioGoogleData}
+                                                        relevantFormData={relevantFormData}
+                                                        onDeleteClick={onDeleteClick}
+                                                        loading={loading}
+                                                        errorValidation={errorValidation}
+                                                        setErrorValidation={setErrorValidation}
                                                         handleNplSubmit={handleNplSubmit}
                                                         handleNplChange={handleNplChange}
+                                                        onNplDeleteClick={onNplDeleteClick}
+                                                        nonPatentFormData={nonPatentFormData}
                                                         nplPatentFormData={nplPatentFormData}
                                                         overallSummary={overallSummary}
+                                                        overallSummarrySavedData={overallSummarrySavedData}
                                                         setOverallSummary={setOverallSummary}
                                                         handleOverAllSummarySave={handleOverAllSummarySave}
-                                                        famId={famId}
-                                                        relevantFormData={relevantFormData}
+                                                        handleRelevatFormInputChange={handleRelevatFormInputChange}
+
+                                                    />
+
+                                                </TabPane>
+
+                                                <ReusableDeleteComp
+                                                    show={showDeleteModal}
+                                                    toggle={() => setShowDeleteModal(false)}
+                                                    message="Are you sure you want to delete this publication?"
+                                                    onConfirm={handlePublicationDelete}
+                                                />
+
+                                                <ReusableDeleteComp
+                                                    show={showDeleteModal}
+                                                    toggle={() => setShowDeleteModal(false)}
+                                                    message="Are you sure you want to delete this Non-Patent?"
+                                                    onConfirm={handleNonPatentDelete}
+                                                />
+
+                                                <ReusableDeleteComp
+                                                    show={showDeleteModal}
+                                                    toggle={() => setShowDeleteModal(false)}
+                                                    message="Are you sure you want to delete this Related reference?"
+                                                    onConfirm={handleRelatedReferenceDelete}
+                                                />
+
+                                                <ReusableDeleteComp
+                                                    show={showDeleteModal}
+                                                    toggle={() => setShowDeleteModal(false)}
+                                                    message="Are you sure you want to delete this Search Term Text?"
+                                                    onConfirm={handleSearchTermDelete}
+                                                />
+
+                                                <ReusableDeleteComp
+                                                    show={showDeleteModal}
+                                                    toggle={() => setShowDeleteModal(false)}
+                                                    message="Are you sure you want to delete this Key String?"
+                                                    onConfirm={handleDeleteKeyString}
+                                                />
+
+                                                <ReusableDeleteComp
+                                                    show={showDeleteModal}
+                                                    toggle={() => setShowDeleteModal(false)}
+                                                    message="Are you sure you want to delete this Data Availability Value?"
+                                                    onConfirm={handleDeleteDataAvailability}
+                                                />
+
+
+                                                <TabPane tabId={3}>
+                                                    <RelatedRefComponent
+                                                        relatedLoading={relatedLoading}
+                                                        relatedForm={relatedForm}
+                                                        handleRelatedSubmit={handleRelatedSubmit}
+                                                        handleRelatedFetchPatentData={handleRelatedFetchPatentData}
+                                                        handleRelatedInputChange={handleRelatedInputChange}
+                                                        relatedFormData={relatedFormData}
+                                                        onRelatedDelete={onRelatedDelete}
+                                                        relatedErrorValidation={relatedErrorValidation}
+                                                        setRelatedErrorValidation={setRelatedErrorValidation}
                                                     />
                                                 </TabPane>
 
-
-                                                {/* <TabPane tabId={2}>
-                                                    <h4 className="fw-bold mb-4">1. Publication Details</h4>
-                                                    {loading ?
-                                                        <div className="blur-loading-overlay text-center mt-4">
-                                                            <Spinner color="primary" />
-                                                            <p className="mt-2 text-primary">Loading Relevant References...</p>
-                                                        </div> :
-                                                        <Form onSubmit={handleRelevantSubmit}>
-                                                            <Row>
-                                                                <p className="text-info">
-                                                                    ℹ️ Enter the <strong>Patent Number</strong> and click <strong>Submit</strong> to automatically fetch and fill the bibliographic information.
-                                                                </p>
-
-                                                                <Col lg="4">
-                                                                    <div className="mb-3">
-                                                                        <Label for="publication-number">Publication Number</Label>
-                                                                        <Input
-                                                                            type="text"
-                                                                            id="publication-number"
-                                                                            className="form-control"
-                                                                            placeholder="Enter Publication Number"
-                                                                            value={patentNumber}
-                                                                            onChange={(e) => { setPatentNumber(e.target.value); setErrorValidation(false) }}
-                                                                            style={{ border: errorValidation ? '1px solid red' : '' }}
-                                                                        />
-
-                                                                    </div>
-                                                                </Col>
-                                                                <Col className="d-grid align-items-end">
-                                                                    <div className="mb-3">
-                                                                        <Button color="success" onClick={handleFetchPatentData} className="w-100">Submit</Button>
-                                                                    </div>
-                                                                </Col>
-
-                                                                <Col lg="6">
-                                                                    <div className="mb-3">
-                                                                        <Label for="publication-url">Publication Number (URL)</Label>
-                                                                        <Input
-                                                                            type="text"
-                                                                            id="publication-url"
-                                                                            className="form-control"
-                                                                            placeholder="Enter Publication Number URL"
-                                                                            value={famId || releventBiblioGoogleData.pageUrl}
-                                                                        />
-                                                                    </div>
-                                                                </Col>
-
-                                                            </Row>
-
-                                                            <Row>
-                                                                <Col lg="6">
-                                                                    <div className="mb-3">
-                                                                        <Label for="title">Title</Label>
-                                                                        <Input
-                                                                            type="text"
-                                                                            id="title"
-                                                                            className="form-control"
-                                                                            placeholder="Enter Title"
-                                                                            value={title || releventBiblioGoogleData.title?.trim()}
-                                                                        />
-                                                                    </div>
-                                                                </Col>
-                                                                <Col lg="6">
-                                                                    <div className="mb-3">
-                                                                        <Label for="filing-date">Filing/Application Date (Optional)</Label>
-                                                                        <Input
-                                                                            type="text"
-                                                                            id="filing-date"
-                                                                            className="form-control"
-                                                                            placeholder="dd-mm-yyyy"
-                                                                            value={aplDate || releventBiblioGoogleData.applicationDate}
-                                                                        />
-                                                                    </div>
-                                                                </Col>
-                                                            </Row>
-
-                                                            <Row>
-                                                                <Col lg="6">
-                                                                    <div className="mb-3">
-                                                                        <Label for="assignees">Assignee(s)</Label>
-                                                                        <Input
-                                                                            type="text"
-                                                                            id="assignees"
-                                                                            className="form-control"
-                                                                            placeholder="Enter Assignees: Comma(,) Separated Values"
-                                                                            value={applicantNames || releventBiblioGoogleData.assignees}
-                                                                        />
-                                                                    </div>
-                                                                </Col>
-
-                                                                <Col lg="6">
-                                                                    <div className="mb-3">
-                                                                        <Label for="grant-date">Grant/Publication Date</Label>
-                                                                        <Input
-                                                                            type="text"
-                                                                            id="grant-date"
-                                                                            className="form-control"
-                                                                            placeholder="dd-mm-yyyy"
-                                                                            value={pubDate || releventBiblioGoogleData.publicationDate}
-                                                                        />
-                                                                    </div>
-                                                                </Col>
-                                                            </Row>
-
-                                                            <Row>
-                                                                <Col lg="6">
-                                                                    <div className="mb-3">
-                                                                        <Label for="inventors">Inventor(s)</Label>
-                                                                        <Input
-                                                                            type="text"
-                                                                            id="inventors"
-                                                                            className="form-control"
-                                                                            placeholder="Enter Inventors: Semicolon(;) Separated Values"
-                                                                            value={inventorNames || releventBiblioGoogleData.inventors}
-                                                                        />
-                                                                    </div>
-                                                                </Col>
-
-                                                                <Col lg="6">
-                                                                    <div className="mb-3">
-                                                                        <Label for="priority-date">Priority Date (Optional)</Label>
-                                                                        <Input
-                                                                            type="text"
-                                                                            id="priority-date"
-                                                                            className="form-control"
-                                                                            placeholder="dd-mm-yyyy"
-                                                                            value={priorityDates || releventBiblioGoogleData.priorityDate}
-                                                                        />
-                                                                    </div>
-                                                                </Col>
-                                                            </Row>
-
-                                                            <Row>
-                                                                <Col lg="6">
-                                                                    <div className="mb-3">
-                                                                        <Label for="ipc-cpc">IPC/CPC Classification</Label>
-                                                                        <Input
-                                                                            type="text"
-                                                                            id="ipc-cpc"
-                                                                            className="form-control"
-                                                                            placeholder="Enter IPC/CPC Classification: Comma(,) Separated Values"
-                                                                            value={classificationsSymbol || googleClassCPC}
-                                                                        />
-                                                                    </div>
-                                                                </Col>
-
-                                                                <Col lg="6">
-                                                                    <div className="mb-3">
-                                                                        <Label for="us-classification">US Classification (Optional)</Label>
-                                                                        <Input
-                                                                            type="text"
-                                                                            id="us-classification"
-                                                                            className="form-control"
-                                                                            placeholder="Enter US Classification: Comma(,) Separated Values"
-                                                                            value={usClassification}
-                                                                            onChange={(e) => setUsClassification(e.target.value)}
-                                                                        />
-                                                                    </div>
-
-                                                                </Col>
-                                                            </Row>
-
-                                                            <Row>
-                                                                <Col lg="12">
-                                                                    <div className="mb-3">
-                                                                        <Label for="family-members">Family Member(s)</Label>
-                                                                        <textarea
-                                                                            id="family-members"
-                                                                            className="form-control"
-                                                                            rows="3"
-                                                                            placeholder="Enter Family Members: Comma(,) Separated Values"
-                                                                            value={familyMemData}
-                                                                        />
-                                                                    </div>
-                                                                </Col>
-                                                            </Row>
-                                                            <Row>
-                                                                <Col lg="12">
-                                                                    <div className="mb-3">
-                                                                        <Label for="analyst-comments">Analyst Comments</Label>
-                                                                        <textarea
-                                                                            id="analyst-comments"
-                                                                            className="form-control"
-                                                                            rows="3"
-                                                                            placeholder="Enter Comments"
-                                                                            value={analystComments}
-                                                                            onChange={(e) => setAnalystComments(e.target.value)}
-                                                                        />
-                                                                    </div>
-                                                                </Col>
-                                                            </Row>
-
-                                                            <Row>
-                                                                <Col lg="12">
-                                                                    <div className="mb-3">
-                                                                        <Label for="relevant-excerpts">Relevant Excerpts</Label>
-                                                                        <textarea
-                                                                            id="relevant-excerpts"
-                                                                            className="form-control"
-                                                                            rows="3"
-                                                                            placeholder="Enter Relevant Excerpts"
-                                                                            value={relevantExcerpts}
-                                                                            onChange={(e) => setRelevantExcerpts(e.target.value)}
-                                                                        />
-                                                                    </div>
-                                                                </Col>
-                                                            </Row>
-                                                            <Col lg="2">
-                                                                <div className="mb-3">
-                                                                    <Button color="info" type="submit" className="w-100">+ Add Relevant </Button>
-                                                                </div>
-                                                            </Col>
-                                                        </Form>
-                                                    }
-
-                                                    <p>TableContainer for relevant</p>
-
-
-                                                    <h4 className="fw-bold mb-4">2. Non-Patent Literatures(NPL)</h4>
-
-                                                    <Form onSubmit={handleNplSubmit}>
-                                                        <Row>
-                                                            <Col lg="4">
-                                                                <div className="mb-3">
-                                                                    <Label for="npl-title">Title / Product Name</Label>
-                                                                    <Input
-                                                                        type="text"
-                                                                        id="npl-title"
-                                                                        className="form-control"
-                                                                        placeholder="Enter Title / Product Name"
-                                                                        value={nplPatentFormData.title}
-                                                                        onChange={handleNplChange}
-                                                                    />
-                                                                </div>
-                                                            </Col>
-
-                                                            <Col lg="4">
-                                                                <div className="mb-3">
-                                                                    <Label for="npl-url">URL</Label>
-                                                                    <Input
-                                                                        type="text"
-                                                                        id="npl-url"
-                                                                        className="form-control"
-                                                                        placeholder="Enter NPL URL"
-                                                                        value={nplPatentFormData.url}
-                                                                        onChange={handleNplChange}
-                                                                    />
-                                                                </div>
-                                                            </Col>
-
-                                                            <Col lg="4">
-                                                                <div className="mb-3">
-                                                                    <Label for="npl-pub-date">Publication Date</Label>
-                                                                    <Input
-                                                                        type="text"
-                                                                        id="npl-publicationDate"
-                                                                        className="form-control"
-                                                                        placeholder="dd-mm-yyyy"
-                                                                        value={nplPatentFormData.publicationDate}
-                                                                        onChange={handleNplChange}
-                                                                    />
-                                                                </div>
-                                                            </Col>
-                                                        </Row>
-
-                                                        <Row>
-                                                            <Col lg="6">
-                                                                <div className="mb-3">
-                                                                    <Label for="npl-comments">Analyst Comments</Label>
-                                                                    <textarea
-                                                                        id="npl-comments"
-                                                                        className="form-control"
-                                                                        rows="3"
-                                                                        placeholder="Enter Comments"
-                                                                        value={nplPatentFormData.comments}
-                                                                        onChange={handleNplChange}
-                                                                    />
-                                                                </div>
-                                                            </Col>
-
-                                                            <Col lg="6">
-                                                                <div className="mb-3">
-                                                                    <Label for="npl-excerpts">Relevant Excerpts</Label>
-                                                                    <textarea
-                                                                        id="npl-excerpts"
-                                                                        className="form-control"
-                                                                        rows="3"
-                                                                        placeholder="Enter Relevant Excerpts"
-                                                                        value={nplPatentFormData.excerpts}
-                                                                        onChange={handleNplChange}
-                                                                    />
-                                                                </div>
-                                                            </Col>
-                                                        </Row>
-
-                                                        <Col lg="2">
-                                                            <div className="mb-3">
-                                                                <Button color="info" className="w-100" type="submit">
-                                                                    + Non-Patent Literature
-                                                                </Button>
-                                                            </div>
-                                                        </Col>
-                                                    </Form>
-                                                    <p>TableContainer for Npl</p>
-
-
-                                                    <h4 className="fw-bold mb-4">2. Overall Summary of Search and Prior Arts</h4>
-                                                    <Row>
-                                                        <Col lg="12">
-                                                            <div className="mb-3">
-                                                                <Label for="overall-summary">Overall Summary</Label>
-                                                                <textarea
-                                                                    id="overall-summary"
-                                                                    className="form-control"
-                                                                    rows="3"
-                                                                    placeholder="Enter Overall Summary"
-                                                                    value={overallSummary}
-                                                                    onChange={(e) => setOverallSummary(e.target.value)}
-                                                                />
-                                                            </div>
-
-                                                        </Col>
-                                                    </Row>
-                                                    <Col lg="2">
-                                                        <div className="mb-3">
-                                                            <Button onClick={handleOverAllSummarySave} color="warning" className="w-100">Save Summary</Button>
-                                                        </div>
-                                                    </Col>
-
-
-
-
-                                                </TabPane> */}
-
-                                                <TabPane tabId={3}>
-
-                                                    <h4 className="fw-bold mb-3">Related References</h4>
-                                                    <p className="text-muted mb-4">
-                                                        <i> <strong>Note:</strong> Below references are listed as related references as these references fail to disclose at least one or more features of the objective.</i>
-                                                    </p>
-
-                                                    {
-                                                        relatedLoading ? (
-                                                            <div className="blur-loading-overlay text-center mt-4">
-                                                                <Spinner color="primary" />
-                                                                <p className="mt-2 text-primary">Loading Related References...</p>
-                                                            </div>
-                                                        ) : (
-                                                            <Form onSubmit={handleRelatedSubmit}>
-                                                                <Row>
-                                                                    <Col lg="4">
-                                                                        <div className="mb-3">
-                                                                            <Label for="related-publication-number">Publication Number</Label>
-                                                                            <Input
-                                                                                type="text"
-                                                                                id="related-publication-number"
-                                                                                className="form-control"
-                                                                                placeholder="Enter Publication Number"
-                                                                                value={relatedPatentNumber || ""}
-                                                                                onChange={(e) => { setRelatedPatentNumber(e.target.value); setRelatedErrorValidation(false) }}
-                                                                                style={{ border: relatedErrorValidation ? '1px solid red' : '' }}
-                                                                            />
-                                                                        </div>
-                                                                    </Col>
-                                                                    <Col lg="2 d-grid align-items-end">
-                                                                        <div className="mb-3">
-                                                                            <Button color="success" className="w-100" onClick={handleRelatedFetchPatentData}>Submit</Button>
-                                                                        </div>
-                                                                    </Col>
-
-                                                                    <Col lg="6">
-                                                                        <div className="mb-3">
-                                                                            <Label for="related-publication-url">Publication Number (URL)</Label>
-                                                                            <Input
-                                                                                type="text"
-                                                                                id="related-publication-url"
-                                                                                className="form-control"
-                                                                                placeholder="Enter Publication Number URL"
-                                                                                value={relatedFamId || relatedBiblioGoogleData.pageUrl}
-                                                                            />
-                                                                        </div>
-                                                                    </Col>
-                                                                </Row>
-
-                                                                <Row>
-                                                                    <Col lg="6">
-                                                                        <div className="mb-3">
-                                                                            <Label for="related-title">Title</Label>
-                                                                            <Input
-                                                                                type="text"
-                                                                                id="related-title"
-                                                                                className="form-control"
-                                                                                placeholder="Enter Title"
-                                                                                value={memoInventionTitle || relatedBiblioGoogleData.title}
-                                                                            />
-                                                                        </div>
-                                                                    </Col>
-
-                                                                    <Col lg="6">
-                                                                        <div className="mb-3">
-                                                                            <Label for="related-assignee-inventor">Assignee(s) / Inventor(s)</Label>
-                                                                            <Input
-                                                                                type="text"
-                                                                                id="related-assignee-inventor"
-                                                                                className="form-control"
-                                                                                placeholder="Enter Assignees/Inventors: Semicolon(;) Separated Values"
-                                                                                value={assigneeAndInventorsName || glAssigneesAndInventor}
-                                                                            />
-                                                                        </div>
-                                                                    </Col>
-                                                                </Row>
-
-                                                                <Row>
-                                                                    <Col lg="6">
-                                                                        <div className="mb-3">
-                                                                            <Label for="related-family-members">Family Member(s)</Label>
-                                                                            <textarea
-                                                                                id="related-family-members"
-                                                                                className="form-control"
-                                                                                rows="3"
-                                                                                placeholder="Enter Family Members: Comma(,) Separated Values"
-                                                                                value={relatedFamilyData}
-                                                                            />
-                                                                        </div>
-                                                                    </Col>
-                                                                    <Col lg="6">
-                                                                        <div className="mb-3">
-                                                                            <Label for="related-pub-date">Publication Date (Optional)</Label>
-                                                                            <Input
-                                                                                type="text"
-                                                                                id="related-pub-date"
-                                                                                className="form-control"
-                                                                                placeholder="dd-mm-yyyy"
-                                                                                value={memoPubDate || relatedBiblioGoogleData.publicationDate}
-                                                                            />
-                                                                        </div>
-                                                                        <div className="">
-                                                                            <Button color="info" type="submit" className="w-100">+ Add Related </Button>
-                                                                        </div>
-                                                                    </Col>
-                                                                </Row>
-                                                            </Form>
-                                                        )
-                                                    }
-
-                                                    <p>TableContainer for Related</p>
-
-                                                </TabPane>
-
                                                 <TabPane tabId={4}>
-                                                    <h4 className="fw-bold mb-3">Appendix 1</h4>
-                                                    <p className="text-muted mb-4">
-                                                        <i>The search terms and key strings to extract relevant patent publications and non-patent literature are provided below.</i>
-                                                    </p>
+                                                    <Appendix1
+                                                        baseSearchTerm={baseSearchTerm}
+                                                        baseSearchTermsList={baseSearchTermsList}
+                                                        setBaseSearchTerm={setBaseSearchTerm}
+                                                        handleSaveBaseSearchTerm={handleSaveBaseSearchTerm}
+                                                        onSearchTermDelete={onSearchTermDelete}
 
-                                                    <h5 className="fw-semibold">1. Base Search Terms</h5>
-                                                    <Row>
-                                                        <Col lg="12">
-                                                            <div className="mb-3">
-                                                                <Label for="base-search-terms">Enter Terms</Label>
-                                                                <textarea
-                                                                    id="base-search-terms"
-                                                                    className="form-control"
-                                                                    rows="3"
-                                                                    placeholder="Enter search terms like: patents, live, alive, etc."
-                                                                    value={baseSearchTerm}
-                                                                    onChange={(e) => setBaseSearchTerm(e.target.value)}
-                                                                />
+                                                        keyString={keyString}
+                                                        keyStringsList={keyStringsList}
+                                                        onKeyStringsDelete={onKeyStringsDelete}
+                                                        setKeyString={setKeyString}
+                                                        handleSaveKeyString={handleSaveKeyString}
 
-                                                            </div>
-                                                        </Col>
-                                                    </Row>
-                                                    <Col lg={2}>
-                                                        <div className="mb-3">
-                                                            <Button color="info" className="w-100" onClick={handleSaveBaseSearchTerm}>
-                                                                + Base Search Terms
-                                                            </Button>
-                                                        </div>
-                                                    </Col>
-                                                    <p>TableContainer for Base Search Terms</p>
-
-                                                    <h5 className="fw-semibold">2. Search Strings</h5>
-                                                    <Row>
-                                                        <Col lg="12">
-                                                            <div className="mb-3">
-                                                                <Label for="key-strings">Key Strings</Label>
-                                                                <textarea
-                                                                    id="key-strings"
-                                                                    className="form-control"
-                                                                    rows="3"
-                                                                    placeholder="Enter key strings (Orbit, USPTO, PatSeer, Google Patent, Scholar, IEEE, etc.)"
-                                                                    value={keyString}
-                                                                    onChange={(e) => setKeyString(e.target.value)}
-                                                                />
-                                                            </div>
-                                                        </Col>
-                                                    </Row>
-                                                    <Col lg={2}>
-                                                        <div className="mb-3">
-                                                            <Button color="info" className="w-100" onClick={handleSaveKeyString}>
-                                                                + Key Strings
-                                                            </Button>
-                                                        </div>
-                                                    </Col>
-                                                    <p>TableContainer for Search Strings</p>
-
-
-                                                    <h5 className="fw-semibold">3. Data Availability</h5>
-                                                    <Row>
-                                                        <Col lg="12">
-                                                            <div className="mb-3">
-                                                                <Label for="data-availability-value">Value</Label>
-                                                                <Input
-                                                                    type="text"
-                                                                    id="data-availability-value"
-                                                                    className="form-control"
-                                                                    placeholder="Enter value"
-                                                                    value={dataAvailabilityValue}
-                                                                    onChange={(e) => setDataAvailabilityValue(e.target.value)}
-                                                                />
-
-                                                            </div>
-                                                        </Col>
-                                                    </Row>
-                                                    <Col lg={2}>
-                                                        <div className="mb-3">
-                                                            <Button color="info" className="w-100" onClick={handleSaveDataAvailability}>
-                                                                + Add Value
-                                                            </Button>
-                                                        </div>
-                                                    </Col>
-                                                    <p>TableContainer for Data Availability</p>
-
-
+                                                        dataAvailability={dataAvailability}
+                                                        setDataAvailability={setDataAvailability}
+                                                        dataAvailabilityValue={dataAvailabilityValue}
+                                                        handleSaveDataAvailability={handleSaveDataAvailability}
+                                                        onDataAvailabilityDelete={onDataAvailabilityDelete}
+                                                    />
                                                 </TabPane>
 
                                                 <TabPane tabId={5}>
-                                                    <h4 className="fw-bold mb-3">Appendix 2</h4>
-
-                                                    <Row>
-                                                        <Col lg="12">
-                                                            <div className="mb-3">
-                                                                <Label for="appendix2-patents">Patents</Label>
-                                                                <textarea
-                                                                    id="appendix2-patents"
-                                                                    className="form-control"
-                                                                    rows="4"
-                                                                    placeholder="Enter relevant patent references or notes here"
-                                                                    value={appendix2Patents}
-                                                                    onChange={(e) => setAppendix2Patents(e.target.value)}
-                                                                />
-
-                                                            </div>
-                                                        </Col>
-                                                    </Row>
-                                                    <Col lg="2">
-                                                        <div className="mb-3">
-                                                            <Button color="warning" className="w-100" onClick={handleSaveAppendix2Patents}>
-                                                                Save Summary
-                                                            </Button>
-                                                        </div>
-                                                    </Col>
-
-                                                    <Row>
-                                                        <Col lg="12">
-                                                            <div className="mb-3">
-                                                                <Label for="appendix2-npl">Non-Patent Literature</Label>
-                                                                <textarea
-                                                                    id="appendix2-npl"
-                                                                    className="form-control"
-                                                                    rows="4"
-                                                                    placeholder="Enter non-patent literature references or notes here"
-                                                                    value={appendix2NPL}
-                                                                    onChange={(e) => setAppendix2NPL(e.target.value)}
-                                                                />
-
-                                                            </div>
-                                                        </Col>
-                                                    </Row>
-                                                    <Col lg="2">
-                                                        <div className="mb-3">
-                                                            <Button color="warning" className="w-100" onClick={handleSaveAppendix2NPL}>
-                                                                Save Summary
-                                                            </Button>
-                                                        </div>
-                                                    </Col>
-
+                                                    <Appendix2
+                                                        appendix2Patents={appendix2Patents}
+                                                        setAppendix2Patents={setAppendix2Patents}
+                                                        handleSaveAppendix2Patents={handleSaveAppendix2Patents}
+                                                        appendix2NPL={appendix2NPL}
+                                                        setAppendix2NPL={setAppendix2NPL}
+                                                        handleSaveAppendix2NPL={handleSaveAppendix2NPL}
+                                                        appendix2SavedData={appendix2SavedData}
+                                                        appendix2SavedNPL={appendix2SavedNPL}
+                                                    />
                                                 </TabPane>
+
 
                                             </TabContent>
                                         </div>
@@ -1468,7 +1488,7 @@ const MappingProjectCreation = () => {
                                                 </li>
                                                 {
                                                     activeTab === 5 ? (
-                                                        <button style={{ height: '33.75px' }} className="btn btn-sm btn-outline-primary">
+                                                        <button style={{ height: '33.75px' }} onClick={handleReportDownload} className="btn btn-sm btn-outline-primary">
                                                             <FaFileWord size={15} /> Download
                                                         </button>
                                                     ) : (

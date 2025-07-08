@@ -22,9 +22,9 @@ const publicationDetailsSchema = new Schema({
 
 const nonPatentLiteratureSchema = new Schema({
   _id: { type: String, default: uuidv4 },
-  title: String,
+  nplTitle: String,
   url: String,
-  publicationDate: Date,
+  nplPublicationDate: { type: String, default: "" },
   comments: String,
   excerpts: String
 });
@@ -32,18 +32,39 @@ const nonPatentLiteratureSchema = new Schema({
 const relatedReferenceSchema = new Schema({
   _id: { type: String, default: uuidv4 },
   publicationNumber: String,
-  publicationUrl: String,
-  title: String,
-  assigneeOrInventor: String,
-  familyMembers: [String],
-  publicationDate: Date
+  relatedPublicationUrl: String,
+  relatedTitle: String,
+  relatedAssignee: { type: [String], default: [] },
+  relatedInventor: { type: [String], default: [] },
+  relatedFamilyMembers: { type: [String], default: [] },
+  relatedPublicationDate: { type: String, default: "" },
 });
 
-const searchMetadataSchema = new Schema({
-  baseSearchTerms: [String],
-  keyStrings: [String],
-  dataAvailability: [String]
+
+const SearchItemSchemaAppendix1 = new Schema({
+  _id: { type: String, default: uuidv4 },
+  searchTermText: { type: String, required: true }
 }, { _id: false });
+
+
+const KeyStringsSchemaAppendix1 = new Schema({
+  _id: { type: String, default: uuidv4 },
+  keyStringsText: { type: String, required: true }
+}, { _id: false });
+
+
+const DataAvailabilitySchemaAppendix1 = new Schema({
+  _id: { type: String, default: uuidv4 },
+  dataAvailableText: { type: String, required: true }
+}, { _id: false });
+
+const appendix1Schema = new Schema({
+  _id: { type: String, default: uuidv4 },
+  baseSearchTerms: { type: [SearchItemSchemaAppendix1], default: [] },
+  keyStrings: { type: [KeyStringsSchemaAppendix1], default: [] },
+  dataAvailability: { type: [DataAvailabilitySchemaAppendix1], default: [] }
+});
+
 
 const introductionSchema = new Schema({
   projectTitle: String,
@@ -51,10 +72,10 @@ const introductionSchema = new Schema({
   searchFeatures: String
 }, { _id: false });
 
-const summarySchema = new Schema({
+const appendix2 = new Schema({
   patents: String,
   nonPatentLiterature: String
-}, { _id: false });
+}, { _id: true });
 
 const fullProjectSchema = new Schema({
   projectName: { type: String, required: true },
@@ -77,8 +98,8 @@ const fullProjectSchema = new Schema({
       overallSummary: String
     },
     relatedReferences: { type: [relatedReferenceSchema], default: [] },
-    searchMetadata: [searchMetadataSchema],
-    summary: [summarySchema]
+    appendix1: { type: [appendix1Schema], default: [] },
+    appendix2: [appendix2]
   }
 }, { collection: "cln_prior_report_schema", timestamps: true });
 

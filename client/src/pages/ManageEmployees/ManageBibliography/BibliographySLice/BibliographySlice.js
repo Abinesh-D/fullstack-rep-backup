@@ -435,17 +435,66 @@ export const fetchProjects = async (dispatch) => {
 };
 
 
-export const fetchPublicationDetails = async (projectId, setrelevantFormData) => {
+
+export const fetchProjectById = async (id) => {
+    try {
+        const res = await axios.get(`http://localhost:8080/live/projectname/single-report/${id}`);
+        return res.data;
+    } catch (err) {
+        console.error("❌ Error fetching project by id:", err);
+        return null;
+    }
+};
+
+
+
+
+
+export const fetchPublicationDetails = async (projectId) => {
     try {
         const response = await axios.get(
             `http://localhost:8080/live/projectname/publication-details/${projectId}`
         );
-        console.log("✅ Publication Details:", response.data.publicationDetails);
-        setrelevantFormData(response.data.publicationDetails)
         return response.data.publicationDetails;
     } catch (error) {
         console.error("❌ Error fetching publication details:", error);
         return [];
+    }
+};
+
+
+// Save Related Ref
+export const saveRelatedReference = async (relatedForm, id) => {
+    try {
+        await axios.post(`http://localhost:8080/live/projectname/add-related/${id}`,
+            relatedForm,
+            { headers: { "Content-Type": "application/json" } }
+        );
+    } catch (error) {
+        console.error("❌ Error saving related reference:", error);
+    }
+};
+
+// Fetch related Ref
+export const fetchRelatedReferences = async (id) => {
+    try {
+        const res = await axios.get(`http://localhost:8080/live/projectname/get-related/${id}`);
+        if (res.status === 200) {
+          return res.data;
+        }
+    } catch (error) {
+        console.error("❌ Error fetching related references:", error);
+    }
+};
+
+
+
+// De;ete Related Ref 
+export const deleteRelatedReference = async (relatedId, id) => {
+    try {
+        await axios.delete(`http://localhost:8080/live/projectname/delete-related/${id}/${relatedId}`);
+    } catch (error) {
+        console.error("❌ Error deleting related reference:", error);
     }
 };
 

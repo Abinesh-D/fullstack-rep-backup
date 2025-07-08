@@ -10,8 +10,6 @@ const RelatedComp = ({ activeTab }) => {
     const data = useSelector(state => state.patentSlice.espData);
     const relatedBiblioGoogleData = useSelector(state => state.patentSlice.relatedBiblioGoogleData);
 
-    console.log('relatedBiblioGoogleData', relatedBiblioGoogleData);
-
     const [patentNumber, setPatentNumber] = useState('');
     const [famId, setfamId] = useState("");
     const [loading, setLoading] = useState(false);
@@ -270,7 +268,6 @@ const RelatedComp = ({ activeTab }) => {
                                         <span className="input-group-text">
                                             <i className="fas fa-users" />
                                         </span>
-                                        {console.log('glAssigneesAndInventor', glAssigneesAndInventor)}
                                         <input
                                             type="text"
                                             className="form-control"

@@ -4,7 +4,7 @@ import { Row, Col, Label, Input, Button } from "reactstrap";
 const IntroductionTab = ({
     projectFormData,
     introduction,
-    handleRelevantChange,
+    handleProjectChange,
     handleIntroSave,
     id,
     reportData,
@@ -23,7 +23,6 @@ const IntroductionTab = ({
                             <Col lg="6">
                                 <div className="mb-3">
                                     <Label for="project-title-input">Project Title</Label>
-                                    {console.log(introduction[0], "projectFormData.projectTitle", projectFormData)}
                                     <Input
                                         type="text"
                                         name="projectTitle"
@@ -31,7 +30,7 @@ const IntroductionTab = ({
                                         id="project-title-input"
                                         placeholder="Enter Project Title"
                                         value={valid ? projectFormData?.projectTitle : introduction[0]?.projectTitle}
-                                        onChange={handleRelevantChange}
+                                        onChange={handleProjectChange}
                                     />
                                 </div>
                             </Col>
@@ -46,7 +45,7 @@ const IntroductionTab = ({
                                         id="project-subtitle-input"
                                         placeholder="Enter Project Sub Title"
                                         value={valid ? projectFormData?.projectSubTitle : introduction[0]?.projectSubTitle}
-                                        onChange={handleRelevantChange}
+                                        onChange={handleProjectChange}
                                     />
                                 </div>
                             </Col>
@@ -63,7 +62,7 @@ const IntroductionTab = ({
                                         name="searchFeatures"
                                         placeholder="Describe search features here"
                                         value={valid ? projectFormData?.searchFeatures : introduction[0]?.searchFeatures}
-                                        onChange={handleRelevantChange}
+                                        onChange={handleProjectChange}
                                     />
                                 </div>
                             </Col>
