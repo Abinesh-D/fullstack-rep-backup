@@ -548,9 +548,8 @@ router.post("/update-appendix2-patents/:id", async (req, res) => {
     const { patents } = req.body;
 
     try {
-        const updatedProject = await cln_prior_report_schema.findByIdAndUpdate(
-            id,
-            { "stages.appendix2.0.patents": patents },
+        const updatedProject = await cln_prior_report_schema.findByIdAndUpdate( id,
+            { "stages.appendix2.patents": patents },
             { new: true, runValidators: true }
         );
 
@@ -573,7 +572,7 @@ router.post("/update-appendix2-npl/:id", async (req, res) => {
     try {
         const updatedProject = await cln_prior_report_schema.findByIdAndUpdate(
             id,
-            { "stages.appendix2.0.nonPatentLiterature": nonPatentLiterature },
+            { "stages.appendix2.nonPatentLiterature": nonPatentLiterature },
             { new: true, runValidators: true }
         );
 

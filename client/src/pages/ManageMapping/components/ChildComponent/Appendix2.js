@@ -8,8 +8,7 @@ const Appendix2 = ({
     appendix2NPL,
     setAppendix2NPL,
     handleSaveAppendix2NPL,
-    appendix2SavedData,
-    appendix2SavedNPL
+
 }) => {
     return (
         <>
@@ -24,7 +23,7 @@ const Appendix2 = ({
                             className="form-control"
                             rows="4"
                             placeholder="Enter relevant patent references or notes here"
-                            value={appendix2Patents || appendix2SavedData}
+                            value={appendix2Patents || ""}
                             onChange={(e) => setAppendix2Patents(e.target.value)}
                         />
                     </div>
@@ -51,7 +50,7 @@ const Appendix2 = ({
                             className="form-control"
                             rows="4"
                             placeholder="Enter non-patent literature references or notes here"
-                            value={appendix2NPL || appendix2SavedNPL}
+                            value={appendix2NPL || ""}
                             onChange={(e) => setAppendix2NPL(e.target.value)}
                         />
                     </div>

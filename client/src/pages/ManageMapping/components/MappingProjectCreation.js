@@ -20,8 +20,20 @@ import RelatedRefComponent from "./ChildComponent/RelatedrefComponent";
 import Appendix1 from "./ChildComponent/Appendix1";
 import Appendix2 from "./ChildComponent/Appendix2";
 import ReusableDeleteComp from "../ReusableComponents/ResuableDeleteComp";
+import { downloadWordFile, handleWordReportDownload } from "../ReusableComponents/handleReportDownload";
 
-
+import { saveAs } from "file-saver";
+import {
+    Document,
+    Packer,
+    Paragraph,
+    TextRun,
+    PageBreak,
+    HeadingLevel,
+    AlignmentType,
+    Footer,
+} from "docx";
+import { getSearchMethodology } from "../ReusableComponents/searchMethodology";
 
 
 const MappingProjectCreation = () => {
@@ -89,7 +101,6 @@ const MappingProjectCreation = () => {
     const [relatedErrorValidation, setRelatedErrorValidation] = useState(false);
 
     const [overallSummary, setOverallSummary] = useState("");
-    const [overallSummarrySavedData, setOverallSummarrySavedData] = useState("")
 
     const [baseSearchTerm, setBaseSearchTerm] = useState("");
     const [baseSearchTermsList, setBaseSearchTermsList] = useState([]);
@@ -101,9 +112,7 @@ const MappingProjectCreation = () => {
     const [dataAvailabilityValue, setDataAvailabilityValue] = useState("");
 
     const [appendix2Patents, setAppendix2Patents] = useState("");
-    const [appendix2SavedData, setAppendix2SavedData] = useState("");
 
-    const [appendix2SavedNPL, setAppendix2SavedNPL] = useState("")
     const [appendix2NPL, setAppendix2NPL] = useState("");
 
 
@@ -283,14 +292,20 @@ const MappingProjectCreation = () => {
         const getProject = async () => {
             const singleProject = await fetchProjectById(id);
             if (singleProject) {
+                setProjectFormData({
+                    projectTitle: singleProject.stages.introduction[0]?.projectTitle,
+                    projectSubTitle: singleProject.stages.introduction[0]?.projectSubTitle,
+                    searchFeatures: singleProject.stages.introduction[0]?.searchFeatures
+                })
                 setrelevantFormData(singleProject.stages.relevantReferences?.publicationDetails);
                 setNonPatentFormData(singleProject.stages.relevantReferences?.nonPatentLiteratures);
-                setOverallSummarrySavedData(singleProject.stages.relevantReferences?.overallSummary);
+                setOverallSummary(singleProject.stages.relevantReferences?.overallSummary);
                 setBaseSearchTermsList(singleProject.stages.appendix1[0]?.baseSearchTerms);
                 setKeyStringsList(singleProject.stages.appendix1[0]?.keyStrings);
                 setDataAvailabilityValue(singleProject.stages.appendix1[0]?.dataAvailability);
-                setAppendix2SavedData(singleProject.stages.appendix2[0]?.patents);
-                setAppendix2SavedNPL(singleProject.stages.appendix2[0]?.nonPatentLiterature);
+                setAppendix2Patents(singleProject.stages.appendix2[0]?.patents);
+                setAppendix2NPL(singleProject.stages.appendix2[0]?.nonPatentLiterature);
+
             }
         };
         getProject();
@@ -466,7 +481,8 @@ const MappingProjectCreation = () => {
             );
 
             if (response.status === 200) {
-                console.log("✅ Appendix 2 - Patents saved:", response.data);
+                console.log("✅ Appendix 2 - Patents saved:", response.data.stages.appendix2[0]);
+                setAppendix2Patents(response.data.stages.appendix2[0].patents)
             }
         } catch (err) {
             console.error("❌ Error saving Appendix 2 - Patents:", err);
@@ -485,6 +501,7 @@ const MappingProjectCreation = () => {
 
             if (response.status === 200) {
                 console.log("✅ Appendix 2 - Non-Patent Literature saved:", response.data);
+                setAppendix2NPL(response.data.stages.appendix2[0].nonPatentLiterature)
             }
         } catch (err) {
             console.error("❌ Error saving Appendix 2 - NPL:", err);
@@ -1186,9 +1203,9 @@ const MappingProjectCreation = () => {
 
     const handleIntroSave = async () => {
         const introData = {
-            projectTitle: projectFormData.projectTitle || introduction.projectTitle,
-            projectSubTitle: projectFormData.projectSubTitle || introduction.projectSubTitle,
-            searchFeatures: projectFormData.searchFeatures || introduction.searchFeatures,
+            projectTitle: projectFormData.projectTitle || "",
+            projectSubTitle: projectFormData.projectSubTitle || "",
+            searchFeatures: projectFormData.searchFeatures || "",
         }
 
         try {
@@ -1213,18 +1230,201 @@ const MappingProjectCreation = () => {
     };
 
 
-    const handleReportDownload = async () => {
-        console.log("Report Download");
 
+
+    
+const defaultFont = { font: "Calibri", size: 24 }; // 12pt
+
+const createTextRun = (text, options = {}) =>
+    new TextRun({ text: text || "", ...defaultFont, ...options });
+
+const createParagraph = (text, heading = false) =>
+    new Paragraph({
+        children: [createTextRun(text, heading ? { bold: true, size: 30 } : {})],
+        spacing: { after: 200 },
+        alignment: heading ? AlignmentType.CENTER : AlignmentType.LEFT,
+    });
+
+const createSubHeading = (text) =>
+    new Paragraph({
+        children: [createTextRun(text, { bold: true, size: 26 })],
+        spacing: { after: 100 },
+        alignment: AlignmentType.LEFT,
+    });
+
+const createPatentDetails = (patent, index) => [
+    createSubHeading(`${index + 1}. ${patent.title || "Untitled Patent"}`),
+    createParagraph(`Patent Number: ${patent.patentNumber}`),
+    createParagraph(`Publication URL: ${patent.publicationUrl}`),
+    createParagraph(`Filing Date: ${patent.filingDate}`),
+    createParagraph(`Priority Date: ${patent.priorityDate}`),
+    createParagraph(`Grant Date: ${patent.grantDate}`),
+    createParagraph(`Assignees: ${patent.assignee?.join(", ") || "N/A"}`),
+    createParagraph(`Inventors: ${patent.inventors?.join(", ") || "N/A"}`),
+    createParagraph(`Classifications: ${patent.classifications?.join(", ") || "N/A"}`),
+    createParagraph(`Family Members: ${patent.familyMembers?.join(", ") || "N/A"}`),
+    createParagraph(`Analyst Comments: ${patent.analystComments || "N/A"}`),
+    createParagraph(`Relevant Excerpts: ${patent.relevantExcerpts || "N/A"}`),
+];
+
+const createNonPatentDetails = (npl, index) => [
+    createSubHeading(`${index + 1}. ${npl.nplTitle || "Untitled NPL"}`),
+    createParagraph(`URL: ${npl.url}`),
+    createParagraph(`Publication Date: ${npl.nplPublicationDate}`),
+    createParagraph(`Comments: ${npl.comments}`),
+    createParagraph(`Excerpts: ${npl.excerpts}`),
+];
+
+const createRelatedReferenceDetails = (ref, index) => [
+    createSubHeading(`${index + 1}. ${ref.relatedTitle || "Untitled Related Reference"}`),
+    createParagraph(`Publication Number: ${ref.publicationNumber}`),
+    createParagraph(`Publication URL: ${ref.relatedPublicationUrl}`),
+    createParagraph(`Publication Date: ${ref.relatedPublicationDate}`),
+    createParagraph(`Assignees: ${ref.relatedAssignee?.join(", ") || "N/A"}`),
+    createParagraph(`Inventors: ${ref.relatedInventor?.join(", ") || "N/A"}`),
+    createParagraph(`Family Members: ${ref.relatedFamilyMembers?.join(", ") || "N/A"}`),
+];
+
+
+
+
+
+    const handleDownload = async ({
+        projectTitle,
+        projectSubTitle,
+        searchFeatures
+    }) => {
+
+        const doc = new Document({
+            sections: [
+                {
+                    properties: {
+                        page: {
+                            margin: {
+                                top: 720,
+                                bottom: 720,
+                                left: 720,
+                                right: 720,
+                                
+                            },
+                            
+                        },
+                    },
+                    children: [
+                        new Paragraph({
+                            children: [
+                                new TextRun({
+                                    text: projectTitle,
+                                    bold: true,
+                                    size: 48,
+                                }),
+                            ],
+                            alignment: AlignmentType.CENTER,
+                            
+                            spacing: {
+                                after: 300,
+                            },
+                        }),
+                        new Paragraph({
+                            children: [
+                                new TextRun({
+                                    text: projectSubTitle,
+                                    bold: true,
+                                    size: 28,
+                                }),
+                            ],
+                            alignment: AlignmentType.CENTER,
+                            spacing: {
+                                before: 400,
+                                after: 800,
+                            },
+                        }),
+                    ],
+                },
+
+                {
+                    children: [
+                        // Heading
+                        new Paragraph({
+                            children: [
+                                new TextRun({
+                                    text: "1. Search Features",
+                                    size: 34,
+                                    bold: true,
+                                }),
+                            ],
+                            alignment: AlignmentType.LEFT,
+                            spacing: { before: 200, after: 400 },
+                            indent: { left: 720 },
+                        }),
+
+                        // Auto-formatted Paragraphs
+                        ...searchFeatures
+                            .split(/\. |\n/) // split by period+space or line break
+                            .filter((p) => p.trim() !== "") // remove empty lines
+                            .map(
+                                (para) =>
+                                    new Paragraph({
+                                        children: [
+                                            new TextRun({
+                                                text: para.trim() + ".", // add period back
+                                                size: 24,
+                                            }),
+                                        ],
+                                        alignment: AlignmentType.JUSTIFIED,
+                                        spacing: { before: 200, after: 200 },
+                                    })
+                            ),
+                    ],
+                },
+
+                {
+                    properties: {
+                        page: {
+                            margin: {
+                                top: 720,
+                                bottom: 720,
+                                left: 720,
+                                right: 720,
+                            },
+                        },
+                    },
+                    children: getSearchMethodology(projectTitle),
+                },
+
+                
+
+            ],
+        });
+
+        const blob = await Packer.toBlob(doc);
+        saveAs(blob, `${projectTitle || "StaticData"}.docx`);
+    };
+
+
+
+
+    const handleReportDownload = async () => {
         try {
+            console.log("Fetching Project Data...");
             const getProjectValue = await fetchProjectById(id);
-            console.log('getProjectValue', getProjectValue)
+            console.log("Fetched Project Data:", getProjectValue);
+            
+            handleDownload({
+                projectTitle: getProjectValue.stages.introduction[0]?.projectTitle || "ProjectTitle",
+                projectSubTitle: getProjectValue.stages.introduction[0]?.projectSubTitle || "projectSubTitle",
+                searchFeatures: getProjectValue.stages.introduction[0]?.searchFeatures || "searchFeatures"
+            });
+            // handleWordReportDownload(getProjectValue);
 
         } catch (error) {
-            console.log(error)
+            console.error("❌ Error in handleReportDownload:", error);
         }
     };
 
+
+
+    
 
 
 
@@ -1365,7 +1565,6 @@ const MappingProjectCreation = () => {
                                                         nonPatentFormData={nonPatentFormData}
                                                         nplPatentFormData={nplPatentFormData}
                                                         overallSummary={overallSummary}
-                                                        overallSummarrySavedData={overallSummarrySavedData}
                                                         setOverallSummary={setOverallSummary}
                                                         handleOverAllSummarySave={handleOverAllSummarySave}
                                                         handleRelevatFormInputChange={handleRelevatFormInputChange}
@@ -1461,8 +1660,6 @@ const MappingProjectCreation = () => {
                                                         appendix2NPL={appendix2NPL}
                                                         setAppendix2NPL={setAppendix2NPL}
                                                         handleSaveAppendix2NPL={handleSaveAppendix2NPL}
-                                                        appendix2SavedData={appendix2SavedData}
-                                                        appendix2SavedNPL={appendix2SavedNPL}
                                                     />
                                                 </TabPane>
 

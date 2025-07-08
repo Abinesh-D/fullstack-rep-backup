@@ -464,7 +464,7 @@ const RelevantRefComponent = ({
                             className="form-control"
                             rows="3"
                             placeholder="Enter Overall Summary"
-                            value={overallSummary || overallSummarrySavedData}
+                            value={overallSummary}
                             onChange={(e) => setOverallSummary(e.target.value)}
                         />
                     </div>
