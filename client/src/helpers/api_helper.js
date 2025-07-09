@@ -1,7 +1,7 @@
 // import axios from "axios";
 import accessToken from "./jwt-token-access/accessToken";
 // const axios = require('axios')
-import axios from 'axios'
+import axios from 'axios';
 
 
 const token = accessToken;
