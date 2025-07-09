@@ -53,12 +53,10 @@ However, this patent explicitly discloses the top mount of the dispenser is twis
         { label: "Family Member", value: familyMembers },
         // { label: "US Classification", value: usClassification },
     ];
-
     const safeText = (text) => (text && text.trim() ? text : "Nil");
-
     const createTextRun = (text, options = {}) =>
         new TextRun({ text, ...defaultFont, ...options });
-
+    
     const createParagraph = (label, value) =>
         new Paragraph({
             children: [
@@ -66,7 +64,6 @@ However, this patent explicitly discloses the top mount of the dispenser is twis
                 createTextRun(safeText(value)),
             ],
         });
-
     const createTableEntry = (label, value, hasBottomBorder = false) =>
         new TableCell({
             children: [createParagraph(label, value)],
@@ -86,7 +83,6 @@ However, this patent explicitly discloses the top mount of the dispenser is twis
                 type: WidthType.PERCENTAGE,
             },
         });
-
     const createSingleColumnTableRows = (rows) =>
         rows.map(({ label, value }) =>
             new TableRow({
@@ -95,12 +91,7 @@ However, this patent explicitly discloses the top mount of the dispenser is twis
                 ],
             })
         );
-
-    console.log('filteredDescriptions', filteredDescriptions);
-
-
     const isValidDescription = filteredDescriptions && typeof filteredDescriptions === 'object' && Object.keys(filteredDescriptions).length > 0;
-
     const descriptionTable = new Table({
         width: { size: 100, type: WidthType.PERCENTAGE },
         rows: isValidDescription ?
@@ -261,6 +252,10 @@ However, this patent explicitly discloses the top mount of the dispenser is twis
                             createTextRun(safeText(analystComments), { italics: true }),
                         ],
                     }),
+
+
+
+                    
                     new Table({
                         width: { size: 100, type: WidthType.PERCENTAGE },
                         rows: [

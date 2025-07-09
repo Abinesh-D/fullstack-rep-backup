@@ -1,5 +1,8 @@
 import React from "react";
 import { Row, Col, Label, Input, Button } from "reactstrap";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
+
 
 const IntroductionTab = ({
     projectFormData,
@@ -48,21 +51,9 @@ const IntroductionTab = ({
                     </Row>
 
                     <Row>
-                        <Col lg="12">
-                            <div className="mb-3">
-                                <Label for="search-features-input">Search Features</Label>
-                                <textarea
-                                    id="search-features-input"
-                                    className="form-control"
-                                    rows="3"
-                                    name="searchFeatures"
-                                    placeholder="Describe search features here"
-                                    value={projectFormData.searchFeatures || ""}
-                                    onChange={handleProjectChange}
-                                />
-                            </div>
-                        </Col>
+                      
                     </Row>
+
 
                     <p className="text-danger">
                         ⚠️ Please click the <strong>Save</strong> button before clicking <strong>Next</strong>. Unsaved changes will be lost.

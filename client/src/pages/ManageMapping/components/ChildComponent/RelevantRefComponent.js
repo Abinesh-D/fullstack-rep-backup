@@ -70,7 +70,7 @@ const RelevantRefComponent = ({
                             data-bs-toggle="tooltip"
                             data-bs-placement="top"
                             title="Delete Publication"
-                            onClick={() => onNplDeleteClick(rowData)}
+                            onClick={() => onDeleteClick(rowData)}
                         >
                             <i className="mdi mdi-delete text-danger font-size-18"></i>
                         </Link>
@@ -113,7 +113,7 @@ const RelevantRefComponent = ({
                             data-bs-toggle="tooltip"
                             data-bs-placement="top"
                             title="Delete Non-Patent"
-                            onClick={() => onDeleteClick(rowData)}
+                            onClick={() => onNplDeleteClick(rowData)}
                         >
                             <i className="mdi mdi-delete text-danger font-size-18"></i>
                         </Link>

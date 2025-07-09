@@ -24,14 +24,7 @@ import { downloadWordFile, handleWordReportDownload } from "../ReusableComponent
 
 import { saveAs } from "file-saver";
 import {
-    Document,
-    Packer,
-    Paragraph,
-    TextRun,
-    PageBreak,
-    HeadingLevel,
-    AlignmentType,
-    Footer,
+    Document, BorderStyle, Packer, Paragraph, TextRun, Table, TableRow, AlignmentType, TableCell, VerticalAlign, WidthType, ShadingType, 
 } from "docx";
 import { getSearchMethodology } from "../ReusableComponents/searchMethodology";
 
@@ -169,40 +162,45 @@ const MappingProjectCreation = () => {
 
     const [relatedFormData, setRelatedFormData] = useState([]);
 
-
-
-    const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [selectedRow, setSelectedRow] = useState(null);
+
+    const [showDeletePublicationModal, setShowDeletePublicationModal] = useState(false);
+    const [showDeleteNonPatentModal, setShowDeleteNonPatentModal] = useState(false);
+    const [showDeleteRelatedReferenceModal, setShowDeleteRelatedReferenceModal] = useState(false);
+    const [showDeleteSearchTermModal, setShowDeleteSearchTermModal] = useState(false);
+    const [showDeleteKeyStringModal, setShowDeleteKeyStringModal] = useState(false);
+    const [showDeleteDataAvailabilityModal, setShowDeleteDataAvailabilityModal] = useState(false);
 
 
     const onDeleteClick = (rowData) => {
+        console.log('rowData', rowData)
         setSelectedRow(rowData);
-        setShowDeleteModal(true);
+        setShowDeletePublicationModal(true);
     };
 
     const onNplDeleteClick = (rowData) => {
         setSelectedRow(rowData);
-        setShowDeleteModal(true);
+        setShowDeleteNonPatentModal(true);
     };
 
     const onRelatedDelete = (rowData) => {
         setSelectedRow(rowData);
-        setShowDeleteModal(true);
+        setShowDeleteRelatedReferenceModal(true);
     }
 
     const onSearchTermDelete = (rowData) => {
         setSelectedRow(rowData);
-        setShowDeleteModal(true);
+        setShowDeleteSearchTermModal(true);
     }
 
     const onKeyStringsDelete = (rowData) => {
         setSelectedRow(rowData);
-        setShowDeleteModal(true);
+        setShowDeleteKeyStringModal(true);
     }
 
     const onDataAvailabilityDelete = (rowData) => {
         setSelectedRow(rowData);
-        setShowDeleteModal(true);
+        setShowDeleteDataAvailabilityModal(true);
     }
 
 
@@ -217,7 +215,7 @@ const MappingProjectCreation = () => {
         } catch (error) {
             console.error("❌ Error deleting related reference:", error);
         } finally {
-            setShowDeleteModal(false);
+            setShowDeleteRelatedReferenceModal(false);
             setSelectedRow(null);
         }
     };
@@ -235,7 +233,7 @@ const MappingProjectCreation = () => {
         } catch (error) {
             console.error("❌ Error deleting NPL:", error);
         } finally {
-            setShowDeleteModal(false);
+            setShowDeleteNonPatentModal(false);
             setSelectedRow(null);
         }
     };
@@ -248,8 +246,10 @@ const MappingProjectCreation = () => {
 
         try {
             const response = await axios.delete(
-                `http://localhost:8080/live/projectname/delete-publication/${documentId}/${publicationId}`
+                `http://localhost:8080/live/projectname/delete-publication/${documentId}/${selectedRow._id}`
             );
+
+            console.log(response.data, 'responseresponse')
 
             if (response.status === 200) {
 
@@ -260,7 +260,7 @@ const MappingProjectCreation = () => {
         } catch (error) {
             console.error("❌ Error deleting publication detail:", error);
         } finally {
-            setShowDeleteModal(false);
+            setShowDeletePublicationModal(false);
             setSelectedRow(null);
         }
     };
@@ -366,7 +366,7 @@ const MappingProjectCreation = () => {
         } catch (err) {
             console.error("❌ Error deleting Base Search Term:", err);
         } finally {
-            setShowDeleteModal(false);
+            setShowDeleteSearchTermModal(false);
             setSelectedRow(null);
         }
     };
@@ -403,7 +403,7 @@ const MappingProjectCreation = () => {
         } catch (err) {
             console.error("❌ Error deleting Key String:", err);
         } finally {
-            setShowDeleteModal(false);
+            setShowDeleteKeyStringModal(false);
             setSelectedRow(null);
         }
     };
@@ -441,7 +441,7 @@ const MappingProjectCreation = () => {
         } catch (err) {
             console.error("❌ Error deleting dataAvailability:", err);
         } finally {
-            setShowDeleteModal(false);
+            setShowDeleteDataAvailabilityModal(false);
             setSelectedRow(null);
         }
     };
@@ -481,7 +481,6 @@ const MappingProjectCreation = () => {
             );
 
             if (response.status === 200) {
-                console.log("✅ Appendix 2 - Patents saved:", response.data.stages.appendix2[0]);
                 setAppendix2Patents(response.data.stages.appendix2[0].patents)
             }
         } catch (err) {
@@ -500,7 +499,6 @@ const MappingProjectCreation = () => {
             );
 
             if (response.status === 200) {
-                console.log("✅ Appendix 2 - Non-Patent Literature saved:", response.data);
                 setAppendix2NPL(response.data.stages.appendix2[0].nonPatentLiterature)
             }
         } catch (err) {
@@ -1231,169 +1229,309 @@ const MappingProjectCreation = () => {
 
 
 
-
-    
-const defaultFont = { font: "Calibri", size: 24 }; // 12pt
-
-const createTextRun = (text, options = {}) =>
-    new TextRun({ text: text || "", ...defaultFont, ...options });
-
-const createParagraph = (text, heading = false) =>
-    new Paragraph({
-        children: [createTextRun(text, heading ? { bold: true, size: 30 } : {})],
-        spacing: { after: 200 },
-        alignment: heading ? AlignmentType.CENTER : AlignmentType.LEFT,
+    const createPageProperties = (margin = 720, orientation = "portrait") => ({
+        page: {
+            margin: {
+                top: margin,
+                bottom: margin,
+                left: margin,
+                right: margin,
+            },
+            size: {
+                orientation: orientation,
+                width: 15075,
+                height: 11573,
+            },
+        },
     });
 
-const createSubHeading = (text) =>
-    new Paragraph({
-        children: [createTextRun(text, { bold: true, size: 26 })],
-        spacing: { after: 100 },
-        alignment: AlignmentType.LEFT,
-    });
 
-const createPatentDetails = (patent, index) => [
-    createSubHeading(`${index + 1}. ${patent.title || "Untitled Patent"}`),
-    createParagraph(`Patent Number: ${patent.patentNumber}`),
-    createParagraph(`Publication URL: ${patent.publicationUrl}`),
-    createParagraph(`Filing Date: ${patent.filingDate}`),
-    createParagraph(`Priority Date: ${patent.priorityDate}`),
-    createParagraph(`Grant Date: ${patent.grantDate}`),
-    createParagraph(`Assignees: ${patent.assignee?.join(", ") || "N/A"}`),
-    createParagraph(`Inventors: ${patent.inventors?.join(", ") || "N/A"}`),
-    createParagraph(`Classifications: ${patent.classifications?.join(", ") || "N/A"}`),
-    createParagraph(`Family Members: ${patent.familyMembers?.join(", ") || "N/A"}`),
-    createParagraph(`Analyst Comments: ${patent.analystComments || "N/A"}`),
-    createParagraph(`Relevant Excerpts: ${patent.relevantExcerpts || "N/A"}`),
-];
 
-const createNonPatentDetails = (npl, index) => [
-    createSubHeading(`${index + 1}. ${npl.nplTitle || "Untitled NPL"}`),
-    createParagraph(`URL: ${npl.url}`),
-    createParagraph(`Publication Date: ${npl.nplPublicationDate}`),
-    createParagraph(`Comments: ${npl.comments}`),
-    createParagraph(`Excerpts: ${npl.excerpts}`),
-];
+    const textStyle = {
+        arial24: { font: "Arial", size: 48 },
+        arial14: { font: "Arial", size: 28 },
+        arial11: { font: "Arial", size: 22 },
+        arial10: { font: "Arial", size: 20 },
+        // arial14Bold: { font: "Arial", size: 28, bold: true },
+        // arial11Italic: { font: "Arial", size: 22, italics: true },
+    };
 
-const createRelatedReferenceDetails = (ref, index) => [
-    createSubHeading(`${index + 1}. ${ref.relatedTitle || "Untitled Related Reference"}`),
-    createParagraph(`Publication Number: ${ref.publicationNumber}`),
-    createParagraph(`Publication URL: ${ref.relatedPublicationUrl}`),
-    createParagraph(`Publication Date: ${ref.relatedPublicationDate}`),
-    createParagraph(`Assignees: ${ref.relatedAssignee?.join(", ") || "N/A"}`),
-    createParagraph(`Inventors: ${ref.relatedInventor?.join(", ") || "N/A"}`),
-    createParagraph(`Family Members: ${ref.relatedFamilyMembers?.join(", ") || "N/A"}`),
-];
+    const createTextRun = (text, style = textStyle.arial11, overrides = {}) =>
+        new TextRun({ text, ...style, ...overrides });
 
 
 
+    const commonBorders = {
+        top: { style: BorderStyle.SINGLE, size: 1, color: "D3D3D3" },
+        bottom: { style: BorderStyle.SINGLE, size: 1, color: "D3D3D3" },
+        left: { style: BorderStyle.SINGLE, size: 1, color: "D3D3D3" },
+        right: { style: BorderStyle.SINGLE, size: 1, color: "D3D3D3" },
+    };
+
+    const borderNone = {
+        top: { style: BorderStyle.SINGLE, size: 1, color: "FFFFFF" },
+        bottom: { style: BorderStyle.SINGLE, size: 1, color: "FFFFFF" },
+        left: { style: BorderStyle.SINGLE, size: 1, color: "FFFFFF" },
+        right: { style: BorderStyle.SINGLE, size: 1, color: "FFFFFF" },
+    };
+
+    const capitalizeWords = (str) => {
+        return str ? str?.replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()) : "Nil";
+    }
+
+    const createSingleColumnTableRows = (rows) =>
+        rows.map(({ label, value }) =>
+            new TableRow({
+                children: [
+                    new TableCell({
+                        children: [new Paragraph({ text: `${label}:`, bold: true })],
+                        borders: borderNone,
+                    }),
+                    new TableCell({
+                        children: [new Paragraph(capitalizeWords(value))],
+                        borders: borderNone,
+                    }),
+                ],
+            })
+        );
+
+    const marginsStyle = { margins: { top: 100, bottom: 100, left: 100, right: 100, }, }
 
 
     const handleDownload = async ({
         projectTitle,
         projectSubTitle,
-        searchFeatures
+        searchFeatures,
+        relevantReferences,
     }) => {
+        console.log('patentNumber', relevantReferences);
+
+        const sanitizeText = (text) =>
+            (text || "").replace(/[&<>"]/g, (c) => ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                "\"": "&quot;"
+            }[c]));
 
         const doc = new Document({
-            sections: [
-                {
-                    properties: {
-                        page: {
-                            margin: {
-                                top: 720,
-                                bottom: 720,
-                                left: 720,
-                                right: 720,
-                                
+            styles: {
+                default: {
+                    document: {
+                        run: {
+                            font: "Arial",
+                            size: 20,
+                        },
+                        paragraph: {
+                            spacing: {
+                                after: 120,
                             },
-                            
                         },
                     },
+                },
+            },
+            sections: [
+                {
+                    properties: createPageProperties(),
                     children: [
                         new Paragraph({
                             children: [
-                                new TextRun({
-                                    text: projectTitle,
-                                    bold: true,
-                                    size: 48,
-                                }),
+                                createTextRun(projectTitle, textStyle.arial24, { bold: true }),
                             ],
                             alignment: AlignmentType.CENTER,
-                            
-                            spacing: {
-                                after: 300,
-                            },
+                            spacing: { after: 300 },
                         }),
                         new Paragraph({
                             children: [
-                                new TextRun({
-                                    text: projectSubTitle,
-                                    bold: true,
-                                    size: 28,
-                                }),
+                                createTextRun(projectSubTitle, textStyle.arial14, { bold: true }),
                             ],
                             alignment: AlignmentType.CENTER,
-                            spacing: {
-                                before: 400,
-                                after: 800,
-                            },
+                            spacing: { before: 400, after: 800 },
                         }),
                     ],
                 },
-
                 {
+                    properties: createPageProperties(),
                     children: [
-                        // Heading
                         new Paragraph({
                             children: [
-                                new TextRun({
-                                    text: "1. Search Features",
-                                    size: 34,
-                                    bold: true,
-                                }),
+                                createTextRun("1. Search Features", textStyle.arial14, { bold: true }),
                             ],
                             alignment: AlignmentType.LEFT,
                             spacing: { before: 200, after: 400 },
                             indent: { left: 720 },
                         }),
-
-                        // Auto-formatted Paragraphs
                         ...searchFeatures
-                            .split(/\. |\n/) // split by period+space or line break
-                            .filter((p) => p.trim() !== "") // remove empty lines
-                            .map(
-                                (para) =>
-                                    new Paragraph({
-                                        children: [
-                                            new TextRun({
-                                                text: para.trim() + ".", // add period back
-                                                size: 24,
-                                            }),
-                                        ],
-                                        alignment: AlignmentType.JUSTIFIED,
-                                        spacing: { before: 200, after: 200 },
-                                    })
+                            .split(/\. |\n/)
+                            .filter((p) => p.trim() !== "")
+                            .map((para) =>
+                                new Paragraph({
+                                    children: [
+                                        createTextRun(sanitizeText(para.trim() + "."), textStyle.arial10),
+                                    ],
+                                    alignment: AlignmentType.JUSTIFIED,
+                                    spacing: { before: 200, after: 200 },
+                                })
                             ),
                     ],
                 },
-
                 {
-                    properties: {
-                        page: {
-                            margin: {
-                                top: 720,
-                                bottom: 720,
-                                left: 720,
-                                right: 720,
-                            },
-                        },
-                    },
+                    properties: createPageProperties(),
                     children: getSearchMethodology(projectTitle),
                 },
+                // Relevant
 
-                
 
+                {
+                    properties: createPageProperties(),
+                    children: [
+                        new Paragraph({
+                            children: [
+                                createTextRun("3. Potentially Relevant References", textStyle.arial14, { bold: true }),
+                            ],
+                            spacing: { after: 400 },
+                        }),
+
+                        ...(Array.isArray(relevantReferences)
+                            ? relevantReferences.flatMap((pub, pubIndex) => {
+                                const leftTableRows = [
+                                    { label: "Publication No", value: sanitizeText(pub.patentNumber) },
+                                    { label: "Title", value: sanitizeText(pub.title) },
+                                    { label: "Inventor", value: sanitizeText((pub.inventors || []).join(", ")) },
+                                    { label: "Assignee", value: sanitizeText((pub.assignee || []).join(", ")) },
+                                ];
+
+                                const rightTableRows = [
+                                    { label: "Grant/Publication Date", value: sanitizeText(pub.grantDate) },
+                                    { label: "Filing/Application Date", value: sanitizeText(pub.filingDate) },
+                                    { label: "Priority Date", value: sanitizeText(pub.priorityDate) },
+                                    { label: "IPC/CPC Classifications", value: sanitizeText((pub.classifications || []).join(", ")) },
+                                    { label: "Family Member", value: sanitizeText((pub.familyMembers || []).join(", ")) },
+                                ];
+
+                                const ptnNumber = new Paragraph({
+                                    alignment: AlignmentType.START,
+                                    children: [
+                                        createTextRun(`${pubIndex+1}. ${pub.patentNumber}`, textStyle.arial11, { bold: true }),
+                                    ],
+                                })
+
+
+                                const table = new Table({
+                                    width: { size: 100, type: WidthType.PERCENTAGE },
+                                    rows: [
+                                        new TableRow({
+                                            children: [
+                                                new TableCell({
+                                                    columnSpan: 2,
+                                                    shading: {
+                                                        fill: "BDD7EE",
+                                                        type: ShadingType.CLEAR,
+                                                        color: "auto",
+                                                    },
+                                                    verticalAlign: VerticalAlign.CENTER,
+                                                    children: [
+                                                        new Paragraph({
+                                                            alignment: AlignmentType.CENTER,
+                                                            children: [
+                                                                createTextRun("Bibliographic Details", textStyle.arial10, { bold: true }),
+                                                            ],
+                                                        }),
+                                                    ],
+                                                    borders: commonBorders,
+                                                    margins: marginsStyle.margins,
+                                                }),
+
+                                            ],
+                                        }),
+                                        new TableRow({
+                                            margins: marginsStyle.margins,
+                                            children: [
+                                                new TableCell({
+                                                    width: { size: 50, type: WidthType.PERCENTAGE },
+                                                    borders: commonBorders,
+                                                    margins: marginsStyle.margins,
+                                                    children: [
+                                                        new Table({
+                                                            width: { size: 100, type: WidthType.PERCENTAGE },
+                                                            rows: createSingleColumnTableRows(leftTableRows),
+                                                        }),
+                                                    ],
+                                                }),
+                                                new TableCell({
+                                                    width: { size: 50, type: WidthType.PERCENTAGE },
+                                                    borders: commonBorders,
+                                                    margins: marginsStyle.margins,
+                                                    children: [
+                                                        new Table({
+                                                            width: { size: 100, type: WidthType.PERCENTAGE },
+                                                            rows: createSingleColumnTableRows(rightTableRows),
+                                                        }),
+                                                    ],
+                                                }),
+                                            ],
+                                        }),
+                                    ],
+                                });
+
+                                const analystComment = pub.analystComments
+                                    ? new Paragraph({
+                                        spacing: { before: 300, after: 300 },
+                                        children: [
+                                            createTextRun("Analyst Comments – ", textStyle.arial10, { bold: true }),
+                                            createTextRun(sanitizeText(pub.analystComments), textStyle.arial10, { italics: true }),
+                                        ],
+                                    })
+                                    : null;
+
+                                const relevantExcerpts = [
+                                    // Header Row
+                                    new Table({
+                                        width: { size: 100, type: WidthType.PERCENTAGE },
+                                        rows: [
+                                            new TableRow({
+                                                children: [
+                                                    new TableCell({
+                                                        columnSpan: 2,
+                                                        shading: {
+                                                            fill: "BDD7EE", // Light blue header background
+                                                            type: ShadingType.CLEAR,
+                                                            color: "auto",
+                                                        },
+                                                        verticalAlign: VerticalAlign.CENTER,
+                                                        children: [
+                                                            new Paragraph({
+                                                                alignment: AlignmentType.CENTER,
+                                                                children: [
+                                                                    createTextRun("Relevant Experts", textStyle.arial10, { bold: true }),
+                                                                ],
+                                                            }),
+                                                        ],
+                                                        borders: commonBorders,
+                                                        margins: marginsStyle.margins,
+                                                    }),
+                                                ],
+                                            }),
+                                        ],
+                                    }),
+
+                                    // Relevant Excerpts Text Below the Header
+                                    pub.relevantExcerpts
+                                        ? new Paragraph({
+                                            spacing: { before: 200, after: 400 },
+                                            children: [
+                                                createTextRun(sanitizeText(pub.relevantExcerpts), textStyle.arial10),
+                                            ],
+                                            alignment: AlignmentType.LEFT,
+                                        })
+                                        : null,
+                                ].filter(Boolean);
+                                return [ptnNumber, table, ...(analystComment ? [analystComment] : []), ...relevantExcerpts];
+                            })
+                            : []
+                        ),
+                    ],
+                },
             ],
         });
 
@@ -1402,18 +1540,15 @@ const createRelatedReferenceDetails = (ref, index) => [
     };
 
 
-
-
     const handleReportDownload = async () => {
         try {
-            console.log("Fetching Project Data...");
             const getProjectValue = await fetchProjectById(id);
             console.log("Fetched Project Data:", getProjectValue);
-            
             handleDownload({
                 projectTitle: getProjectValue.stages.introduction[0]?.projectTitle || "ProjectTitle",
                 projectSubTitle: getProjectValue.stages.introduction[0]?.projectSubTitle || "projectSubTitle",
-                searchFeatures: getProjectValue.stages.introduction[0]?.searchFeatures || "searchFeatures"
+                searchFeatures: getProjectValue.stages.introduction[0]?.searchFeatures || "searchFeatures",
+                relevantReferences: getProjectValue.stages.relevantReferences.publicationDetails || [],
             });
             // handleWordReportDownload(getProjectValue);
 
@@ -1573,49 +1708,57 @@ const createRelatedReferenceDetails = (ref, index) => [
 
                                                 </TabPane>
 
-                                                <ReusableDeleteComp
-                                                    show={showDeleteModal}
-                                                    toggle={() => setShowDeleteModal(false)}
-                                                    message="Are you sure you want to delete this publication?"
-                                                    onConfirm={handlePublicationDelete}
-                                                />
+                                                <>
+                                                    <>
+                                                        {/* Publication Delete Modal */}
+                                                        <ReusableDeleteComp
+                                                            show={showDeletePublicationModal}
+                                                            toggle={() => setShowDeletePublicationModal(false)}
+                                                            message="Are you sure you want to delete this publication?"
+                                                            onConfirm={handlePublicationDelete}
+                                                        />
 
-                                                <ReusableDeleteComp
-                                                    show={showDeleteModal}
-                                                    toggle={() => setShowDeleteModal(false)}
-                                                    message="Are you sure you want to delete this Non-Patent?"
-                                                    onConfirm={handleNonPatentDelete}
-                                                />
+                                                        {/* Non-Patent Delete Modal */}
+                                                        <ReusableDeleteComp
+                                                            show={showDeleteNonPatentModal}
+                                                            toggle={() => setShowDeleteNonPatentModal(false)}
+                                                            message="Are you sure you want to delete this Non-Patent?"
+                                                            onConfirm={handleNonPatentDelete}
+                                                        />
 
-                                                <ReusableDeleteComp
-                                                    show={showDeleteModal}
-                                                    toggle={() => setShowDeleteModal(false)}
-                                                    message="Are you sure you want to delete this Related reference?"
-                                                    onConfirm={handleRelatedReferenceDelete}
-                                                />
+                                                        {/* Related Reference Delete Modal */}
+                                                        <ReusableDeleteComp
+                                                            show={showDeleteRelatedReferenceModal}
+                                                            toggle={() => setShowDeleteRelatedReferenceModal(false)}
+                                                            message="Are you sure you want to delete this Related reference?"
+                                                            onConfirm={handleRelatedReferenceDelete}
+                                                        />
 
-                                                <ReusableDeleteComp
-                                                    show={showDeleteModal}
-                                                    toggle={() => setShowDeleteModal(false)}
-                                                    message="Are you sure you want to delete this Search Term Text?"
-                                                    onConfirm={handleSearchTermDelete}
-                                                />
+                                                        {/* Search Term Delete Modal */}
+                                                        <ReusableDeleteComp
+                                                            show={showDeleteSearchTermModal}
+                                                            toggle={() => setShowDeleteSearchTermModal(false)}
+                                                            message="Are you sure you want to delete this Search Term Text?"
+                                                            onConfirm={handleSearchTermDelete}
+                                                        />
 
-                                                <ReusableDeleteComp
-                                                    show={showDeleteModal}
-                                                    toggle={() => setShowDeleteModal(false)}
-                                                    message="Are you sure you want to delete this Key String?"
-                                                    onConfirm={handleDeleteKeyString}
-                                                />
+                                                        {/* Key String Delete Modal */}
+                                                        <ReusableDeleteComp
+                                                            show={showDeleteKeyStringModal}
+                                                            toggle={() => setShowDeleteKeyStringModal(false)}
+                                                            message="Are you sure you want to delete this Key String?"
+                                                            onConfirm={handleDeleteKeyString}
+                                                        />
 
-                                                <ReusableDeleteComp
-                                                    show={showDeleteModal}
-                                                    toggle={() => setShowDeleteModal(false)}
-                                                    message="Are you sure you want to delete this Data Availability Value?"
-                                                    onConfirm={handleDeleteDataAvailability}
-                                                />
-
-
+                                                        {/* Data Availability Delete Modal */}
+                                                        <ReusableDeleteComp
+                                                            show={showDeleteDataAvailabilityModal}
+                                                            toggle={() => setShowDeleteDataAvailabilityModal(false)}
+                                                            message="Are you sure you want to delete this Data Availability Value?"
+                                                            onConfirm={handleDeleteDataAvailability}
+                                                        />
+                                                    </>
+                                                </>
                                                 <TabPane tabId={3}>
                                                     <RelatedRefComponent
                                                         relatedLoading={relatedLoading}
