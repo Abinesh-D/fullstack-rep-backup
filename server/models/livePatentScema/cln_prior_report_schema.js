@@ -16,7 +16,7 @@ const publicationDetailsSchema = new Schema({
   usClassification: { type: [String], default: [] },
   familyMembers: { type: [String], default: [] },
   analystComments: { type: String, default: "" },
-  relevantExcerpts: { type: String, default: "" }
+  relevantExcerpts: { type: String, default: "" },
 });
 
 
