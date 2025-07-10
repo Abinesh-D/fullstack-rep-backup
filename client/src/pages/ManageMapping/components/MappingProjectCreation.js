@@ -27,6 +27,7 @@ import {
     Document, BorderStyle, Packer, Paragraph, TextRun, Table, TableRow, AlignmentType, TableCell, VerticalAlign, WidthType, ShadingType, 
 } from "docx";
 import { getSearchMethodology } from "../ReusableComponents/searchMethodology";
+import { fileToBase64, formatBytes } from "../ReusableComponents/base64Convertion";
 
 
 const MappingProjectCreation = () => {
@@ -112,9 +113,11 @@ const MappingProjectCreation = () => {
     const [projectFormData, setProjectFormData] = useState({
         projectTitle: '',
         projectSubTitle: '',
-        searchFeatures: ''
+        searchFeatures: '',
+        projectImageUrl: [],
     });
 
+    console.log('projectFormData', projectFormData.projectImageUrl)
 
     const [nplPatentFormData, setNplPatentFormData] = useState({
         nplTitle: "",
@@ -290,26 +293,34 @@ const MappingProjectCreation = () => {
 
     useEffect(() => {
         const getProject = async () => {
-            const singleProject = await fetchProjectById(id);
-            if (singleProject) {
-                setProjectFormData({
-                    projectTitle: singleProject.stages.introduction[0]?.projectTitle,
-                    projectSubTitle: singleProject.stages.introduction[0]?.projectSubTitle,
-                    searchFeatures: singleProject.stages.introduction[0]?.searchFeatures
-                })
-                setrelevantFormData(singleProject.stages.relevantReferences?.publicationDetails);
-                setNonPatentFormData(singleProject.stages.relevantReferences?.nonPatentLiteratures);
-                setOverallSummary(singleProject.stages.relevantReferences?.overallSummary);
-                setBaseSearchTermsList(singleProject.stages.appendix1[0]?.baseSearchTerms);
-                setKeyStringsList(singleProject.stages.appendix1[0]?.keyStrings);
-                setDataAvailabilityValue(singleProject.stages.appendix1[0]?.dataAvailability);
-                setAppendix2Patents(singleProject.stages.appendix2[0]?.patents);
-                setAppendix2NPL(singleProject.stages.appendix2[0]?.nonPatentLiterature);
+            try {
+                const singleProject = await fetchProjectById(id);
+                console.log('singleProject.stages', singleProject.stages.introduction?.[0])
+                if (singleProject) {
+                    setProjectFormData({
+                        projectTitle: singleProject.stages.introduction?.[0]?.projectTitle || "",
+                        projectSubTitle: singleProject.stages.introduction?.[0]?.projectSubTitle || "",
+                        searchFeatures: singleProject.stages.introduction?.[0]?.searchFeatures || "",
+                        projectImageUrl: singleProject.stages.introduction?.[0]?.projectImageUrl || [],
+                    });
 
+                    setrelevantFormData(singleProject.stages.relevantReferences?.publicationDetails || []);
+                    setNonPatentFormData(singleProject.stages.relevantReferences?.nonPatentLiteratures || []);
+                    setOverallSummary(singleProject.stages.relevantReferences?.overallSummary || "");
+                    setBaseSearchTermsList(singleProject.stages.appendix1?.[0]?.baseSearchTerms || []);
+                    setKeyStringsList(singleProject.stages.appendix1?.[0]?.keyStrings || []);
+                    setDataAvailabilityValue(singleProject.stages.appendix1?.[0]?.dataAvailability || "");
+                    setAppendix2Patents(singleProject.stages.appendix2?.[0]?.patents || []);
+                    setAppendix2NPL(singleProject.stages.appendix2?.[0]?.nonPatentLiterature || []);
+                }
+            } catch (error) {
+                console.error("❌ Error fetching project data:", error);
             }
         };
+
         getProject();
     }, []);
+
 
 
     useEffect(() => {
@@ -1198,14 +1209,106 @@ const MappingProjectCreation = () => {
     };
 
 
+const handleProjectImageDelete = async (img) => {
+    console.log("🗑 Deleting image:", img);
+
+    try {
+        await axios.delete(
+            `http://localhost:8080/live/projectname/delete-image/${selectedProject._id}/${img._id}`
+        );
+
+        console.log("✅ Deleted image from server:", img.name);
+
+        setProjectFormData((prev) => ({
+            ...prev,
+            projectImageUrl: prev.projectImageUrl.filter(
+                (i) => i._id !== img._id
+            ),
+        }));
+    } catch (error) {
+        console.error("❌ Delete Error:", error.response?.data || error.message);
+    }
+};
+
+
+
+
+const handleUploadImage = async (files) => {
+    if (!files || files.length === 0) return;
+
+    try {
+        // Upload all images in parallel
+        const uploadedImages = await Promise.all(
+            files.map(async (file) => {
+                const formData = new FormData();
+                formData.append("image", file);
+                formData.append("projectId", selectedProject._id);
+
+                const response = await axios.post(
+                    "http://localhost:8080/live/projectname/images/upload",
+                    formData,
+                    { headers: { "Content-Type": "multipart/form-data" } }
+                );
+
+                console.log("✅ Uploaded:", response.data.image);
+                return response.data.image; // Return uploaded image data
+            })
+        );
+
+        // Update state once with all uploaded images
+        setProjectFormData((prev) => ({
+            ...prev,
+            projectImageUrl: [...prev.projectImageUrl, ...uploadedImages],
+        }));
+
+    } catch (error) {
+        console.error("❌ Upload Error:", error);
+    }
+};
+
+
+
+
+
+
+// const handleUploadImage = async (files) => {
+//     try {
+//         const formData = new FormData();
+//         formData.append("image", files[0]); // single file
+
+//         const response = await axios.post("http://localhost:8080/live/projectname/images/upload", formData, {
+//             headers: { "Content-Type": "multipart/form-data" },
+//         });
+
+//         console.log("✅ Uploaded Image URL:", response.data.url);
+
+//         setProjectFormData((prev) => ({
+//             ...prev,
+//             projectImageUrl: [...prev.projectImageUrl, {
+//                 name: files[0].name,
+//                 url: response.data.url,
+//                 public_id: response.data.public_id, // needed for deletion
+//             }],
+//         }));
+//     } catch (error) {
+//         console.error("❌ Upload Error:", error);
+//     }
+// };
+
+
+
 
     const handleIntroSave = async () => {
+        console.log('projectFormData', projectFormData)
         const introData = {
             projectTitle: projectFormData.projectTitle || "",
             projectSubTitle: projectFormData.projectSubTitle || "",
             searchFeatures: projectFormData.searchFeatures || "",
+            projectImageUrl: projectFormData.projectImageUrl || [],
         }
 
+
+        console.log('introData', introData)
         try {
             await axios.post(`http://localhost:8080/live/projectname/update-introduction/${selectedProject._id}`, introData,
                 {
@@ -1226,6 +1329,23 @@ const MappingProjectCreation = () => {
             }
         }
     };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1679,6 +1799,9 @@ const MappingProjectCreation = () => {
                                                         handleIntroSave={handleIntroSave}
                                                         reportData={fullReportData.filter(fil => fil._id === id)}
                                                         id={id}
+                                                        handleUploadImage={handleUploadImage}
+                                                        setProjectFormData={setProjectFormData}
+                                                        handleProjectImageDelete={handleProjectImageDelete}
                                                     />
                                                 </TabPane>
 

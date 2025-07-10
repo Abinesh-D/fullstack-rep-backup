@@ -66,10 +66,27 @@ const appendix1Schema = new Schema({
 });
 
 
+const ImageSchema = new mongoose.Schema({
+  _id: { type: String, default: uuidv4 },
+  name: { type: String, required: true },
+  size: { type: Number, required: true },
+  formattedSize: { type: String },
+  type: { type: String, required: true },
+  base64Url: { type: String, required: true },
+  uploadedAt: { type: Date, default: Date.now },
+  uploader: { type: String },
+  public_id: { type: String, required: true },
+});
+
+
 const introductionSchema = new Schema({
+  _id: { type: String, default: uuidv4 },
   projectTitle: String,
   projectSubTitle: String,
-  searchFeatures: String
+  searchFeatures: [String],
+  projectImageUrl: [ImageSchema],
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
 }, { _id: false });
 
 const appendix2 = new Schema({

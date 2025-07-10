@@ -17,6 +17,7 @@
     "axios": "^1.8.4",
     "axios-retry": "^4.5.0",
     "cheerio": "^1.0.0",
+    "cloudinary": "^2.7.0",
     "cors": "^2.8.5",
     "country-flag-icons": "^1.5.18",
     "dotenv": "^16.5.0",
@@ -29,6 +30,7 @@
     "https": "^1.0.0",
     "langs": "^2.0.0",
     "mongoose": "^8.16.1",
+    "multer": "^2.0.1",
     "node-cache": "^5.1.2",
     "node-fetch": "^2.7.0",
     "nodemon": "^3.1.9",
@@ -37,6 +39,7 @@
     "puppeteer": "^24.6.1",
     "qs": "^6.14.0",
     "react-world-flags": "^1.6.0",
+    "streamifier": "^0.1.1",
     "uuid": "^11.1.0",
     "xml2js": "^0.6.2"
   }
