@@ -104,7 +104,9 @@ app.use("/live/googlebiblio", liveGoogPatentBiblioRoute);
 const cln_project_schema = require("./routes/livePatentRoute/projectRoutes");
 app.use("/live/projectname", cln_project_schema);
 
-
+// Feedback patent number
+const feedbackPatentNumber = require("./routes/livePatentRoute/feedbackRoute");
+app.use("/live/feedback", feedbackPatentNumber);
 
 
 

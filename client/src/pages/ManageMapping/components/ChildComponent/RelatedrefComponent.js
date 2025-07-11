@@ -3,6 +3,9 @@ import { Row, Col, Button, Label, Input, Form, Spinner, } from "reactstrap";
 import TableContainer from "../../ReusableComponents/TableContainer";
 import { isEmptyArray } from "formik";
 import { Link } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import { setRelatedApiTrue } from "../../../ManageEmployees/ManageBibliography/BibliographySLice/BibliographySlice";
+
 
 
 const RelatedRefComponent = ({
@@ -15,8 +18,11 @@ const RelatedRefComponent = ({
     onRelatedDelete,
     setRelatedErrorValidation,
     relatedErrorValidation,
+    resetRelatedForm,
 }) => {
 
+    const patentSlice = useSelector(state => state.patentSlice);
+    const dispatch = useDispatch();
     const relatedAssigneeOrIntentor = (relatedForm.relatedAssignee && relatedForm.relatedAssignee) ?
         `${relatedForm.relatedAssignee} / ${relatedForm.relatedAssignee}` : "";
 
@@ -63,7 +69,11 @@ const RelatedRefComponent = ({
     ], [relatedFormData]);
 
 
-            
+    const handleClearInputFields = () => {
+        resetRelatedForm();
+        dispatch(setRelatedApiTrue(false));
+    };
+
 
     return (
         <>
@@ -95,9 +105,14 @@ const RelatedRefComponent = ({
                         </Col>
                         <Col lg="2 d-grid align-items-end">
                             <div className="mb-3">
-                                <Button color="success" className="w-100" onClick={handleRelatedFetchPatentData}>
-                                    Submit
-                                </Button>
+                                {console.log('relatedForm.publicationNumberr', relatedForm)}
+                                {
+                                    relatedForm.publicationNumber && patentSlice.relatedApiTrue ? (
+                                        <Button color="danger" onClick={handleClearInputFields} className="w-100">Clear</Button>
+                                    ) : (
+                                        <Button color="success" onClick={handleRelatedFetchPatentData} className="w-100">Submit</Button>
+                                    )
+                                }
                             </div>
                         </Col>
 
@@ -199,4 +214,3 @@ const RelatedRefComponent = ({
 };
 
 export default RelatedRefComponent;
-

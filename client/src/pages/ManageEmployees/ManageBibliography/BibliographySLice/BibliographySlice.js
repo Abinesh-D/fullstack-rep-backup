@@ -29,6 +29,9 @@ const initialState = {
   liveEpoRelatedData: [],
   liveGoogleRelevantData: [],
   liveGoogleRelatedData: [],
+  relevantApiTrue: false,
+  relatedApiTrue: false,
+
 
   fullReportData: [],
   reportRowData: {},
@@ -113,7 +116,12 @@ const patentSlice = createSlice({
       setReportRowData: (state, action) => {
       state.reportRowData = action.payload;
     },
-
+     setRelevantApiTrue: (state, action) => {
+      state.relevantApiTrue = action.payload;
+    },
+     setRelatedApiTrue: (state, action) => {
+      state.relatedApiTrue = action.payload;
+    },
 
     resetPatentData: () => initialState,
   },
@@ -377,9 +385,13 @@ export const EPO_API_DATA = async (patentNumber, dispatch, type) => {
 
     if (response.status === 200 && response.data) {
       if (type === 'relavent') {
+        dispatch((true));
+        console.log("setRelevantApiTrue")
         dispatch(setLiveEpoRelevantData(response.data));
 
       } else if (type === 'related') {
+        dispatch(setRelatedApiTrue(true));
+        console.log('setRelatedApiTrue')
         dispatch(setLiveEpoRelatedData(response.data));
       }
 
@@ -411,9 +423,11 @@ export const GOOGLE_API_DATA = async (ptnNumber, dispatch, type) => {
     const response = await axios.get(`${BASE_URL}/live/googlebiblio/${encodeURIComponent(trimmed)}`);
 
     if (type === 'relavent') {
+      dispatch(setRelevantApiTrue(true));
       dispatch(setLiveGoogleRelevantData(response.data));
 
     } else if (type === 'related') {
+      dispatch(setRelatedApiTrue(true));
       dispatch(setLiveGoogleRelatedData(response.data));
     }
     return response.data;
@@ -508,7 +522,7 @@ export const { setPatentData, setEspaceApiData, setBulkESPData, resetPatentData,
   setGooglePatentData, setReleventBiblioGoogleData, setRelatedBiblioGoogleData, setFullReportData, setReportRowData,
   
   // LIVE STATE EXPORT
-  setLiveEpoRelevantData, setLiveEpoRelatedData, setLiveGoogleRelevantData, setLiveGoogleRelatedData
+  setLiveEpoRelevantData, setLiveEpoRelatedData, setLiveGoogleRelevantData, setLiveGoogleRelatedData, setRelevantApiTrue, setRelatedApiTrue,
 } = patentSlice.actions;
 export default patentSlice.reducer;
 

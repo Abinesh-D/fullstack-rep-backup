@@ -7,6 +7,7 @@ const publicationDetailsSchema = new Schema({
   patentNumber: { type: String, default: "" },
   publicationUrl: { type: String, default: "" },
   title: { type: String, default: "" },
+  abstract: { type: String, default: "" },
   filingDate: { type: String, default: "" },
   priorityDate: { type: String, default: "" },
   grantDate: { type: String, default: "" },
@@ -117,7 +118,7 @@ const fullProjectSchema = new Schema({
     },
     relatedReferences: { type: [relatedReferenceSchema], default: [] },
     appendix1: { type: [appendix1Schema], default: [] },
-    appendix2: [appendix2]
+    appendix2: [appendix2],
   }
 }, { collection: "cln_prior_report_schema", timestamps: true });
 

@@ -1,15 +1,16 @@
 import React, { useState } from "react";
 import { Row, Col, Label, Input, Button, Spinner, Toast, ToastBody, ToastHeader } from "reactstrap";
 import ImageUploader from "../../ReusableComponents/ProjectImageUpload";
+import axios from "axios"
 
 const IntroductionTab = ({
     projectFormData,
     setProjectFormData,
     handleProjectChange,
-    handleIntroSave,
+    // handleIntroSave,
     id,
-    handleUploadImage,
-    handleProjectImageDelete,
+    // handleUploadImage,
+    // handleProjectImageDelete,
 }) => {
     const [saveLoading, setSaveLoading] = useState(false);
 
@@ -20,33 +21,97 @@ const IntroductionTab = ({
         setTimeout(() => setToast({ visible: false, type: "", message: "" }), 3000);
     };
 
-    const onSave = async () => {
+
+    const handleIntroSave = async () => {
         setSaveLoading(true);
+        const formData = new FormData();
+        formData.append("projectTitle", projectFormData.projectTitle || "");
+        formData.append("projectSubTitle", projectFormData.projectSubTitle || "");
+        formData.append("searchFeatures", projectFormData.searchFeatures || "");
+
+        projectFormData.projectImageUrl.forEach((img) => {
+            if (img.file) {
+                formData.append("images", img.file);
+            }
+        });
+
         try {
-            await handleIntroSave();
+            const response = await axios.post(
+                `http://localhost:8080/live/projectname/update-introduction/${id}`,
+                formData,
+                { headers: { "Content-Type": "multipart/form-data" } }
+            );
+
+            console.log("✅ Saved:", response.data);
+
+            if (response.status === 200) {
+                setProjectFormData((prev) => ({
+                    ...prev,
+                    ...response.data.data.stages.introduction[0],
+                }));
+            }            
+
             showToast("success", "✅ Saved successfully!");
         } catch (error) {
+            console.error("❌ Error saving introduction:", error);
             showToast("danger", "❌ Save failed. Try again.");
-        }
-        setSaveLoading(false);
-    };
+        } finally {
+            setSaveLoading(false);
 
-    const onImageUpload = async (file) => {
-        try {
-            await handleUploadImage(file);
-            showToast("success", "📤 Image uploaded successfully!");
-        } catch (error) {
-            showToast("danger", "❌ Upload failed.");
         }
     };
 
-    const onImageDelete = async (img) => {
+
+
+    const handleProjectImageDelete = async (img) => {
+        console.log("🗑 Deleting image:", img);
+
         try {
-            await handleProjectImageDelete(img);
+            await axios.delete(
+                `http://localhost:8080/live/projectname/delete-image/${id}/${img._id}`
+            );
             showToast("success", "🗑️ Image deleted successfully!");
+            console.log("✅ Deleted image from server:", img.name);
+
+            setProjectFormData((prev) => ({
+                ...prev,
+                projectImageUrl: prev.projectImageUrl.filter(
+                    (i) => i._id !== img._id
+                ),
+            }));
         } catch (error) {
-            showToast("danger", "❌ Delete failed.");
+             showToast("danger", "❌ Delete failed.");
+            console.error("❌ Delete Error:", error.response?.data || error.message);
         }
+    };
+
+
+    const handleUploadImage = (acceptedFiles) => {
+        const newImages = acceptedFiles.map((file) => ({
+            name: file.name,
+            size: file.size,
+            formattedSize: `${(file.size / 1024).toFixed(2)} KB`,
+            type: file.type,
+            base64Url: URL.createObjectURL(file),
+            file,
+            uploadedAt: new Date(),
+        }));
+
+        setProjectFormData((prev) => ({
+            ...prev,
+            projectImageUrl: [...prev.projectImageUrl, ...newImages],
+        }));
+    };
+
+
+
+    const handleRemoveLocalImage = (img) => {
+        setProjectFormData((prev) => ({
+            ...prev,
+            projectImageUrl: prev.projectImageUrl.filter(
+                (i) => i._id !== img._id
+            ),
+        }));
     };
 
     return (
@@ -106,8 +171,9 @@ const IntroductionTab = ({
                         <Label className="fw-bold">Upload Project Images</Label>
                         <ImageUploader
                             images={projectFormData.projectImageUrl}
-                            onUpload={onImageUpload}
-                            onDelete={onImageDelete}
+                            onUpload={handleUploadImage}
+                            onDelete={handleProjectImageDelete}
+                            onRemove={handleRemoveLocalImage}
                         />
                     </div>
                 </Col>
@@ -125,7 +191,7 @@ const IntroductionTab = ({
                 <Col lg="2" className="mt-3 mt-lg-0">
                     <Button
                         color="success"
-                        onClick={onSave}
+                        onClick={handleIntroSave}
                         className="w-100"
                         style={{ fontWeight: 600, padding: "0.6rem 1rem", borderRadius: "6px" }}
                         disabled={saveLoading}

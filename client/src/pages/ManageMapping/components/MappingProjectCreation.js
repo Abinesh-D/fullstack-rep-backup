@@ -8,7 +8,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import Breadcrumbs from "../../../components/Common/Breadcrumb";
 import {
-    GOOGLE_API_DATA, EPO_API_DATA, fetchProjects, fetchPublicationDetails, fetchProjectById,
+    GOOGLE_API_DATA, EPO_API_DATA, fetchProjects, fetchPublicationDetails, fetchProjectById, setRelevantApiTrue, setRelatedApiTrue,
     fetchRelatedReferences,
 } from "../../ManageEmployees/ManageBibliography/BibliographySLice/BibliographySlice";
 import { mapFamilyMemberData } from "../../ManagePriorFormat/ReusableComp/Functions";
@@ -24,7 +24,7 @@ import { downloadWordFile, handleWordReportDownload } from "../ReusableComponent
 
 import { saveAs } from "file-saver";
 import {
-    Document, BorderStyle, Packer, Paragraph, TextRun, Table, TableRow, AlignmentType, TableCell, VerticalAlign, WidthType, ShadingType, 
+    Document, BorderStyle, Packer, Paragraph, TextRun, Table, TableRow, AlignmentType, TableCell, VerticalAlign, WidthType, ShadingType,
 } from "docx";
 import { getSearchMethodology } from "../ReusableComponents/searchMethodology";
 import { fileToBase64, formatBytes } from "../ReusableComponents/base64Convertion";
@@ -50,6 +50,8 @@ const MappingProjectCreation = () => {
     const releventBiblioGoogleData = useSelector(state => state.patentSlice.liveGoogleRelevantData);
     const relatedBiblioGoogleData = useSelector(state => state.patentSlice.liveGoogleRelatedData);
 
+    console.log('releventBiblioGoogleData', releventBiblioGoogleData)
+
     const [activeTab, setactiveTab] = useState(1);
     const [passedSteps, setPassedSteps] = useState([1]);
 
@@ -57,6 +59,7 @@ const MappingProjectCreation = () => {
         patentNumber: '',
         publicationUrl: '',
         title: '',
+        abstract: "",
         filingDate: '',
         assignee: '',
         grantDate: '',
@@ -74,6 +77,7 @@ const MappingProjectCreation = () => {
             patentNumber: '',
             publicationUrl: '',
             title: '',
+            abstract: "",
             filingDate: '',
             assignee: '',
             grantDate: '',
@@ -289,7 +293,7 @@ const MappingProjectCreation = () => {
 
 
 
-  
+
 
     useEffect(() => {
         const getProject = async () => {
@@ -765,7 +769,7 @@ const MappingProjectCreation = () => {
             priorityDates,
             classificationsSymbol,
             // familyMemData,
-            // abstractData,
+            abstractData,
             // filteredDescriptions
         ].some(
             (val) =>
@@ -795,7 +799,7 @@ const MappingProjectCreation = () => {
         priorityDates,
         classificationsSymbol,
         // familyMemData,
-        // abstractData,
+        abstractData,
         // filteredDescriptions
     ]);
 
@@ -803,7 +807,6 @@ const MappingProjectCreation = () => {
 
 
     // -------------------------- Related --------------------------
-
 
 
 
@@ -829,7 +832,6 @@ const MappingProjectCreation = () => {
             setRelatedLoading(false);
         }
     };
-
 
     const relatedFamilyFilterFunction = () => {
         if (relatedData?.patentNumber) {
@@ -971,6 +973,7 @@ const MappingProjectCreation = () => {
 
     useEffect(() => {
         if (data?.patentNumber || releventBiblioGoogleData?.patentNumber) {
+            console.log('abstractData', abstractData)
             const combinedForm = {
                 patentNumber: relevantForm.patentNumber.trim(),
 
@@ -983,6 +986,9 @@ const MappingProjectCreation = () => {
                     title ||
                     releventBiblioGoogleData?.title?.trim() ||
                     "",
+                abstract: (abstractData?.trim() ||
+                    releventBiblioGoogleData?.abstract?.trim() ||
+                    ""),
 
                 filingDate:
                     aplDate ||
@@ -1006,7 +1012,6 @@ const MappingProjectCreation = () => {
                     .split(",")
                     .map(a => a.trim())
                     .filter(Boolean),
-
                 inventors: (inventorNames ||
                     releventBiblioGoogleData?.inventors ||
                     ""
@@ -1044,7 +1049,7 @@ const MappingProjectCreation = () => {
         }
     }, [data, releventBiblioGoogleData]);
 
-
+    console.log('abstractData', abstractData)
 
 
     const handleRelevantSubmit = async (e) => {
@@ -1064,10 +1069,10 @@ const MappingProjectCreation = () => {
 
         } catch (error) {
             console.error("❌ Error saving publication detail:", error);
+        } finally {
+            dispatch(setRelevantApiTrue(false));
         }
     };
-
-
 
 
     const handleNplSubmit = async (e) => {
@@ -1092,13 +1097,10 @@ const MappingProjectCreation = () => {
     };
 
 
-
-
     const handleOverAllSummarySave = async () => {
         const summaryData = {
             overallSummary: overallSummary || "",
         };
-
         try {
             await axios.post(
                 `http://localhost:8080/live/projectname/update-overall-summary/${id}`,
@@ -1130,8 +1132,6 @@ const MappingProjectCreation = () => {
             [id]: value
         }));
     };
-
-
 
 
     useEffect(() => {
@@ -1180,10 +1180,6 @@ const MappingProjectCreation = () => {
         }
     }, [relatedData, relatedBiblioGoogleData]);
 
-
-
-
-
     const handleRelatedSubmit = async (e) => {
         e.preventDefault();
 
@@ -1205,140 +1201,10 @@ const MappingProjectCreation = () => {
             } else {
                 console.error("No response received:", error.request);
             }
+        } finally {
+            dispatch(setRelatedApiTrue(false));
         }
     };
-
-
-const handleProjectImageDelete = async (img) => {
-    console.log("🗑 Deleting image:", img);
-
-    try {
-        await axios.delete(
-            `http://localhost:8080/live/projectname/delete-image/${selectedProject._id}/${img._id}`
-        );
-
-        console.log("✅ Deleted image from server:", img.name);
-
-        setProjectFormData((prev) => ({
-            ...prev,
-            projectImageUrl: prev.projectImageUrl.filter(
-                (i) => i._id !== img._id
-            ),
-        }));
-    } catch (error) {
-        console.error("❌ Delete Error:", error.response?.data || error.message);
-    }
-};
-
-
-
-
-const handleUploadImage = async (files) => {
-    if (!files || files.length === 0) return;
-
-    try {
-        // Upload all images in parallel
-        const uploadedImages = await Promise.all(
-            files.map(async (file) => {
-                const formData = new FormData();
-                formData.append("image", file);
-                formData.append("projectId", selectedProject._id);
-
-                const response = await axios.post(
-                    "http://localhost:8080/live/projectname/images/upload",
-                    formData,
-                    { headers: { "Content-Type": "multipart/form-data" } }
-                );
-
-                console.log("✅ Uploaded:", response.data.image);
-                return response.data.image; // Return uploaded image data
-            })
-        );
-
-        // Update state once with all uploaded images
-        setProjectFormData((prev) => ({
-            ...prev,
-            projectImageUrl: [...prev.projectImageUrl, ...uploadedImages],
-        }));
-
-    } catch (error) {
-        console.error("❌ Upload Error:", error);
-    }
-};
-
-
-
-
-
-
-// const handleUploadImage = async (files) => {
-//     try {
-//         const formData = new FormData();
-//         formData.append("image", files[0]); // single file
-
-//         const response = await axios.post("http://localhost:8080/live/projectname/images/upload", formData, {
-//             headers: { "Content-Type": "multipart/form-data" },
-//         });
-
-//         console.log("✅ Uploaded Image URL:", response.data.url);
-
-//         setProjectFormData((prev) => ({
-//             ...prev,
-//             projectImageUrl: [...prev.projectImageUrl, {
-//                 name: files[0].name,
-//                 url: response.data.url,
-//                 public_id: response.data.public_id, // needed for deletion
-//             }],
-//         }));
-//     } catch (error) {
-//         console.error("❌ Upload Error:", error);
-//     }
-// };
-
-
-
-
-    const handleIntroSave = async () => {
-        console.log('projectFormData', projectFormData)
-        const introData = {
-            projectTitle: projectFormData.projectTitle || "",
-            projectSubTitle: projectFormData.projectSubTitle || "",
-            searchFeatures: projectFormData.searchFeatures || "",
-            projectImageUrl: projectFormData.projectImageUrl || [],
-        }
-
-
-        console.log('introData', introData)
-        try {
-            await axios.post(`http://localhost:8080/live/projectname/update-introduction/${selectedProject._id}`, introData,
-                {
-                    headers: {
-                        "Content-Type": "application/json"
-                    }
-                }
-            );
-
-        } catch (error) {
-            console.error("❌ Error saving introduction:", error);
-            if (error.response) {
-                console.error("Server responded with:", error.response.data);
-            } else if (error.request) {
-                console.error("No response received:", error.request);
-            } else {
-                console.error("Axios error:", error.message);
-            }
-        }
-    };
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1364,8 +1230,6 @@ const handleUploadImage = async (files) => {
             },
         },
     });
-
-
 
     const textStyle = {
         arial24: { font: "Arial", size: 48 },
@@ -1424,7 +1288,7 @@ const handleUploadImage = async (files) => {
         searchFeatures,
         relevantReferences,
     }) => {
-        console.log('patentNumber', relevantReferences);
+        console.log('patentNumber', relevantReferences, searchFeatures);
 
         const sanitizeText = (text) =>
             (text || "").replace(/[&<>"]/g, (c) => ({
@@ -1482,7 +1346,6 @@ const handleUploadImage = async (files) => {
                             indent: { left: 720 },
                         }),
                         ...searchFeatures
-                            .split(/\. |\n/)
                             .filter((p) => p.trim() !== "")
                             .map((para) =>
                                 new Paragraph({
@@ -1532,7 +1395,7 @@ const handleUploadImage = async (files) => {
                                 const ptnNumber = new Paragraph({
                                     alignment: AlignmentType.START,
                                     children: [
-                                        createTextRun(`${pubIndex+1}. ${pub.patentNumber}`, textStyle.arial11, { bold: true }),
+                                        createTextRun(`${pubIndex + 1}. ${pub.patentNumber}`, textStyle.arial11, { bold: true }),
                                     ],
                                 })
 
@@ -1605,7 +1468,6 @@ const handleUploadImage = async (files) => {
                                     : null;
 
                                 const relevantExcerpts = [
-                                    // Header Row
                                     new Table({
                                         width: { size: 100, type: WidthType.PERCENTAGE },
                                         rows: [
@@ -1614,7 +1476,7 @@ const handleUploadImage = async (files) => {
                                                     new TableCell({
                                                         columnSpan: 2,
                                                         shading: {
-                                                            fill: "BDD7EE", // Light blue header background
+                                                            fill: "BDD7EE",
                                                             type: ShadingType.CLEAR,
                                                             color: "auto",
                                                         },
@@ -1623,7 +1485,7 @@ const handleUploadImage = async (files) => {
                                                             new Paragraph({
                                                                 alignment: AlignmentType.CENTER,
                                                                 children: [
-                                                                    createTextRun("Relevant Experts", textStyle.arial10, { bold: true }),
+                                                                    createTextRun("Relevant Excerpts", textStyle.arial10, { bold: true }),
                                                                 ],
                                                             }),
                                                         ],
@@ -1635,16 +1497,25 @@ const handleUploadImage = async (files) => {
                                         ],
                                     }),
 
-                                    // Relevant Excerpts Text Below the Header
-                                    pub.relevantExcerpts
+                                    pub.abstract
                                         ? new Paragraph({
                                             spacing: { before: 200, after: 400 },
                                             children: [
-                                                createTextRun(sanitizeText(pub.relevantExcerpts), textStyle.arial10),
+                                                createTextRun(sanitizeText("[Abstract]"), textStyle.arial10, { bold: true }),
                                             ],
                                             alignment: AlignmentType.LEFT,
                                         })
                                         : null,
+                                    pub.abstract
+                                        ? new Paragraph({
+                                            spacing: { before: 200, after: 400 },
+                                            children: [
+                                                createTextRun(sanitizeText(pub.abstract), textStyle.arial10),
+                                            ],
+                                            alignment: AlignmentType.LEFT,
+                                        })
+                                        : null,
+
                                 ].filter(Boolean);
                                 return [ptnNumber, table, ...(analystComment ? [analystComment] : []), ...relevantExcerpts];
                             })
@@ -1670,8 +1541,6 @@ const handleUploadImage = async (files) => {
                 searchFeatures: getProjectValue.stages.introduction[0]?.searchFeatures || "searchFeatures",
                 relevantReferences: getProjectValue.stages.relevantReferences.publicationDetails || [],
             });
-            // handleWordReportDownload(getProjectValue);
-
         } catch (error) {
             console.error("❌ Error in handleReportDownload:", error);
         }
@@ -1679,7 +1548,7 @@ const handleUploadImage = async (files) => {
 
 
 
-    
+
 
 
 
@@ -1796,12 +1665,9 @@ const handleUploadImage = async (files) => {
                                                         projectFormData={projectFormData}
                                                         introduction={introduction}
                                                         handleProjectChange={handleProjectChange}
-                                                        handleIntroSave={handleIntroSave}
                                                         reportData={fullReportData.filter(fil => fil._id === id)}
                                                         id={id}
-                                                        handleUploadImage={handleUploadImage}
                                                         setProjectFormData={setProjectFormData}
-                                                        handleProjectImageDelete={handleProjectImageDelete}
                                                     />
                                                 </TabPane>
 
@@ -1826,6 +1692,7 @@ const handleUploadImage = async (files) => {
                                                         setOverallSummary={setOverallSummary}
                                                         handleOverAllSummarySave={handleOverAllSummarySave}
                                                         handleRelevatFormInputChange={handleRelevatFormInputChange}
+                                                        resetRelevantForm={resetRelevantForm}
 
                                                     />
 
@@ -1833,7 +1700,6 @@ const handleUploadImage = async (files) => {
 
                                                 <>
                                                     <>
-                                                        {/* Publication Delete Modal */}
                                                         <ReusableDeleteComp
                                                             show={showDeletePublicationModal}
                                                             toggle={() => setShowDeletePublicationModal(false)}
@@ -1841,7 +1707,6 @@ const handleUploadImage = async (files) => {
                                                             onConfirm={handlePublicationDelete}
                                                         />
 
-                                                        {/* Non-Patent Delete Modal */}
                                                         <ReusableDeleteComp
                                                             show={showDeleteNonPatentModal}
                                                             toggle={() => setShowDeleteNonPatentModal(false)}
@@ -1849,7 +1714,6 @@ const handleUploadImage = async (files) => {
                                                             onConfirm={handleNonPatentDelete}
                                                         />
 
-                                                        {/* Related Reference Delete Modal */}
                                                         <ReusableDeleteComp
                                                             show={showDeleteRelatedReferenceModal}
                                                             toggle={() => setShowDeleteRelatedReferenceModal(false)}
@@ -1857,7 +1721,6 @@ const handleUploadImage = async (files) => {
                                                             onConfirm={handleRelatedReferenceDelete}
                                                         />
 
-                                                        {/* Search Term Delete Modal */}
                                                         <ReusableDeleteComp
                                                             show={showDeleteSearchTermModal}
                                                             toggle={() => setShowDeleteSearchTermModal(false)}
@@ -1865,7 +1728,6 @@ const handleUploadImage = async (files) => {
                                                             onConfirm={handleSearchTermDelete}
                                                         />
 
-                                                        {/* Key String Delete Modal */}
                                                         <ReusableDeleteComp
                                                             show={showDeleteKeyStringModal}
                                                             toggle={() => setShowDeleteKeyStringModal(false)}
@@ -1873,7 +1735,6 @@ const handleUploadImage = async (files) => {
                                                             onConfirm={handleDeleteKeyString}
                                                         />
 
-                                                        {/* Data Availability Delete Modal */}
                                                         <ReusableDeleteComp
                                                             show={showDeleteDataAvailabilityModal}
                                                             toggle={() => setShowDeleteDataAvailabilityModal(false)}
@@ -1893,6 +1754,7 @@ const handleUploadImage = async (files) => {
                                                         onRelatedDelete={onRelatedDelete}
                                                         relatedErrorValidation={relatedErrorValidation}
                                                         setRelatedErrorValidation={setRelatedErrorValidation}
+                                                        resetRelatedForm={resetRelatedForm}
                                                     />
                                                 </TabPane>
 

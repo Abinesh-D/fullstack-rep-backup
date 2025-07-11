@@ -1,12 +1,11 @@
 import React, { useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { Row, Col, Card, Button } from "reactstrap";
-import { X } from "react-feather";
+import { Row, Col, Card } from "reactstrap";
 import { Image } from "antd";
+import { Trash } from "lucide-react";
 
-const ImageUploader = ({ images, onUpload, onDelete }) => {
 
-    const [hoveredImage, setHoveredImage] = useState(null);
+const ImageUploader = ({ images, onUpload, onDelete, onRemove }) => {
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         accept: "image/*",
@@ -31,10 +30,10 @@ const ImageUploader = ({ images, onUpload, onDelete }) => {
                             <Col key={idx} xxl="2" xl="2" lg="3" md="4" sm="6" xs="12">
 
                                 <Card className="shadow-sm position-relative image-card">
-                                    <Image src={img.base64Url}alt={img.name}className="rounded"onMouseEnter={() => setHoveredImage(img._id || idx)}onMouseLeave={() => setHoveredImage(null)}
+                                    <Image src={img.base64Url} alt={img.name} className="rounded"
                                         style={{
                                             width: "100%",
-                                            height: "auto", 
+                                            height: "auto",
                                             aspectRatio: "4 / 3",
                                             objectFit: "cover",
                                             borderRadius: "8px",
@@ -42,19 +41,21 @@ const ImageUploader = ({ images, onUpload, onDelete }) => {
                                             display: "block",
                                         }}
                                     />
-                                    <Button size="sm" color="danger" onClick={() => onDelete(img)} className="position-absolute"
+                                    <span
+                                        onClick={() =>
+                                            img.public_id ? onDelete(img) : onRemove(img)
+                                        }
                                         style={{
+                                            position: "absolute",
                                             top: "5px",
                                             right: "5px",
-                                            borderRadius: "50%",
-                                            padding: "0.4rem",
-                                            lineHeight: "1",
                                             zIndex: 10,
+                                            cursor: "pointer",
+                                            color: img.public_id ? "red" : "#6c757d",
                                         }}
                                     >
-                                        <X size={15} />
-                                    </Button>
-
+                                        {img.public_id ? <Trash size={16} /> : <i className="mdi mdi-close fs-3 text-dark" />}
+                                    </span>
                                     <div className="p-2">
                                         <p className="fw-bold mb-1 text-truncate">{img.name}</p>
                                         <p className="text-muted small mb-0">{img.formattedSize}</p>
