@@ -39,6 +39,7 @@ const relatedReferenceSchema = new Schema({
   relatedInventor: { type: [String], default: [] },
   relatedFamilyMembers: { type: [String], default: [] },
   relatedPublicationDate: { type: String, default: "" },
+  relatedPriorityDate: { type: String, default: "" },
 });
 
 

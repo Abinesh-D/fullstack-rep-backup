@@ -112,7 +112,7 @@ const ExcelPatentUploader = ({ onUpload }) => {
 
   const bulkBiblioApiCall = async (patentNumbers) => {
     try {
-      await fetchBulkESPData(patentNumbers, dispatch, "relavent");
+      await fetchBulkESPData(patentNumbers, dispatch, "relevant");
 
     } catch (error) {
       console.log('error', error)

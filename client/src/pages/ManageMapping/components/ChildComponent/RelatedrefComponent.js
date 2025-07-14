@@ -1,10 +1,11 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { Row, Col, Button, Label, Input, Form, Spinner, } from "reactstrap";
 import TableContainer from "../../ReusableComponents/TableContainer";
 import { isEmptyArray } from "formik";
 import { Link } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { setRelatedApiTrue } from "../../../ManageEmployees/ManageBibliography/BibliographySLice/BibliographySlice";
+import FeedbackModal from "../../ReusableComponents/FeedbackModal";
 
 
 
@@ -23,6 +24,9 @@ const RelatedRefComponent = ({
 
     const patentSlice = useSelector(state => state.patentSlice);
     const dispatch = useDispatch();
+        const [feedbackOpen, setFeedbackOpen] = useState(false);
+    
+
     const relatedAssigneeOrIntentor = (relatedForm.relatedAssignee && relatedForm.relatedAssignee) ?
         `${relatedForm.relatedAssignee} / ${relatedForm.relatedAssignee}` : "";
 
@@ -42,11 +46,18 @@ const RelatedRefComponent = ({
             enableSorting: true,
         },
         {
+            header: "Priority Date",
+            accessorKey: "relatedPriorityDate",
+            enableColumnFilter: false,
+            enableSorting: true,
+        },
+        {
             header: "Publication Date",
             accessorKey: "relatedPublicationDate",
             enableColumnFilter: false,
             enableSorting: true,
         },
+
         {
             header: "Actions",
             cell: ({ row }) => {
@@ -77,10 +88,26 @@ const RelatedRefComponent = ({
 
     return (
         <>
-            <h4 className="fw-bold mb-3">Related References</h4>
+            <Row className="align-items-center mb-4">
+                <Col className="d-flex align-items-center">
+                    <h4 className="fw-bold m-0">Related References</h4>
+
+                </Col>
+                <Col className="d-flex justify-content-end">
+                    <Button color="warning" onClick={() => setFeedbackOpen(true)} className="d-flex align-items-center">
+                        💬 Feedback
+                    </Button>
+                </Col>
+            </Row>
             <p className="text-muted mb-4">
                 <i><strong>Note:</strong> Below references are listed as related references as these references fail to disclose at least one or more features of the objective.</i>
             </p>
+            {
+                <FeedbackModal
+                    isOpen={feedbackOpen}
+                    toggle={() => setFeedbackOpen(!feedbackOpen)}
+                />
+            }
 
             {relatedLoading ? (
                 <div className="blur-loading-overlay text-center mt-4">
@@ -105,7 +132,6 @@ const RelatedRefComponent = ({
                         </Col>
                         <Col lg="2 d-grid align-items-end">
                             <div className="mb-3">
-                                {console.log('relatedForm.publicationNumberr', relatedForm)}
                                 {
                                     relatedForm.publicationNumber && patentSlice.relatedApiTrue ? (
                                         <Button color="danger" onClick={handleClearInputFields} className="w-100">Clear</Button>
@@ -161,37 +187,61 @@ const RelatedRefComponent = ({
                         </Col>
                     </Row>
 
-                    <Row>
-                        <Col lg="6">
-                            <div className="mb-3">
-                                <Label for="related-relatedFamilyMembers">Family Member(s)</Label>
-                                <textarea
-                                    id="related-relatedFamilyMembers"
-                                    className="form-control"
-                                    rows="3"
-                                    placeholder="Enter Family Members"
-                                    value={relatedForm.relatedFamilyMembers}
-                                    onChange={handleRelatedInputChange}
-                                />
-                            </div>
-                        </Col>
-                        <Col lg="6">
-                            <div className="mb-3">
-                                <Label for="related-relatedPublicationDate">Publication Date</Label>
-                                <Input
-                                    type="text"
-                                    id="related-relatedPublicationDate"
-                                    className="form-control"
-                                    placeholder="dd-mm-yyyy"
-                                    value={relatedForm.relatedPublicationDate}
-                                    onChange={handleRelatedInputChange}
-                                />
-                            </div>
-                            <div className="">
-                                <Button color="info" type="submit" className="w-100">+ Add Related</Button>
-                            </div>
-                        </Col>
-                    </Row>
+
+
+
+                        <Row className="align-items-end">
+                            <Col lg="6">
+                                <div className="mb-3">
+                                    <Label for="related-relatedFamilyMembers">Family Member(s)</Label>
+                                    <textarea
+                                        id="related-relatedFamilyMembers"
+                                        className="form-control"
+                                        rows="3"
+                                        placeholder="Enter Family Members"
+                                        value={relatedForm.relatedFamilyMembers}
+                                        onChange={handleRelatedInputChange}
+                                    />
+                                </div>
+                            </Col>
+
+                            <Col lg="3">
+                                <div className="mb-3">
+                                    <Label for="related-relatedPriorityDate">Priority Date</Label>
+                                    <Input
+                                        type="text"
+                                        id="related-relatedPriorityDate"
+                                        className="form-control"
+                                        placeholder="dd-mm-yyyy"
+                                        value={relatedForm.relatedPriorityDate}
+                                        onChange={handleRelatedInputChange}
+                                    />
+                                </div>
+                            </Col>
+
+                            <Col lg="3">
+                                <div className="mb-3">
+                                    <Label for="related-relatedPublicationDate">Publication Date</Label>
+                                    <Input
+                                        type="text"
+                                        id="related-relatedPublicationDate"
+                                        className="form-control"
+                                        placeholder="dd-mm-yyyy"
+                                        value={relatedForm.relatedPublicationDate}
+                                        onChange={handleRelatedInputChange}
+                                    />
+                                </div>
+                            </Col>
+
+                            <Col lg="auto">
+                                <div className="mb-3">
+                                    <Button color="info" type="submit" className="mt-2">
+                                        + Add Related
+                                    </Button>
+                                </div>
+                            </Col>
+                        </Row>
+
                 </Form>
             )}
 

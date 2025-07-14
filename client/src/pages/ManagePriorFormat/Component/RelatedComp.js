@@ -46,7 +46,7 @@ const RelatedComp = ({ activeTab }) => {
     //         const trimmedNumber = patentNumber.trim();
     //         setLoading(true);
     //         try {
-    //             await fetchESPData(trimmedNumber, dispatch, 'relavent');
+    //             await fetchESPData(trimmedNumber, dispatch, 'relevant');
     //         } catch (error) {
     //             setErrorValidation(true);
     //             setfamId("");

@@ -246,7 +246,7 @@ export const googleBiblioData = async (ptnNumber, dispatch, type) => {
   try {
     const response = await axios.get(`${BASE_URL}/cpc/google/${encodeURIComponent(trimmed)}`);
 
-    if (type === 'relavent') {
+    if (type === 'relevant') {
       dispatch(setReleventBiblioGoogleData(response.data));
 
     } else if (type === 'related') {
@@ -284,7 +284,7 @@ export const fetchESPData = async (patentNumber, dispatch, type) => {
     const response = await axios.get(`${BASE_URL}/esp/patentdata/${trimmedNumber}`);
 
     if (response.status === 200 && response.data) {
-      if (type === 'relavent') {
+      if (type === 'relevant') {
         dispatch(setFetchESPData(response.data));
 
       } else if (type === 'related') {
@@ -298,7 +298,7 @@ export const fetchESPData = async (patentNumber, dispatch, type) => {
 
   } catch (error) {
 
-    if (type === 'relavent') {
+    if (type === 'relevant') {
       dispatch(setFetchESPData([]));
     } else if (type === 'related') {
       dispatch(setESPData([]));
@@ -326,7 +326,7 @@ export const fetchBulkESPData = async (patentNumber, dispatch, type) => {
     const response = await axios.get(`${BASE_URL}/bulk/biblio/${patentNumber}`);
 
     if (response.status === 200 && response.data) {
-      if (type === 'relavent') {
+      if (type === 'relevant') {
         dispatch(setBulkESPData(response.data));
 
       } else if (type === 'related') {
@@ -340,7 +340,7 @@ export const fetchBulkESPData = async (patentNumber, dispatch, type) => {
 
   } catch (error) {
 
-    if (type === 'relavent') {
+    if (type === 'relevant') {
       dispatch(setFetchESPData([]));
     } else if (type === 'related') {
       dispatch(setESPData([]));
@@ -382,10 +382,11 @@ export const EPO_API_DATA = async (patentNumber, dispatch, type) => {
     if (!trimmedNumber) throw new Error("Patent number is required.");
 
     const response = await axios.get(`${BASE_URL}/live/espbiblio/${trimmedNumber}`);
+    console.log('response.data', response)
 
     if (response.status === 200 && response.data) {
-      if (type === 'relavent') {
-        dispatch((true));
+      if (type === 'relevant') {
+        dispatch(setRelevantApiTrue(true));
         console.log("setRelevantApiTrue")
         dispatch(setLiveEpoRelevantData(response.data));
 
@@ -402,7 +403,7 @@ export const EPO_API_DATA = async (patentNumber, dispatch, type) => {
 
   } catch (error) {
 
-    if (type === 'relavent') {
+    if (type === 'relevant') {
       dispatch(setLiveEpoRelevantData([]));
     } else if (type === 'related') {
       dispatch(setLiveEpoRelatedData([]));
@@ -422,7 +423,7 @@ export const GOOGLE_API_DATA = async (ptnNumber, dispatch, type) => {
   try {
     const response = await axios.get(`${BASE_URL}/live/googlebiblio/${encodeURIComponent(trimmed)}`);
 
-    if (type === 'relavent') {
+    if (type === 'relevant') {
       dispatch(setRelevantApiTrue(true));
       dispatch(setLiveGoogleRelevantData(response.data));
 
@@ -752,7 +753,7 @@ export default patentSlice.reducer;
 //     console.log('fetchESPData', response.data);
 
 //     if (response.status === 200 && response.data) {
-//       if (type === 'relavent') {
+//       if (type === 'relevant') {
 //         dispatch(setFetchESPData(response.data));
 
 //       } else if (type === 'related') {
@@ -768,7 +769,7 @@ export default patentSlice.reducer;
 
 //   } catch (error) {
 
-//     if (type === 'relavent') {
+//     if (type === 'relevant') {
 //       dispatch(setFetchESPData([]));
 //     } else if (type === 'related') {
 //       dispatch(setESPData([]));

@@ -30,14 +30,14 @@ const ReleventComp = () => {
         const trimmedNumber = patentNumber.trim();
         setLoading(true);
         try {
-            await fetchESPData(trimmedNumber, dispatch, 'relavent');
+            await fetchESPData(trimmedNumber, dispatch, 'relevant');
         } catch (error) {
             setErrorValidation(true);
             setfamId("");
 
             try {
                 setErrorValidation(false);
-                await googleBiblioData(trimmedNumber, dispatch, 'relavent');
+                await googleBiblioData(trimmedNumber, dispatch, 'relevant');
                 console.log("✅ Google fallback succeeded");
             } catch (googleError) {
                 setErrorValidation(true);
@@ -279,7 +279,7 @@ const ReleventComp = () => {
             (async () => {
                 try {
                     setErrorValidation(false);
-                    await googleBiblioData(patentNumber.trim(), dispatch, 'relavent');
+                    await googleBiblioData(patentNumber.trim(), dispatch, 'relevant');
                     console.log('✅ Google fallback succeeded');
                 } catch (googleError) {
                     setErrorValidation(true);

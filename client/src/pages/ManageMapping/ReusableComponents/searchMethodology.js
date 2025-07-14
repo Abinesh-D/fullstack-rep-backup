@@ -35,19 +35,6 @@ export const getSearchMethodology = (projectTitle) => [
     new Paragraph({
         children: [
             new TextRun({
-                text: "Step 1: Understanding and Making Search Strategy",
-                font: "Arial",
-                size: 22,
-                bold: true,
-                color: "000000",
-            }),
-        ],
-        heading: HeadingLevel.HEADING_2,
-    }),
-
-    new Paragraph({
-        children: [
-            new TextRun({
                 text: "• In-depth understanding “",
                 font: "Arial",
                 size: 20,
@@ -77,18 +64,6 @@ export const getSearchMethodology = (projectTitle) => [
         "• Key strings were prepared based on identified search terms, relevant patent classifications.",
     ]),
 
-    new Paragraph({
-        children: [
-            new TextRun({
-                text: "Step 2: Searching and Analysis",
-                font: "Arial",
-                size: 22,
-                bold: true,
-                color: "000000",
-            }),
-        ],
-        heading: HeadingLevel.HEADING_2,
-    }),
     ...makeIndentedParagraphs([
         "• A broad to narrow search strategy (or narrow to broad) was employed using various search strings on few commercial/free databases to identify patent/applications.",
         "• The key strings were formulated based on the identified keywords. For key string, refer to Appendix 1.",
@@ -98,18 +73,7 @@ export const getSearchMethodology = (projectTitle) => [
         "• For Non-English documents, the analysis was carried out based on machine translated text available from free/commercial sources.",
     ]),
 
-    new Paragraph({
-        children: [
-            new TextRun({
-                text: "Step 3: Additional Searches",
-                font: "Arial",
-                size: 22,
-                bold: true,
-                color: "000000",
-            }),
-        ],
-        heading: HeadingLevel.HEADING_2,
-    }),
+
     ...makeIndentedParagraphs([
         "To ensure search comprehensiveness, following searches were performed:",
         "• Inventor/Assignee based search - The assignee/inventor of client’s interest or assignee/inventor from the identified relevant documents.",
@@ -119,18 +83,6 @@ export const getSearchMethodology = (projectTitle) => [
         "• Citation Search - Two level citation searches of closely identified prior arts are executed.",
     ]),
 
-    new Paragraph({
-        children: [
-            new TextRun({
-                text: "Step 4: Report",
-                font: "Arial",
-                size: 22,
-                bold: true,
-                color: "000000",
-            }),
-        ],
-        heading: HeadingLevel.HEADING_2,
-    }),
     ...makeIndentedParagraphs([
         "• The shortlisted relevant documents along with the bibliographic details and text mapping are provided in a user friendly, MS Word/PDF report.",
         "• Related documents are provided in the form of list in the report.",

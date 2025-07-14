@@ -138,11 +138,6 @@ const RelevantRefComponent = ({
     };
 
 
-    const handleFeedbackSubmit = async (patentNumber) => {
-        console.log("📩 Feedback Submitted:", patentNumber);
-
-    };
-
 
     return (
         <>
@@ -156,13 +151,10 @@ const RelevantRefComponent = ({
                     </Button>
                 </Col>
             </Row>
-
-
             {
                 <FeedbackModal
                     isOpen={feedbackOpen}
                     toggle={() => setFeedbackOpen(!feedbackOpen)}
-                    onSubmit={handleFeedbackSubmit}
                 />
             }
             {loading ? (

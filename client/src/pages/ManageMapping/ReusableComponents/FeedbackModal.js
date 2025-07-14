@@ -63,9 +63,9 @@ const FeedbackModal = ({ isOpen, toggle }) => {
                 { headers: { "Content-Type": "application/json" } }
             );
 
-            toggle(); // Close modal
-            setToastVisible(true); // Show toast
-            setTimeout(() => setToastVisible(false), 4000); // Auto-hide after 4s
+            toggle();
+            setToastVisible(true);
+            setTimeout(() => setToastVisible(false), 4000);
         } catch (err) {
             console.error("❌ Feedback Submit Error:", err);
             setError({ api: "Failed to submit feedback. Please try again." });
@@ -75,7 +75,6 @@ const FeedbackModal = ({ isOpen, toggle }) => {
 
     return (
         <>
-            {/* 💬 Feedback Modal */}
             <Modal
                 isOpen={isOpen}
                 toggle={toggle}
@@ -157,7 +156,6 @@ const FeedbackModal = ({ isOpen, toggle }) => {
                 </ModalFooter>
             </Modal>
 
-            {/* ✅ Success Toast */}
             <div
                 style={{
                     position: "fixed",

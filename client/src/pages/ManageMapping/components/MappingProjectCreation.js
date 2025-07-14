@@ -25,6 +25,7 @@ import { downloadWordFile, handleWordReportDownload } from "../ReusableComponent
 import { saveAs } from "file-saver";
 import {
     Document, BorderStyle, Packer, Paragraph, TextRun, Table, TableRow, AlignmentType, TableCell, VerticalAlign, WidthType, ShadingType,
+    ExternalHyperlink, TabStopType, HeadingLevel, 
 } from "docx";
 import { getSearchMethodology } from "../ReusableComponents/searchMethodology";
 import { fileToBase64, formatBytes } from "../ReusableComponents/base64Convertion";
@@ -49,8 +50,6 @@ const MappingProjectCreation = () => {
 
     const releventBiblioGoogleData = useSelector(state => state.patentSlice.liveGoogleRelevantData);
     const relatedBiblioGoogleData = useSelector(state => state.patentSlice.liveGoogleRelatedData);
-
-    console.log('releventBiblioGoogleData', releventBiblioGoogleData)
 
     const [activeTab, setactiveTab] = useState(1);
     const [passedSteps, setPassedSteps] = useState([1]);
@@ -121,8 +120,6 @@ const MappingProjectCreation = () => {
         projectImageUrl: [],
     });
 
-    console.log('projectFormData', projectFormData.projectImageUrl)
-
     const [nplPatentFormData, setNplPatentFormData] = useState({
         nplTitle: "",
         url: "",
@@ -153,6 +150,7 @@ const MappingProjectCreation = () => {
         relatedInventor: "",
         relatedPublicationDate: "",
         relatedFamilyMembers: "",
+        relatedPriorityDate: ""
     })
 
     const resetRelatedForm = () => {
@@ -164,6 +162,7 @@ const MappingProjectCreation = () => {
             relatedInventor: "",
             relatedPublicationDate: "",
             relatedFamilyMembers: "",
+            relatedPriorityDate: ""
         })
     }
 
@@ -180,7 +179,6 @@ const MappingProjectCreation = () => {
 
 
     const onDeleteClick = (rowData) => {
-        console.log('rowData', rowData)
         setSelectedRow(rowData);
         setShowDeletePublicationModal(true);
     };
@@ -256,8 +254,6 @@ const MappingProjectCreation = () => {
                 `http://localhost:8080/live/projectname/delete-publication/${documentId}/${selectedRow._id}`
             );
 
-            console.log(response.data, 'responseresponse')
-
             if (response.status === 200) {
 
                 setrelevantFormData(prev =>
@@ -299,7 +295,6 @@ const MappingProjectCreation = () => {
         const getProject = async () => {
             try {
                 const singleProject = await fetchProjectById(id);
-                console.log('singleProject.stages', singleProject.stages.introduction?.[0])
                 if (singleProject) {
                     setProjectFormData({
                         projectTitle: singleProject.stages.introduction?.[0]?.projectTitle || "",
@@ -522,7 +517,34 @@ const MappingProjectCreation = () => {
     };
 
 
+    const getCleanPartyNames = (partyArray = [], nameKey = '') => {
+        if (!Array.isArray(partyArray) || !nameKey) return '';
 
+        const priority = { epodoc: 1, original: 2, docdb: 3 };
+
+        const cleanedNames = [...partyArray]
+            .sort((a, b) =>
+                (priority[a?.$?.['data-format']] || 999) - (priority[b?.$?.['data-format']] || 999)
+            )
+            .map(item =>
+                nameKey.split('.').reduce((obj, key) => obj?.[key], item)
+                    ?.replace(/\[.*?\]/g, '')
+                    ?.replace(/[.,;]/g, '')
+                    ?.replace(/\s+/g, ' ')
+                    ?.trim()
+            )
+            .filter(Boolean);
+
+        const uniqueNames = [...new Map(
+            cleanedNames.map(name => [name.toLowerCase(), name])
+        ).values()];
+
+        const titleCasedNames = uniqueNames.map(str =>
+            str.replace(/\b\w/g, char => char.toUpperCase())
+        );
+
+        return titleCasedNames.join('; ');
+    };
 
 
     // ------------------ Relevant -------------------------
@@ -532,14 +554,14 @@ const MappingProjectCreation = () => {
         setLoading(true);
         setErrorValidation(false);
         try {
-            await EPO_API_DATA(trimmedNumber, dispatch, 'relavent');
+            await EPO_API_DATA(trimmedNumber, dispatch, 'relevant');
         } catch (error) {
             // setErrorValidation(true);
-            setRelevantForm({ publicationUrl: "" });
+            // setRelevantForm({ publicationUrl: "" });
 
             try {
                 // setErrorValidation(false);
-                await GOOGLE_API_DATA(trimmedNumber, dispatch, 'relavent');
+                await GOOGLE_API_DATA(trimmedNumber, dispatch, 'relevant');
             } catch (googleError) {
                 setErrorValidation(true);
                 console.error("❌ Google fallback failed:", googleError);
@@ -610,18 +632,19 @@ const MappingProjectCreation = () => {
     const biblioData = data?.biblio?.['world-patent-data']?.['exchange-documents']?.['exchange-document']?.['bibliographic-data'];
     const inventorsData = biblioData?.parties?.inventors?.inventor;
 
-    const inventorsArray = Array.isArray(inventorsData) ? inventorsData : inventorsData ? [inventorsData] : [];
+    const inventorNames = useMemo(() => {
+        const inventorsArray = Array.isArray(inventorsData) ? inventorsData : inventorsData ? [inventorsData] : [];
+        return getCleanPartyNames(inventorsArray, 'inventor-name.name');
+    }, [inventorsData]);
 
-    const inventorNames = inventorsArray.filter(item =>
-        ['epodoc', 'original', 'docdb'].includes(item?.$?.['data-format'])).map(item => item?.['inventor-name']?.name
-            ?.replace(/,\s*;/g, ';')?.replace(/,\s*$/, '')?.trim()).filter(Boolean).join('; ');
+    const applicantsData = biblioData?.parties?.applicants?.applicant
 
-    const applicantsData = biblioData?.parties?.applicants?.applicant;
+    const applicantNames = useMemo(() => {
+        const applicantsArray = Array.isArray(applicantsData) ? applicantsData : applicantsData ? [applicantsData] : [];
 
-    const applicantsArray = Array.isArray(applicantsData) ? applicantsData : applicantsData ? [applicantsData] : [];
+        return getCleanPartyNames(applicantsArray, 'applicant-name.name');
+    }, [applicantsData]);
 
-    const applicantNames = applicantsArray.filter(app => ['epodoc', 'original', 'docdb'].includes(app?.$?.['data-format']))
-        .map(app => app?.['applicant-name']?.name?.replace(/,+$/, '').trim()).filter(Boolean).join(', ');
 
     const inventionTitle = () => {
         const titleData = biblioData?.['invention-title'];
@@ -783,7 +806,7 @@ const MappingProjectCreation = () => {
             (async () => {
                 try {
                     setErrorValidation(false);
-                    await GOOGLE_API_DATA(relevantForm.patentNumber.trim(), dispatch, 'relavent');
+                    await GOOGLE_API_DATA(relevantForm.patentNumber.trim(), dispatch, 'relevant');
                 } catch (googleError) {
                     setErrorValidation(true);
                     console.error('❌ Google fallback failed:', googleError);
@@ -850,25 +873,103 @@ const MappingProjectCreation = () => {
 
     const relatedBiblioData = relatedData?.biblio?.['world-patent-data']?.['exchange-documents']?.['exchange-document']?.['bibliographic-data'];
 
-    const relatedInventorNames = useMemo(() => {
-        const inventors = relatedBiblioData?.parties?.inventors?.inventor;
-        const array = Array.isArray(inventors) ? inventors : inventors ? [inventors] : [];
-        return array
-            .filter(item => ['epodoc', 'original', 'docdb'].includes(item?.$?.['data-format']))
-            .map(item => item?.['inventor-name']?.name?.replace(/,\s*;/g, ';')?.replace(/,\s*$/, '')?.trim())
-            .filter(Boolean)
-            .join('; ');
-    }, [relatedBiblioData]);
+    const relatedPriority = getPriorityDates(relatedBiblioData);
 
-    const relatedApplicantNames = useMemo(() => {
-        const applicants = relatedBiblioData?.parties?.applicants?.applicant;
-        const array = Array.isArray(applicants) ? applicants : applicants ? [applicants] : [];
-        return array
-            .filter(app => ['epodoc', 'original', 'docdb'].includes(app?.$?.['data-format']))
-            .map(app => app?.['applicant-name']?.name?.replace(/,+$/, '').trim())
-            .filter(Boolean)
-            .join('; ');
-    }, [relatedBiblioData]);
+
+const relatedInventorNames = useMemo(() => {
+    const inventors = relatedBiblioData?.parties?.inventors?.inventor;
+    const array = Array.isArray(inventors) ? inventors : inventors ? [inventors] : [];
+    return getCleanPartyNames(array, 'inventor-name.name');
+}, [relatedBiblioData]);
+
+
+
+const relatedApplicantNames = useMemo(() => {
+    const applicants = relatedBiblioData?.parties?.applicants?.applicant;
+    const array = Array.isArray(applicants) ? applicants : applicants ? [applicants] : [];
+    return getCleanPartyNames(array, 'applicant-name.name');
+}, [relatedBiblioData]);
+
+
+
+
+
+
+// const relatedInventorNames = useMemo(() => {
+//     const inventors = relatedBiblioData?.parties?.inventors?.inventor;
+//     const array = Array.isArray(inventors) ? inventors : inventors ? [inventors] : [];
+
+//     // Define priority: epodoc > original > docdb
+//     const priority = { epodoc: 1, original: 2, docdb: 3 };
+
+// const cleanedInventors = [...array] // clone first
+//     .sort((a, b) =>
+//         priority[a?.$?.['data-format']] - priority[b?.$?.['data-format']]
+//     )
+//     .map(item =>
+//         item?.['inventor-name']?.name
+//             ?.replace(/\[.*?\]/g, '')      // Remove [US], [AT]
+//             ?.replace(/[.,;]/g, '')        // Remove punctuation
+//             ?.replace(/\s+/g, ' ')         // Collapse spaces
+//             ?.trim()
+//     )
+//     .filter(Boolean);
+
+
+//     // Deduplicate based on normalized string
+//     const uniqueInventors = [...new Map(
+//         cleanedInventors.map(name => [
+//             name.toLowerCase(), // key (normalized)
+//             name                // value (original casing)
+//         ])
+//     ).values()];
+
+//     // Title Case
+//     const titleCasedInventors = uniqueInventors.map(str =>
+//         str.replace(/\b\w/g, char => char.toUpperCase())
+//     );
+
+//     return titleCasedInventors.join('; ');
+// }, [relatedBiblioData]);
+
+// const relatedApplicantNames = useMemo(() => {
+//     const applicants = relatedBiblioData?.parties?.applicants?.applicant;
+//     const array = Array.isArray(applicants) ? applicants : applicants ? [applicants] : [];
+
+//     // Define priority: epodoc > original > docdb
+//     const priority = { epodoc: 1, original: 2, docdb: 3 };
+
+//     const cleanedApplicants = array
+//         .sort((a, b) =>
+//             priority[a?.$?.['data-format']] - priority[b?.$?.['data-format']]
+//         )
+//         .map(app =>
+//             app?.['applicant-name']?.name
+//                 ?.replace(/\[.*?\]/g, '')      // Remove [US], [AT]
+//                 ?.replace(/[.,;]/g, '')        // Remove punctuation
+//                 ?.replace(/\s+/g, ' ')         // Collapse spaces
+//                 ?.trim()
+//         )
+//         .filter(Boolean);
+
+//     // Deduplicate based on normalized string
+//     const uniqueApplicants = [...new Map(
+//         cleanedApplicants.map(name => [
+//             name.toLowerCase(), // key (normalized)
+//             name                // value (original casing)
+//         ])
+//     ).values()];
+
+//     // Title Case
+//     const titleCasedApplicants = uniqueApplicants.map(str =>
+//         str.replace(/\b\w/g, char => char.toUpperCase())
+//     );
+
+//     return titleCasedApplicants.join('; ');
+// }, [relatedBiblioData]);
+
+
+
 
     const assigneeAndInventorsName = useMemo(() => {
         return relatedApplicantNames && relatedInventorNames ? `${relatedApplicantNames} / ${relatedInventorNames}` : '';
@@ -973,7 +1074,6 @@ const MappingProjectCreation = () => {
 
     useEffect(() => {
         if (data?.patentNumber || releventBiblioGoogleData?.patentNumber) {
-            console.log('abstractData', abstractData)
             const combinedForm = {
                 patentNumber: relevantForm.patentNumber.trim(),
 
@@ -1048,8 +1148,6 @@ const MappingProjectCreation = () => {
             setRelevantForm(combinedForm);
         }
     }, [data, releventBiblioGoogleData]);
-
-    console.log('abstractData', abstractData)
 
 
     const handleRelevantSubmit = async (e) => {
@@ -1174,11 +1272,15 @@ const MappingProjectCreation = () => {
                     .split(",")
                     .map(f => f.trim())
                     .filter(Boolean),
+                relatedPriorityDate: (relatedPriority ||
+                    relatedBiblioGoogleData.priorityDate || ""
+                )
             };
 
             setRelatedForm(combinedForm);
         }
     }, [relatedData, relatedBiblioGoogleData]);
+
 
     const handleRelatedSubmit = async (e) => {
         e.preventDefault();
@@ -1225,7 +1327,7 @@ const MappingProjectCreation = () => {
             },
             size: {
                 orientation: orientation,
-                width: 15075,
+                width: 15840,
                 height: 11573,
             },
         },
@@ -1236,8 +1338,6 @@ const MappingProjectCreation = () => {
         arial14: { font: "Arial", size: 28 },
         arial11: { font: "Arial", size: 22 },
         arial10: { font: "Arial", size: 20 },
-        // arial14Bold: { font: "Arial", size: 28, bold: true },
-        // arial11Italic: { font: "Arial", size: 22, italics: true },
     };
 
     const createTextRun = (text, style = textStyle.arial11, overrides = {}) =>
@@ -1259,9 +1359,6 @@ const MappingProjectCreation = () => {
         right: { style: BorderStyle.SINGLE, size: 1, color: "FFFFFF" },
     };
 
-    const capitalizeWords = (str) => {
-        return str ? str?.replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()) : "Nil";
-    }
 
     const createSingleColumnTableRows = (rows) =>
         rows.map(({ label, value }) =>
@@ -1272,7 +1369,7 @@ const MappingProjectCreation = () => {
                         borders: borderNone,
                     }),
                     new TableCell({
-                        children: [new Paragraph(capitalizeWords(value))],
+                        children: [new Paragraph(value)],
                         borders: borderNone,
                     }),
                 ],
@@ -1280,6 +1377,55 @@ const MappingProjectCreation = () => {
         );
 
     const marginsStyle = { margins: { top: 100, bottom: 100, left: 100, right: 100, }, }
+    const margins150 = { margins: { top: 100, bottom: 100, left: 100, right: 100, }, }
+
+    function formatAssigneeOrInventor(str) {
+        if (!str) return "";
+
+        if (str.includes(";")) {
+            return str.toLowerCase()
+                .replace(/\b\w/g, char => char.toUpperCase());
+        }
+
+        return str.toLowerCase().replace(/\b\w/g, char => char.toUpperCase());
+    }
+
+    function toTitleCase(str) {
+        if (!str) return "";
+        return String(str)
+            .toLowerCase()
+            .split(" ")
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(" ");
+    };
+
+    const sanitizeText = (text) =>
+        (text || "").replace(/[&<>"]/g, (c) => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            "\"": "&quot;"
+        }[c]));
+
+    function cleanListWithEtc(input) {
+        const items = input.split(",").map((item) => item.trim());
+        const result = [];
+
+        for (let i = 0; i < items.length; i++) {
+            if (items[i].toLowerCase() === "etc." && i > 0) {
+                result[result.length - 1] += ", etc.";
+            } else if (items[i].toLowerCase().endsWith("etc.")) {
+                result.push(items[i]);
+            } else {
+                result.push(items[i]);
+            }
+        }
+
+        return result;
+    }
+
+
+    const disclaimer = "This search report is based on the resources available in public domain such as published patents/applications, non-patent literature, products, blogs, technology news, company websites and available/accessible/downloadable. Furthermore, the report is based upon individual expert’s view/judgment & such analysis may vary from expert to expert. Kindly refrain concurring them as Molecular Connections’ views. The contents of this research is for general information purposes only. While Molecular Connections endeavor is to keep the information up to date and correct, Molecular Connections makes no representations OR warranties of any kind, express OR implied, about the completeness OR availability with respect to the contents of this research paper. Any reliance placed on such information is therefore strictly at user’s own risk."
 
 
     const handleDownload = async ({
@@ -1287,16 +1433,174 @@ const MappingProjectCreation = () => {
         projectSubTitle,
         searchFeatures,
         relevantReferences,
+        relatedReferences,
+        appendix1,
+        appendix2,
     }) => {
-        console.log('patentNumber', relevantReferences, searchFeatures);
-
-        const sanitizeText = (text) =>
-            (text || "").replace(/[&<>"]/g, (c) => ({
-                "&": "&amp;",
-                "<": "&lt;",
-                ">": "&gt;",
-                "\"": "&quot;"
-            }[c]));
+        console.log('appendix1', appendix1)
+        
+        const relatedReferencesTable = new Table({
+            width: { size: 100, type: WidthType.PERCENTAGE },
+            rows: [
+                new TableRow({
+                    children: [
+                        "S. No",
+                        "Publication Number",
+                        "Title",
+                        "Assignee/Inventor",
+                        "Priority Date",
+                        "Publication Date",
+                        "Family Members",
+                    ].map((header) =>
+                        new TableCell({
+                            shading: {
+                                fill: "BDD7EE",
+                                type: ShadingType.CLEAR,
+                                color: "auto",
+                            },
+                            verticalAlign: VerticalAlign.CENTER,
+                            margins: margins150.margins,
+                            children: [
+                                new Paragraph({
+                                    alignment: AlignmentType.CENTER,
+                                    children: [
+                                        createTextRun(header, textStyle.arial10, { bold: true }),
+                                    ],
+                                }),
+                            ],
+                            borders: commonBorders,
+                        })
+                    ),
+                }),
+                ...(relatedReferences || []).map((pub, index) =>
+                    new TableRow({
+                        children: [
+                            new TableCell({
+                                verticalAlign: VerticalAlign.CENTER,
+                                margins: margins150.margins,
+                                children: [
+                                    new Paragraph({
+                                        alignment: AlignmentType.LEFT,
+                                        children: [
+                                            createTextRun(String(index + 1), textStyle.arial10),
+                                        ],
+                                    }),
+                                ],
+                                borders: commonBorders,
+                            }),
+                            new TableCell({
+                                verticalAlign: VerticalAlign.CENTER,
+                                margins: margins150.margins,
+                                children: [
+                                    new Paragraph({
+                                        alignment: AlignmentType.LEFT,
+                                        children: [
+                                            new ExternalHyperlink({
+                                                link: pub.relatedPublicationUrl,
+                                                children: [
+                                                    createTextRun(
+                                                        sanitizeText(pub.publicationNumber.toUpperCase()),
+                                                        textStyle.arial10,
+                                                        { style: "Hyperlink" }
+                                                    ),
+                                                ],
+                                            }),
+                                        ],
+                                    }),
+                                ],
+                                borders: commonBorders,
+                            }),
+                            new TableCell({
+                                verticalAlign: VerticalAlign.CENTER,
+                                margins: margins150.margins,
+                                children: [
+                                    new Paragraph({
+                                        alignment: AlignmentType.LEFT,
+                                        children: [
+                                            createTextRun(
+                                                sanitizeText(toTitleCase(pub.relatedTitle)),
+                                                textStyle.arial10
+                                            ),
+                                        ],
+                                    }),
+                                ],
+                                borders: commonBorders,
+                            }),
+                            new TableCell({
+                                verticalAlign: VerticalAlign.CENTER,
+                                margins: margins150.margins,
+                                children: [
+                                    new Paragraph({
+                                        alignment: AlignmentType.LEFT,
+                                        children: [
+                                            createTextRun(
+                                                pub.relatedAssignee?.length
+                                                    ? pub.relatedAssignee.map(formatAssigneeOrInventor).join('; ')
+                                                    : pub.relatedInventor?.map(formatAssigneeOrInventor).join('; ') || 'N/A',
+                                                textStyle.arial10
+                                            ),
+                                        ],
+                                    }),
+                                ],
+                                borders: commonBorders,
+                            }),
+                            new TableCell({
+                                width: { size: 10, type: WidthType.PERCENTAGE },
+                                verticalAlign: VerticalAlign.CENTER,
+                                margins: margins150.margins,
+                                children: [
+                                    new Paragraph({
+                                        alignment: AlignmentType.LEFT,
+                                        children: [
+                                            createTextRun(
+                                                sanitizeText(pub.relatedPriorityDate || "N/A"),
+                                                textStyle.arial10
+                                            ),
+                                        ],
+                                    }),
+                                ],
+                                borders: commonBorders,
+                            }),
+                            new TableCell({
+                                width: { size: 10, type: WidthType.PERCENTAGE },
+                                verticalAlign: VerticalAlign.CENTER,
+                                margins: margins150.margins,
+                                children: [
+                                    new Paragraph({
+                                        alignment: AlignmentType.LEFT,
+                                        children: [
+                                            createTextRun(
+                                                sanitizeText(pub.relatedPublicationDate || "N/A"),
+                                                textStyle.arial10
+                                            ),
+                                        ],
+                                    }),
+                                ],
+                                borders: commonBorders,
+                            }),
+                            new TableCell({
+                                verticalAlign: VerticalAlign.CENTER,
+                                margins: margins150.margins,
+                                children: [
+                                    new Paragraph({
+                                        alignment: AlignmentType.LEFT,
+                                        children: [
+                                            createTextRun(
+                                                sanitizeText(
+                                                    (pub.relatedFamilyMembers || []).join(", ") || "N/A"
+                                                ),
+                                                textStyle.arial10
+                                            ),
+                                        ],
+                                    }),
+                                ],
+                                borders: commonBorders,
+                            }),
+                        ],
+                    })
+                ),
+            ],
+        });
 
         const doc = new Document({
             styles: {
@@ -1315,6 +1619,7 @@ const MappingProjectCreation = () => {
                 },
             },
             sections: [
+                // Project Title
                 {
                     properties: createPageProperties(),
                     children: [
@@ -1334,16 +1639,18 @@ const MappingProjectCreation = () => {
                         }),
                     ],
                 },
+                // Search Features
                 {
                     properties: createPageProperties(),
                     children: [
                         new Paragraph({
                             children: [
-                                createTextRun("1. Search Features", textStyle.arial14, { bold: true }),
+                                createTextRun("1. Search Features", textStyle.arial14, { bold: true, color: "000000" }),
                             ],
                             alignment: AlignmentType.LEFT,
                             spacing: { before: 200, after: 400 },
                             indent: { left: 720 },
+                            heading: HeadingLevel.HEADING_1,
                         }),
                         ...searchFeatures
                             .filter((p) => p.trim() !== "")
@@ -1358,30 +1665,30 @@ const MappingProjectCreation = () => {
                             ),
                     ],
                 },
+                // Search Methodology
                 {
                     properties: createPageProperties(),
                     children: getSearchMethodology(projectTitle),
                 },
                 // Relevant
-
-
                 {
                     properties: createPageProperties(),
                     children: [
                         new Paragraph({
                             children: [
-                                createTextRun("3. Potentially Relevant References", textStyle.arial14, { bold: true }),
+                                createTextRun("3. Potentially Relevant References", textStyle.arial14, { bold: true, color: "000000" }),
                             ],
+                            heading: HeadingLevel.HEADING_1,
                             spacing: { after: 400 },
                         }),
 
                         ...(Array.isArray(relevantReferences)
                             ? relevantReferences.flatMap((pub, pubIndex) => {
                                 const leftTableRows = [
-                                    { label: "Publication No", value: sanitizeText(pub.patentNumber) },
+                                    { label: "Publication No", value: pub.patentNumber.toUpperCase() },
                                     { label: "Title", value: sanitizeText(pub.title) },
                                     { label: "Inventor", value: sanitizeText((pub.inventors || []).join(", ")) },
-                                    { label: "Assignee", value: sanitizeText((pub.assignee || []).join(", ")) },
+                                    { label: "Assignee", value: (pub.assignee || []).join(", ") },
                                 ];
 
                                 const rightTableRows = [
@@ -1395,10 +1702,11 @@ const MappingProjectCreation = () => {
                                 const ptnNumber = new Paragraph({
                                     alignment: AlignmentType.START,
                                     children: [
-                                        createTextRun(`${pubIndex + 1}. ${pub.patentNumber}`, textStyle.arial11, { bold: true }),
+                                        createTextRun(` ${pubIndex + 1}. ${pub.patentNumber}`, textStyle.arial11, { bold: true, color: "000000" })
                                     ],
-                                })
-
+                                    heading: HeadingLevel.HEADING_2,
+                                    spacing: { after: 200 },
+                                });
 
                                 const table = new Table({
                                     width: { size: 100, type: WidthType.PERCENTAGE },
@@ -1496,31 +1804,400 @@ const MappingProjectCreation = () => {
                                             }),
                                         ],
                                     }),
-
-                                    pub.abstract
-                                        ? new Paragraph({
-                                            spacing: { before: 200, after: 400 },
-                                            children: [
-                                                createTextRun(sanitizeText("[Abstract]"), textStyle.arial10, { bold: true }),
-                                            ],
-                                            alignment: AlignmentType.LEFT,
-                                        })
-                                        : null,
-                                    pub.abstract
-                                        ? new Paragraph({
-                                            spacing: { before: 200, after: 400 },
-                                            children: [
-                                                createTextRun(sanitizeText(pub.abstract), textStyle.arial10),
-                                            ],
-                                            alignment: AlignmentType.LEFT,
-                                        })
-                                        : null,
-
+                                    new Paragraph({
+                                        spacing: { before: 200, after: 400 },
+                                        children: [
+                                            createTextRun(sanitizeText("[Abstract]"), textStyle.arial10, { bold: true }),
+                                        ],
+                                        alignment: AlignmentType.LEFT,
+                                    }),
+                                    new Paragraph({
+                                        spacing: { before: 200, after: 400 },
+                                        children: [
+                                            (pub.abstract || pub.relevantExcerpts) ?
+                                                createTextRun(sanitizeText(pub.abstract || pub.relevantExcerpts), textStyle.arial10)
+                                                :
+                                                createTextRun(
+                                                    '*Abstract is not available, please fill it yourself',
+                                                    { ...textStyle.arial10, color: 'FF0000' }
+                                                ),
+                                        ],
+                                        alignment: AlignmentType.LEFT,
+                                    }),
                                 ].filter(Boolean);
                                 return [ptnNumber, table, ...(analystComment ? [analystComment] : []), ...relevantExcerpts];
                             })
                             : []
                         ),
+                    ],
+                },
+                // Related
+                {
+                    properties: createPageProperties(),
+                    children: [
+                        new Paragraph({
+                            children: [
+                                createTextRun("4. Related References", textStyle.arial14, { bold: true, color: "000000" }),
+                            ],
+                            spacing: { after: 400 },
+                            heading: HeadingLevel.HEADING_1,
+                        }),
+                        new Paragraph({
+                            children: [
+                                createTextRun(
+                                    " (Note: Below references obtained from the quick search are listed as related, as these references fail to disclose at least one or more critical features)",
+                                    textStyle.arial10,
+                                    { italics: true }
+                                ),
+                            ],
+                            spacing: { after: 400 },
+                        }),
+                        relatedReferencesTable
+                    ],
+                },
+                // Appendix 1
+                {
+                    properties: createPageProperties(),
+                    children: [
+                        new Paragraph({
+                            children: [
+                                createTextRun("Appendix 1", textStyle.arial14, { bold: true, color: "000000" }),
+                            ],
+                            heading: HeadingLevel.HEADING_1,
+                            alignment: AlignmentType.START,
+                            spacing: { after: 50 },
+                        }),
+
+                        new Paragraph({
+                            children: [
+                                createTextRun("Search Terms & Search Strings", textStyle.arial10, { bold: true, color: "000000" }),
+                            ],
+                            heading: HeadingLevel.HEADING_2,
+                            alignment: AlignmentType.START,
+                            spacing: { after: 30 },
+                            indent: { left: 520 },
+                        }),
+
+                        new Paragraph({
+                            children: [
+                                createTextRun(
+                                    "The search terms and key strings to extract relevant patent publications and non-patent literature are provided below.",
+                                    textStyle.arial10
+                                ),
+                            ],
+                            alignment: AlignmentType.START,
+                            spacing: { after: 30 },
+                        }),
+
+                        new Paragraph({
+                            children: [
+                                createTextRun("▶ Search Terms", textStyle.arial11, { bold: true }),
+                            ],
+                            alignment: AlignmentType.START,
+                            spacing: { after: 100 },
+                            indent: { left: 720 },
+                        }),
+
+                        new Paragraph({
+                            children: [
+                                createTextRun("▶ Search Strings", textStyle.arial11, { bold: true }),
+                            ],
+                            alignment: AlignmentType.START,
+                            spacing: { after: 100 },
+                            indent: { left: 720 },
+                        }),
+
+                        new Table({
+                            width: {
+                                size: 100,
+                                type: WidthType.PERCENTAGE,
+                            },
+                            rows: [
+                                // Header Row
+                                new TableRow({
+                                    tableHeader: true,
+                                    children: [
+                                        new TableCell({
+                                            verticalAlign: VerticalAlign.CENTER, // ✅ Vertically center
+                                            children: [
+                                                new Paragraph({
+                                                    alignment: AlignmentType.CENTER, // ✅ Horizontally center
+                                                    children: [
+                                                        createTextRun("S. No.", textStyle.arial10, { bold: true, color: "FFFFFF" }),
+                                                    ],
+                                                }),
+                                            ],
+                                            shading: {
+                                                fill: "000000", // Black background
+                                            },
+                                        }),
+                                        new TableCell({
+                                            verticalAlign: VerticalAlign.CENTER, // ✅ Vertically center
+                                            children: [
+                                                new Paragraph({
+                                                    alignment: AlignmentType.CENTER, // ✅ Horizontally center
+                                                    children: [
+                                                        createTextRun("Key strings (Patents/Patent Applications)", textStyle.arial10, { bold: true, color: "FFFFFF" }),
+                                                    ],
+                                                }),
+                                            ],
+                                            shading: {
+                                                fill: "000000", // Black background
+                                            },
+                                        }),
+                                    ],
+                                }),
+
+                                // Data Rows
+                                ...appendix1?.keyStrings?.map((keyStr, index) =>
+                                    new TableRow({
+                                        children: [
+                                            new TableCell({
+                                                children: [
+                                                    new Paragraph({
+                                                        alignment: AlignmentType.CENTER,
+                                                        children: [
+                                                            createTextRun(`${index + 1}.`, textStyle.arial10),
+                                                        ],
+                                                    }),
+                                                ],
+                                            }),
+                                            new TableCell({
+                                                children: [
+                                                    new Paragraph({
+                                                        alignment: AlignmentType.LEFT,
+                                                        children: [
+                                                            createTextRun(keyStr.keyStringsText, textStyle.arial10),
+                                                        ],
+                                                    }),
+                                                ],
+                                            }),
+                                        ],
+                                    })
+                                ),
+                            ],
+                            borders: {
+                                top: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                                bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                                left: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                                right: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                                insideHorizontal: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                                insideVertical: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                            },
+                        }),
+
+
+                        // new Table({
+                        //     width: {
+                        //         size: 100,
+                        //         type: WidthType.PERCENTAGE,
+                        //     },
+                        //     rows: [
+                        //         new TableRow({
+                        //             tableHeader: true,
+                        //             children: [
+                        //                 new TableCell({
+                        //                     children: [
+                        //                         new Paragraph({
+                        //                             children: [
+                        //                                 createTextRun("S. No.", textStyle.arial10, { bold: true, color: "FFFFFF" }),
+                        //                             ],
+                        //                             alignment: AlignmentType.CENTER,
+                        //                         }),
+                        //                     ],
+                        //                     shading: {
+                        //                         fill: "000000",
+                        //                     },
+                        //                 }),
+                        //                 new TableCell({
+                        //                     children: [
+                        //                         new Paragraph({
+                        //                             children: [
+                        //                                 createTextRun("Key strings (Patents/Patent Applications)", textStyle.arial10, { bold: true, color: "FFFFFF" }),
+                        //                             ],
+                        //                             alignment: AlignmentType.CENTER,
+                        //                         }),
+                        //                     ],
+                        //                     shading: {
+                        //                         fill: "000000",
+                        //                     },
+                        //                 }),
+                        //             ],
+                        //         }),
+
+                        //         ...appendix1?.keyStrings?.map((keyStr, index) =>
+                        //             new TableRow({
+                        //                 children: [
+                        //                     new TableCell({
+                        //                         children: [
+                        //                             new Paragraph({
+                        //                                 children: [
+                        //                                     createTextRun(`${index + 1}.`, textStyle.arial10),
+                        //                                 ],
+                        //                                 alignment: AlignmentType.CENTER,
+                        //                             }),
+                        //                         ],
+                        //                     }),
+                        //                     new TableCell({
+                        //                         children: [
+                        //                             new Paragraph({
+                        //                                 children: [
+                        //                                     createTextRun(keyStr.keyStringsText, textStyle.arial10),
+                        //                                 ],
+                        //                                 alignment: AlignmentType.LEFT,
+                        //                             }),
+                        //                         ],
+                        //                     }),
+                        //                 ],
+                        //             })
+                        //         ),
+                        //     ],
+                        //     borders: {
+                        //         top: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                        //         bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                        //         left: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                        //         right: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                        //         insideHorizontal: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                        //         insideVertical: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                        //     },
+                        // }),
+
+                        new Paragraph({
+                            children: [
+                                createTextRun("Data Availability", textStyle.arial11, { bold: true }),
+                            ],
+                            alignment: AlignmentType.START,
+                            spacing: { after: 100 },
+                            indent: { left: 520 },
+                        }),
+                        ...appendix1.dataAvailability.map((mapData) =>
+                            new Paragraph({
+                                children: [
+                                    createTextRun(`✓ ${mapData.dataAvailableText.trim()}`, textStyle.arial10),
+                                ],
+                                alignment: AlignmentType.START,
+                                spacing: { after: 100 },
+                                indent: { left: 720 },
+                            }),
+                        )
+                    ],
+                },
+                // Appendix 2
+                {
+                    properties: createPageProperties(),
+                    children: [
+                        new Paragraph({
+                            children: [
+                                createTextRun("Appendix 2", textStyle.arial14, { bold: true, color: "000000" }),
+                            ],
+                            heading: HeadingLevel.HEADING_1,
+                            alignment: AlignmentType.START,
+                            spacing: { after: 100 },
+                        }),
+
+                        new Paragraph({
+                            children: [
+                                createTextRun("Databases", textStyle.arial11, { bold: true, color: "000000" }),
+                            ],
+                            heading: HeadingLevel.HEADING_2,
+                            alignment: AlignmentType.START,
+                            spacing: { after: 200 },
+                            indent: { left: 520 },
+                        }),
+
+                        new Table({
+                            width: {
+                                size: 100,
+                                type: WidthType.PERCENTAGE,
+                            },
+                            borders: {
+                                top: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+                                bottom: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+                                left: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+                                right: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+                                insideHorizontal: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+                                insideVertical: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+                            },
+                            rows: [
+                                new TableRow({
+                                    children: [
+                                        new TableCell({
+                                            borders: {
+                                                top: { style: BorderStyle.NONE },
+                                                bottom: { style: BorderStyle.NONE },
+                                                left: { style: BorderStyle.NONE },
+                                                right: { style: BorderStyle.NONE },
+                                            },
+                                            children: [
+                                                new Paragraph({
+                                                    children: [
+                                                        createTextRun("Patents", textStyle.arial10, { bold: true }),
+                                                    ],
+                                                    spacing: { after: 100 },
+                                                    indent: { left: 520 }
+                                                }),
+                                                ...cleanListWithEtc(appendix2.patents)
+                                                    .map((item) =>
+                                                        new Paragraph({
+                                                            children: [
+                                                                createTextRun(`✓ ${item.trim()}`, textStyle.arial10),
+                                                            ],
+                                                            indent: { left: 520 }
+                                                        })
+                                                    ),
+                                            ],
+                                        }),
+                                        new TableCell({
+                                            borders: {
+                                                top: { style: BorderStyle.NONE },
+                                                bottom: { style: BorderStyle.NONE },
+                                                left: { style: BorderStyle.NONE },
+                                                right: { style: BorderStyle.NONE },
+                                            },
+                                            children: [
+                                                new Paragraph({
+                                                    children: [
+                                                        createTextRun("Non-patent Literature", textStyle.arial10, { bold: true }),
+                                                    ],
+                                                    spacing: { after: 100 },
+                                                }),
+                                                ...appendix2.nonPatentLiterature
+                                                    .split("\n")
+                                                    .map((item) =>
+                                                        new Paragraph({
+                                                            children: [
+                                                                createTextRun(`✓ ${item.trim()}`, textStyle.arial11),
+                                                            ],
+                                                        })
+                                                    ),
+                                            ],
+                                        }),
+                                    ],
+                                }),
+                            ],
+                        })
+                    ],
+                },
+                // Disclaimer
+                {
+                    properties: createPageProperties(),
+                    children: [
+                        new Paragraph({
+                            children: [
+                                createTextRun("Disclaimer", textStyle.arial14, { bold: true, color: "000000" }),
+                            ],
+                            heading: HeadingLevel.HEADING_1,
+                            alignment: AlignmentType.START,
+                            spacing: { after: 100 },
+                        }),
+
+                        new Paragraph({
+                            children: [
+                                createTextRun(disclaimer, textStyle.arial10,),
+                            ],
+                            alignment: AlignmentType.START,
+                            spacing: { after: 200 },
+                        }),
                     ],
                 },
             ],
@@ -1534,12 +2211,14 @@ const MappingProjectCreation = () => {
     const handleReportDownload = async () => {
         try {
             const getProjectValue = await fetchProjectById(id);
-            console.log("Fetched Project Data:", getProjectValue);
             handleDownload({
                 projectTitle: getProjectValue.stages.introduction[0]?.projectTitle || "ProjectTitle",
                 projectSubTitle: getProjectValue.stages.introduction[0]?.projectSubTitle || "projectSubTitle",
                 searchFeatures: getProjectValue.stages.introduction[0]?.searchFeatures || "searchFeatures",
                 relevantReferences: getProjectValue.stages.relevantReferences.publicationDetails || [],
+                relatedReferences: getProjectValue.stages.relatedReferences || "relatedReferences",
+                appendix1: getProjectValue.stages.appendix1[0] || "Appendix 1",
+                appendix2: getProjectValue.stages.appendix2[0] || "Appendix 2",
             });
         } catch (error) {
             console.error("❌ Error in handleReportDownload:", error);
