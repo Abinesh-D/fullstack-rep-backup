@@ -25,7 +25,7 @@ import { downloadWordFile, handleWordReportDownload } from "../ReusableComponent
 import { saveAs } from "file-saver";
 import {
     Document, BorderStyle, Packer, Paragraph, TextRun, Table, TableRow, AlignmentType, TableCell, VerticalAlign, WidthType, ShadingType,
-    ExternalHyperlink, TabStopType, HeadingLevel, 
+    ExternalHyperlink, TabStopType, HeadingLevel, ImageRun, 
 } from "docx";
 import { getSearchMethodology } from "../ReusableComponents/searchMethodology";
 import { fileToBase64, formatBytes } from "../ReusableComponents/base64Convertion";
@@ -1424,6 +1424,11 @@ const relatedApplicantNames = useMemo(() => {
         return result;
     }
 
+    async function getImageArrayBufferFromUrl(url) {
+        const response = await fetch(url);
+        const blob = await response.blob();
+        return blob.arrayBuffer();
+    }
 
     const disclaimer = "This search report is based on the resources available in public domain such as published patents/applications, non-patent literature, products, blogs, technology news, company websites and available/accessible/downloadable. Furthermore, the report is based upon individual expert’s view/judgment & such analysis may vary from expert to expert. Kindly refrain concurring them as Molecular Connections’ views. The contents of this research is for general information purposes only. While Molecular Connections endeavor is to keep the information up to date and correct, Molecular Connections makes no representations OR warranties of any kind, express OR implied, about the completeness OR availability with respect to the contents of this research paper. Any reliance placed on such information is therefore strictly at user’s own risk."
 
@@ -1436,9 +1441,16 @@ const relatedApplicantNames = useMemo(() => {
         relatedReferences,
         appendix1,
         appendix2,
+        projectImageUrl,
+
     }) => {
-        console.log('appendix1', appendix1)
-        
+
+        const cloudinaryUrls = projectImageUrl.map(buf => buf.base64Url);
+
+        const imageBuffers = await Promise.all(
+            cloudinaryUrls.map(async (url) => await getImageArrayBufferFromUrl(url))
+        );
+
         const relatedReferencesTable = new Table({
             width: { size: 100, type: WidthType.PERCENTAGE },
             rows: [
@@ -1663,6 +1675,22 @@ const relatedApplicantNames = useMemo(() => {
                                     spacing: { before: 200, after: 200 },
                                 })
                             ),
+
+                        // ...imageBuffers.map((buffer) =>
+                        //     new Paragraph({
+                        //         children: [
+                        //             new ImageRun({
+                        //                 data: buffer,
+                        //                 transformation: {
+                        //                     width: 200,
+                        //                     height: 150,
+                        //                 },
+                        //             }),
+                        //         ],
+                        //         alignment: AlignmentType.CENTER,
+                        //         spacing: { after: 300 },
+                        //     })
+                        // ),
                     ],
                 },
                 // Search Methodology
@@ -2166,7 +2194,7 @@ const relatedApplicantNames = useMemo(() => {
                                                     .map((item) =>
                                                         new Paragraph({
                                                             children: [
-                                                                createTextRun(`✓ ${item.trim()}`, textStyle.arial11),
+                                                                createTextRun(`✓ ${item.trim()}`, textStyle.arial10),
                                                             ],
                                                         })
                                                     ),
@@ -2219,6 +2247,7 @@ const relatedApplicantNames = useMemo(() => {
                 relatedReferences: getProjectValue.stages.relatedReferences || "relatedReferences",
                 appendix1: getProjectValue.stages.appendix1[0] || "Appendix 1",
                 appendix2: getProjectValue.stages.appendix2[0] || "Appendix 2",
+                projectImageUrl: getProjectValue.stages.introduction[0].projectImageUrl || "projectImageUrl",
             });
         } catch (error) {
             console.error("❌ Error in handleReportDownload:", error);
