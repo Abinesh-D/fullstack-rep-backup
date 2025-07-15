@@ -1,58 +1,98 @@
-import { Paragraph, HeadingLevel, TextRun } from "docx";
+
+import { Paragraph, HeadingLevel, TextRun, UnderlineType, InternalHyperlink } from "docx";
+
+// const makeIndentedParagraphs = (texts, left = 720) =>
+//     texts.map(
+//         (text) =>
+//             new Paragraph({
+//                 text,
+//                 spacing: { before: 100, after: 100 },
+//                 indent: { left },
+//             })
+//     );
+
 
 const makeIndentedParagraphs = (texts, left = 720) =>
-    texts.map(
-        (text) =>
-            new Paragraph({
-                children: [
-                    new TextRun({
-                        text,
-                        font: "Arial",
-                        size: 20,
+    texts.map((text) => {
+        const parts = text.split(/(Appendix 1|Appendix 2)/);
+
+        return new Paragraph({
+            spacing: { before: 100, after: 100 },
+            indent: { left },
+            children: parts.map((part) => {
+                if (part === "Appendix 1") {
+                    return new InternalHyperlink({
+                        anchor: "appendix-1",
+                        children: [
+                            new TextRun({
+                                text: part,
+                                bold: true,
+                                underline: { type: UnderlineType.SINGLE },
+                                color: "0000FF",
+                            }),
+                        ],
+                    });
+                } else if (part === "Appendix 2") {
+                    return new InternalHyperlink({
+                        anchor: "appendix-2",
+                        children: [
+                            new TextRun({
+                                text: part,
+                                bold: true,
+                                underline: { type: UnderlineType.SINGLE },
+                                color: "0000FF",
+                            }),
+                        ],
+                    });
+                } else {
+                    return new TextRun({
+                        text: part,
                         color: "000000",
-                    }),
-                ],
-                spacing: { before: 100, after: 100 },
-                indent: { left },
-            })
-    );
+                    });
+                }
+            }),
+        });
+    });
+
+
 
 export const getSearchMethodology = (projectTitle) => [
     new Paragraph({
+        heading: HeadingLevel.HEADING_1,
+        spacing: { after: 200 },
         children: [
             new TextRun({
                 text: "2. Search Methodology",
                 font: "Arial",
                 size: 28,
-                bold: true,
                 color: "000000",
+                bold: true,
             }),
         ],
-        heading: HeadingLevel.HEADING_1,
-        spacing: { after: 200 },
+        indent: { left: 720 }
+    }),
+
+
+
+    new Paragraph({
+        indent: { left: 520 },
+        children: [
+            new TextRun({
+                text: "Step 1: Understanding and Making Search Strategy",
+                bold: true,
+                size: 22,
+            })
+        ]
     }),
 
     new Paragraph({
         children: [
-            new TextRun({
-                text: "• In-depth understanding “",
-                font: "Arial",
-                size: 20,
-                color: "000000",
-            }),
+            new TextRun("• In-depth understanding “"),
             new TextRun({
                 text: projectTitle,
                 bold: true,
-                font: "Arial",
-                size: 20,
-                color: "000000",
             }),
-            new TextRun({
-                text: "” analyzed in terms of project requirements.",
-                font: "Arial",
-                size: 20,
-                color: "000000",
-            }),
+            new TextRun("” analyzed in terms of project requirements."),
         ],
         indent: { left: 720 },
         spacing: { before: 100, after: 100 },
@@ -64,6 +104,16 @@ export const getSearchMethodology = (projectTitle) => [
         "• Key strings were prepared based on identified search terms, relevant patent classifications.",
     ]),
 
+    new Paragraph({
+        indent: { left: 520 },
+        children: [
+            new TextRun({
+                text: "Step 2: Searching and Analysis",
+                bold: true,
+                size: 22
+            }),
+        ]
+    }),
     ...makeIndentedParagraphs([
         "• A broad to narrow search strategy (or narrow to broad) was employed using various search strings on few commercial/free databases to identify patent/applications.",
         "• The key strings were formulated based on the identified keywords. For key string, refer to Appendix 1.",
@@ -73,7 +123,16 @@ export const getSearchMethodology = (projectTitle) => [
         "• For Non-English documents, the analysis was carried out based on machine translated text available from free/commercial sources.",
     ]),
 
-
+    new Paragraph({
+        indent: { left: 520 },
+        children: [
+            new TextRun({
+                text: "Step 3: Additional Searches",
+                size: 22,
+                bold: true
+            })
+        ]
+    }),
     ...makeIndentedParagraphs([
         "To ensure search comprehensiveness, following searches were performed:",
         "• Inventor/Assignee based search - The assignee/inventor of client’s interest or assignee/inventor from the identified relevant documents.",
@@ -83,6 +142,16 @@ export const getSearchMethodology = (projectTitle) => [
         "• Citation Search - Two level citation searches of closely identified prior arts are executed.",
     ]),
 
+    new Paragraph({
+        indent: { left: 520 },
+        children: [
+            new TextRun({
+                text: "Step 4: Report",
+                size: 22,
+                bold: true
+            })
+        ]
+    }),
     ...makeIndentedParagraphs([
         "• The shortlisted relevant documents along with the bibliographic details and text mapping are provided in a user friendly, MS Word/PDF report.",
         "• Related documents are provided in the form of list in the report.",
@@ -105,41 +174,67 @@ export const getSearchMethodology = (projectTitle) => [
 
 
 
+
+
+
+
+
+
 // import { Paragraph, HeadingLevel, TextRun } from "docx";
 
-// // ✅ Utility to make all paragraphs with left indent
 // const makeIndentedParagraphs = (texts, left = 720) =>
 //     texts.map(
 //         (text) =>
 //             new Paragraph({
-//                 text,
+//                 children: [
+//                     new TextRun({
+//                         text,
+//                         font: "Arial",
+//                         size: 20,
+//                         color: "000000",
+//                     }),
+//                 ],
 //                 spacing: { before: 100, after: 100 },
 //                 indent: { left },
 //             })
 //     );
 
 // export const getSearchMethodology = (projectTitle) => [
-//     // Main Heading
 //     new Paragraph({
-//         text: "2. Search Methodology",
+//         children: [
+//             new TextRun({
+//                 text: "2. Search Methodology",
+//                 font: "Arial",
+//                 size: 28,
+//                 bold: true,
+//                 color: "000000",
+//             }),
+//         ],
 //         heading: HeadingLevel.HEADING_1,
 //         spacing: { after: 200 },
 //     }),
 
-//     // Step 1 Heading
-//     new Paragraph({
-//         text: "Step 1: Understanding and Making Search Strategy",
-//         heading: HeadingLevel.HEADING_2,
-//     }),
-
 //     new Paragraph({
 //         children: [
-//             new TextRun("• In-depth understanding “"),
+//             new TextRun({
+//                 text: "• In-depth understanding “",
+//                 font: "Arial",
+//                 size: 20,
+//                 color: "000000",
+//             }),
 //             new TextRun({
 //                 text: projectTitle,
 //                 bold: true,
+//                 font: "Arial",
+//                 size: 20,
+//                 color: "000000",
 //             }),
-//             new TextRun("” analyzed in terms of project requirements."),
+//             new TextRun({
+//                 text: "” analyzed in terms of project requirements.",
+//                 font: "Arial",
+//                 size: 20,
+//                 color: "000000",
+//             }),
 //         ],
 //         indent: { left: 720 },
 //         spacing: { before: 100, after: 100 },
@@ -151,11 +246,6 @@ export const getSearchMethodology = (projectTitle) => [
 //         "• Key strings were prepared based on identified search terms, relevant patent classifications.",
 //     ]),
 
-//     // Step 2 Heading
-//     new Paragraph({
-//         text: "Step 2: Searching and Analysis",
-//         heading: HeadingLevel.HEADING_2,
-//     }),
 //     ...makeIndentedParagraphs([
 //         "• A broad to narrow search strategy (or narrow to broad) was employed using various search strings on few commercial/free databases to identify patent/applications.",
 //         "• The key strings were formulated based on the identified keywords. For key string, refer to Appendix 1.",
@@ -165,11 +255,7 @@ export const getSearchMethodology = (projectTitle) => [
 //         "• For Non-English documents, the analysis was carried out based on machine translated text available from free/commercial sources.",
 //     ]),
 
-//     // Step 3 Heading
-//     new Paragraph({
-//         text: "Step 3: Additional Searches",
-//         heading: HeadingLevel.HEADING_2,
-//     }),
+
 //     ...makeIndentedParagraphs([
 //         "To ensure search comprehensiveness, following searches were performed:",
 //         "• Inventor/Assignee based search - The assignee/inventor of client’s interest or assignee/inventor from the identified relevant documents.",
@@ -179,11 +265,6 @@ export const getSearchMethodology = (projectTitle) => [
 //         "• Citation Search - Two level citation searches of closely identified prior arts are executed.",
 //     ]),
 
-//     // Step 4 Heading
-//     new Paragraph({
-//         text: "Step 4: Report",
-//         heading: HeadingLevel.HEADING_2,
-//     }),
 //     ...makeIndentedParagraphs([
 //         "• The shortlisted relevant documents along with the bibliographic details and text mapping are provided in a user friendly, MS Word/PDF report.",
 //         "• Related documents are provided in the form of list in the report.",
@@ -192,6 +273,19 @@ export const getSearchMethodology = (projectTitle) => [
 //         "• A tabulated summary of the relevant references is provided with executive summary.",
 //     ]),
 // ];
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
