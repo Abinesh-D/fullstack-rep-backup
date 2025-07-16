@@ -473,8 +473,7 @@ router.delete("/delete-base-search-term/:id/:termId", async (req, res) => {
 });
 
 
-
-// Add Key Strings to appendix1
+// Add Key Strings
 router.post("/add-key-string/:id", async (req, res) => {
   const { id } = req.params;
   const { keyStringsText } = req.body;
@@ -530,6 +529,119 @@ router.delete("/delete-key-string/:id/:keyID", async (req, res) => {
 });
 
 
+
+// Save keyStringsNpl
+router.post("/add-key-string-npl/:id", async (req, res) => {
+  const { id } = req.params;
+  const { keyStringsNplText } = req.body;
+
+  try {
+    const project = await cln_prior_report_schema.findById(id);
+
+    if (!project) {
+      return res.status(404).json({ message: " Project not found" });
+    }
+
+    if (project.stages.appendix1.length === 0) {
+      project.stages.appendix1.push({
+        _id: uuidv4(),
+        keyStringsNplText: [],
+      });
+    }
+
+    project.stages.appendix1[0].keyStringsNpl.push({
+      _id: uuidv4(),
+      keyStringsNplText
+    });
+
+    await project.save();
+    res.status(200).json(project);
+  } catch (err) {
+    console.error(" Error adding Key Strings:", err);
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+});
+
+
+// Delete Key StringsNpl Term 
+router.delete("/delete-key-string-npl/:id/:keyID", async (req, res) => {
+  const { id, keyID } = req.params;
+
+  try {
+    const updatedProject = await cln_prior_report_schema.findOneAndUpdate(
+      { _id: id },
+      { $pull: { "stages.appendix1.0.keyStringsNpl": { _id: keyID } } },
+      { new: true }
+    );
+
+    if (!updatedProject) {
+      return res.status(404).json({ message: " Project or term not found" });
+    }
+
+    res.status(200).json(updatedProject);
+  } catch (err) {
+    console.error(" Error deleting Key Strings:", err);
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+});
+
+
+// Save Additional Search
+router.post("/add-key-string-additional/:id", async (req, res) => {
+  const { id } = req.params;
+  const { keyStringsAdditionalText } = req.body;
+
+  try {
+    const project = await cln_prior_report_schema.findById(id);
+
+    if (!project) {
+      return res.status(404).json({ message: " Project not found" });
+    }
+
+    if (project.stages.appendix1.length === 0) {
+      project.stages.appendix1.push({
+        _id: uuidv4(),
+        keyStringsAdditionalText: [],
+      });
+    }
+
+    project.stages.appendix1[0].keyStringsAdditional.push({
+      _id: uuidv4(),
+      keyStringsAdditionalText
+    });
+
+    await project.save();
+    res.status(200).json(project);
+  } catch (err) {
+    console.error(" Error adding Additional Key Strings:", err);
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+});
+
+
+// Delete Additional Search
+router.delete("/delete-key-string-additional/:id/:keyID", async (req, res) => {
+  const { id, keyID } = req.params;
+
+  try {
+    const updatedProject = await cln_prior_report_schema.findOneAndUpdate(
+      { _id: id },
+      { $pull: { "stages.appendix1.0.keyStringsAdditional": { _id: keyID } } },
+      { new: true }
+    );
+
+    if (!updatedProject) {
+      return res.status(404).json({ message: " Project or term not found" });
+    }
+
+    res.status(200).json(updatedProject);
+  } catch (err) {
+    console.error(" Error deleting Key Additional Strings:", err);
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+});
+
+// Data availability Save
 router.post("/add-data-availability/:id", async (req, res) => {
   const { id } = req.params;
   const { dataAvailableText } = req.body;
@@ -562,7 +674,7 @@ router.post("/add-data-availability/:id", async (req, res) => {
 });
 
 
-// Delete Key Strings Term 
+// Delete Data Availability
 router.delete("/delete-data-availability/:id/:availabilityID", async (req, res) => {
   const { id, availabilityID } = req.params;
 

@@ -12,12 +12,23 @@ const Appendix1 = ({
     handleSaveBaseSearchTerm,
     onSearchTermDelete,
 
-
     keyString,
     setKeyString,
     keyStringsList,
     handleSaveKeyString,
     onKeyStringsDelete,
+
+    keyStringNpl,
+    setKeyStringNpl,
+    keyStringsNplList,
+    handleSaveKeyStringNpl,
+    onKeyStringsNplDelete,
+
+    keyStringAdditional,
+    setKeyStringAdditional,
+    handleSaveKeyStringAdditional,
+    onKeyStringsAdditionalDelete,
+    keyStringsAdditionalList,
 
     dataAvailability,
     setDataAvailability,
@@ -26,7 +37,6 @@ const Appendix1 = ({
     onDataAvailabilityDelete,
 
 }) => {
-
 
     const baseSearchColumns = useMemo(() => [
         {
@@ -99,6 +109,77 @@ const Appendix1 = ({
         },
     ], [keyStringsList]);
 
+    const keyStringsNplColumns = useMemo(() => [
+        {
+            header: "S. No.",
+            accessorKey: "serial_number",
+            cell: ({ row }) => <span>{row.index + 1}</span>,
+            enableColumnFilter: false,
+            enableSorting: false,
+        },
+        {
+            header: "Key Strings(Npl)",
+            accessorKey: "keyStringsNplText",
+            enableColumnFilter: false,
+            enableSorting: true,
+        },
+        {
+            header: "Actions",
+            cell: ({ row }) => {
+                const rowData = row.original;
+                return (
+                    <div className="d-flex justify-content-center align-items-center gap-3">
+                        <Link
+                            to="#"
+                            data-bs-toggle="tooltip"
+                            data-bs-placement="top"
+                            title="Delete Publication"
+                            onClick={() => onKeyStringsNplDelete(rowData)}
+                        >
+                            <i className="mdi mdi-delete text-danger font-size-18"></i>
+                        </Link>
+                    </div>
+                );
+            },
+        },
+    ], [keyStringsNplList]);
+
+
+     const keyStringsAdditionalColumns = useMemo(() => [
+        {
+            header: "S. No.",
+            accessorKey: "serial_number",
+            cell: ({ row }) => <span>{row.index + 1}</span>,
+            enableColumnFilter: false,
+            enableSorting: false,
+        },
+        {
+            header: "Additional Search",
+            accessorKey: "keyStringsAdditionalText",
+            enableColumnFilter: false,
+            enableSorting: true,
+        },
+        {
+            header: "Actions",
+            cell: ({ row }) => {
+                const rowData = row.original;
+                return (
+                    <div className="d-flex justify-content-center align-items-center gap-3">
+                        <Link
+                            to="#"
+                            data-bs-toggle="tooltip"
+                            data-bs-placement="top"
+                            title="Delete Publication"
+                            onClick={() => onKeyStringsAdditionalDelete(rowData)}
+                        >
+                            <i className="mdi mdi-delete text-danger font-size-18"></i>
+                        </Link>
+                    </div>
+                );
+            },
+        },
+    ], [keyStringsAdditionalList]);
+
 
     const availabilityColumns = useMemo(() => [
         {
@@ -151,7 +232,7 @@ const Appendix1 = ({
                             id="base-search-terms"
                             className="form-control"
                             rows="3"
-                            placeholder="Enter search terms like: patents, live, alive, etc."
+                            placeholder="Enter search terms"
                             value={baseSearchTerm}
                             onChange={(e) => setBaseSearchTerm(e.target.value)}
                         />
@@ -171,9 +252,13 @@ const Appendix1 = ({
                     <TableContainer
                         columns={baseSearchColumns}
                         data={baseSearchTermsList || []}
+                         isPagination={true}
+                        isCustomPageSize={true}
                         SearchPlaceholder="Search..."
                         tableClass="align-middle table-nowrap table-hover dt-responsive nowrap w-100 dataTable no-footer dtr-inline"
                         theadClass="table-light"
+                        paginationWrapper="dataTables_paginate paging_simple_numbers pagination-rounded"
+                        pagination="pagination"
                     />
                 )
             }
@@ -182,36 +267,122 @@ const Appendix1 = ({
             <Row>
                 <Col lg="12">
                     <div className="mb-3">
-                        <Label for="key-strings">Key Strings</Label>
+                        <Label for="key-strings">Key Strings (Patents/Patent Applications)</Label>
                         <textarea
                             id="key-strings"
                             className="form-control"
                             rows="3"
-                            placeholder="Enter key strings (Orbit, USPTO, PatSeer, Google Patent, Scholar, IEEE, etc.)"
+                            placeholder="Enter key strings for patent"
                             value={keyString}
                             onChange={(e) => setKeyString(e.target.value)}
+                        />
+                    </div>
+                </Col>               
+            </Row>
+            <Col lg={2}>
+                <div className="mb-3">
+                    <Button color="info" className="w-100" onClick={handleSaveKeyString}>
+                        + Strings(patent)
+                    </Button>
+                </div>
+            </Col>
+            
+            {
+                !isEmptyArray(keyStringsList) && (
+                    <TableContainer
+                        columns={keyStringsColumns}
+                        data={keyStringsList || []}
+                        isPagination={true}
+                        isCustomPageSize={true}
+                        SearchPlaceholder="Search..."
+                        tableClass="align-middle table-nowrap table-hover dt-responsive nowrap w-100 dataTable no-footer dtr-inline"
+                        theadClass="table-light"
+                        paginationWrapper="dataTables_paginate paging_simple_numbers pagination-rounded"
+                        pagination="pagination"
+                        
+                    />
+                )
+            }
+
+            <Row className="mt-4">
+                <Col lg="12">
+                    <div className="mb-3">
+                        <Label for="key-strings-npl">Key Strings (Non-Patent Literatures)</Label>
+                        <textarea
+                            id="key-strings-npl"
+                            className="form-control"
+                            rows="3"
+                            placeholder="Enter key strings for (Npl)"
+                            value={keyStringNpl}
+                            onChange={(e) => setKeyStringNpl(e.target.value)}
                         />
                     </div>
                 </Col>
             </Row>
             <Col lg={2}>
                 <div className="mb-3">
-                    <Button color="info" className="w-100" onClick={handleSaveKeyString}>
-                        + Key Strings
+                    <Button color="info" className="w-100" onClick={handleSaveKeyStringNpl}>
+                        + Strings(NPL)
                     </Button>
                 </div>
             </Col>
+
             {
-                !isEmptyArray(keyStringsList) && (
+                !isEmptyArray(keyStringsNplList) && (
                     <TableContainer
-                        columns={keyStringsColumns}
-                        data={keyStringsList || []}
+                        columns={keyStringsNplColumns}
+                        data={keyStringsNplList || []}
+                         isPagination={true}
+                        isCustomPageSize={true}
                         SearchPlaceholder="Search..."
                         tableClass="align-middle table-nowrap table-hover dt-responsive nowrap w-100 dataTable no-footer dtr-inline"
                         theadClass="table-light"
+                        paginationWrapper="dataTables_paginate paging_simple_numbers pagination-rounded"
+                        pagination="pagination"
                     />
                 )
             }
+
+            <Row className="mt-4">
+                <Col lg="12">
+                    <div className="mb-3">
+                        <Label for="additional-key-strings">Additional Search</Label>
+                        <textarea
+                            id="additional-key-strings"
+                            className="form-control"
+                            rows="3"
+                            placeholder="Enter Additional Search"
+                            value={keyStringAdditional}
+                            onChange={(e) => setKeyStringAdditional(e.target.value)}
+                        />
+                    </div>
+                </Col>
+            </Row>
+            <Col lg={2}>
+                <div className="mb-3">
+                    <Button color="info" className="w-100 d-flex justify-content-center align-items-center" onClick={handleSaveKeyStringAdditional}>
+                        + Additional <i style={{ margin: "auto" }} className="bx bx-search-alt-2"></i>
+                    </Button>
+                </div>
+            </Col>
+
+            {
+                !isEmptyArray(keyStringsAdditionalList) && (
+                    <TableContainer
+                        columns={keyStringsAdditionalColumns}
+                        data={keyStringsAdditionalList || []}
+                        isPagination={true}
+                        isCustomPageSize={true}
+                        SearchPlaceholder="Search..."
+                        tableClass="align-middle table-nowrap table-hover dt-responsive nowrap w-100 dataTable no-footer dtr-inline"
+                        theadClass="table-light"
+                        paginationWrapper="dataTables_paginate paging_simple_numbers pagination-rounded"
+                        pagination="pagination"
+                    />
+                )
+            }
+
+
 
             <h5 className="fw-semibold mt-5">3. Data Availability</h5>
             <Row>
@@ -241,9 +412,13 @@ const Appendix1 = ({
                     <TableContainer
                         columns={availabilityColumns}
                         data={dataAvailabilityValue || []}
+                         isPagination={true}
+                        isCustomPageSize={true}
                         SearchPlaceholder="Search..."
                         tableClass="align-middle table-nowrap table-hover dt-responsive nowrap w-100 dataTable no-footer dtr-inline"
                         theadClass="table-light"
+                        paginationWrapper="dataTables_paginate paging_simple_numbers pagination-rounded"
+                        pagination="pagination"
                     />
                 )
             }

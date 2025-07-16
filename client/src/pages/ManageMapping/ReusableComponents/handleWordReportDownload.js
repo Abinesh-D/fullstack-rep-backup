@@ -1,7 +1,7 @@
 import {
     Document, BorderStyle, Packer, Paragraph, TextRun, Table, TableRow, AlignmentType, TableCell, VerticalAlign, WidthType, ShadingType,
-    ExternalHyperlink, HeadingLevel, ImageRun, SimpleField, InternalHyperlink,
-    Bookmark, Footer, PageNumber, Header,
+    ExternalHyperlink, HeadingLevel, ImageRun, SimpleField, InternalHyperlink, PageBorderDisplay, PageBorderOffsetFrom, PageBorderZOrder,
+    Bookmark, Footer, PageNumber, Header, PageMargin, PageBorders
 } from "docx";
 import { saveAs } from "file-saver";
 import { getSearchMethodology } from "./searchMethodology";
@@ -31,6 +31,7 @@ const borderNone = {
 
 const marginsStyle = { margins: { top: 100, bottom: 100, left: 100, right: 100, }, }
 const margins150 = { margins: { top: 100, bottom: 100, left: 100, right: 100, }, }
+const margins50 = { margins: { top: 50, bottom: 50, left: 50, right: 50, }, }
 
 function formatAssigneeOrInventor(str) {
     if (!str) return "";
@@ -83,7 +84,12 @@ async function getImageArrayBufferFromUrl(url) {
     return blob.arrayBuffer();
 }
 
-
+const borderColor = {
+    top: { style: BorderStyle.SINGLE, size: 20, color: "000000" },
+    bottom: { style: BorderStyle.SINGLE, size: 20, color: "000000" },
+    left: { style: BorderStyle.SINGLE, size: 20, color: "000000" },
+    right: { style: BorderStyle.SINGLE, size: 20, color: "000000" },
+};
 
 const disclaimer = "This search report is based on the resources available in public domain such as published patents/applications, non-patent literature, products, blogs, technology news, company websites and available/accessible/downloadable. Furthermore, the report is based upon individual expert’s view/judgment & such analysis may vary from expert to expert. Kindly refrain concurring them as Molecular Connections’ views. The contents of this research is for general information purposes only. While Molecular Connections endeavor is to keep the information up to date and correct, Molecular Connections makes no representations OR warranties of any kind, express OR implied, about the completeness OR availability with respect to the contents of this research paper. Any reliance placed on such information is therefore strictly at user’s own risk."
 
@@ -99,6 +105,7 @@ export const handleWordReportDownload = async ({
     overallSummary,
 }) => {
 
+    console.log('appendix1', appendix1);
 
     const createPageProperties = (margin = 720, orientation = "portrait") => ({
         page: {
@@ -114,7 +121,6 @@ export const handleWordReportDownload = async ({
                 height: 11573,
             },
         },
-
     });
 
 
@@ -127,10 +133,12 @@ export const handleWordReportDownload = async ({
             new TableRow({
                 children: [
                     new TableCell({
+                        verticalAlign: AlignmentType.CENTER,
                         children: [new Paragraph({ text: `${label}:`, bold: true })],
                         borders: borderNone,
                     }),
                     new TableCell({
+                        verticalAlign: AlignmentType.CENTER,
                         children: [new Paragraph(value)],
                         borders: borderNone,
                     }),
@@ -157,7 +165,7 @@ export const handleWordReportDownload = async ({
 
     const footer = new Footer({
         children: [
-              new Paragraph({
+            new Paragraph({
                 alignment: AlignmentType.CENTER,
                 children: [
                     new TextRun("CONFIDENTIAL"),
@@ -192,8 +200,13 @@ export const handleWordReportDownload = async ({
         alignment: AlignmentType.CENTER,
         spacing: { after: 300, before: 300 },
         children: [
-            createTextRun("Table of Contents", textStyle.arial14, {
-                bold: true, underline: { type: "single", color: "000000", },
+            new Bookmark({
+                id: "back-to-table-of-content",
+                children: [
+                    createTextRun("Table of Contents", textStyle.arial14, {
+                        bold: true, underline: { type: "single", color: "000000", },
+                    })
+                ]
             })
         ],
     });
@@ -224,16 +237,16 @@ export const handleWordReportDownload = async ({
                     "Family Members",
                 ].map((header) =>
                     new TableCell({
+                        verticalAlign: AlignmentType.CENTER,
                         shading: {
                             fill: "BDD7EE",
                             type: ShadingType.CLEAR,
                             color: "auto",
                         },
-                        verticalAlign: VerticalAlign.CENTER,
-                        margins: margins150.margins,
                         children: [
                             new Paragraph({
                                 alignment: AlignmentType.CENTER,
+                                spacing: { before: 20, after: 0 },
                                 children: [
                                     createTextRun(header, textStyle.arial10, { bold: true }),
                                 ],
@@ -248,9 +261,9 @@ export const handleWordReportDownload = async ({
                     children: [
                         new TableCell({
                             verticalAlign: VerticalAlign.CENTER,
-                            margins: margins150.margins,
                             children: [
                                 new Paragraph({
+                                    spacing: { before: 20, after: 0 },
                                     alignment: AlignmentType.LEFT,
                                     children: [
                                         createTextRun(String(index + 1), textStyle.arial10),
@@ -261,10 +274,10 @@ export const handleWordReportDownload = async ({
                         }),
                         new TableCell({
                             verticalAlign: VerticalAlign.CENTER,
-                            margins: margins150.margins,
                             children: [
                                 new Paragraph({
                                     alignment: AlignmentType.LEFT,
+                                    spacing: { before: 20, after: 0 },
                                     children: [
                                         new ExternalHyperlink({
                                             link: pub.relatedPublicationUrl,
@@ -287,6 +300,7 @@ export const handleWordReportDownload = async ({
                             children: [
                                 new Paragraph({
                                     alignment: AlignmentType.LEFT,
+                                    spacing: { before: 20, after: 0 },
                                     children: [
                                         createTextRun(
                                             sanitizeText(toTitleCase(pub.relatedTitle)),
@@ -303,6 +317,7 @@ export const handleWordReportDownload = async ({
                             children: [
                                 new Paragraph({
                                     alignment: AlignmentType.LEFT,
+                                    spacing: { before: 20, after: 0 },
                                     children: [
                                         createTextRun(
                                             pub.relatedAssignee?.length
@@ -322,6 +337,7 @@ export const handleWordReportDownload = async ({
                             children: [
                                 new Paragraph({
                                     alignment: AlignmentType.LEFT,
+                                    spacing: { before: 20, after: 0 },
                                     children: [
                                         createTextRun(
                                             sanitizeText(pub.relatedPriorityDate || "N/A"),
@@ -339,6 +355,7 @@ export const handleWordReportDownload = async ({
                             children: [
                                 new Paragraph({
                                     alignment: AlignmentType.LEFT,
+                                    spacing: { before: 20, after: 0 },
                                     children: [
                                         createTextRun(
                                             sanitizeText(pub.relatedPublicationDate || "N/A"),
@@ -355,6 +372,7 @@ export const handleWordReportDownload = async ({
                             children: [
                                 new Paragraph({
                                     alignment: AlignmentType.LEFT,
+                                    spacing: { before: 20, after: 0 },
                                     children: [
                                         createTextRun(
                                             sanitizeText(
@@ -387,15 +405,16 @@ export const handleWordReportDownload = async ({
         },
         rows: [
             new TableRow({
-                tableHeader: true,
+                // tableHeader: true,
                 children: [
                     new TableCell({
+                        verticalAlign: AlignmentType.CENTER,
                         shading: { fill: "BDD7EE" },
                         columnSpan: 2,
                         children: [
                             new Paragraph({
                                 alignment: AlignmentType.CENTER,
-                                spacing: { before: 100 },
+                                spacing: { before: 30, after: 10 },
                                 children: [
                                     createTextRun("Relevant Prior Arts", { bold: true }),
                                 ],
@@ -405,14 +424,15 @@ export const handleWordReportDownload = async ({
                 ],
             }),
             new TableRow({
-                tableHeader: true,
+                // tableHeader: true,
                 children: [
                     new TableCell({
+                        verticalAlign: AlignmentType.CENTER,
                         columnSpan: 2,
                         children: [
                             new Paragraph({
                                 alignment: AlignmentType.CENTER,
-                                spacing: { before: 100 },
+                                spacing: { before: 30, after: 10 },
                                 children: [
                                     createTextRun("Patent/Publications", { bold: true }),
                                 ],
@@ -426,6 +446,8 @@ export const handleWordReportDownload = async ({
                 new TableRow({
                     children: [
                         new TableCell({
+                            verticalAlign: AlignmentType.CENTER,
+                            width: { size: 50, type: WidthType.PERCENTAGE },
                             children: [
                                 new Paragraph({
                                     alignment: AlignmentType.CENTER,
@@ -442,6 +464,9 @@ export const handleWordReportDownload = async ({
                             ],
                         }),
                         new TableCell({
+                            verticalAlign: AlignmentType.CENTER,
+                            width: { size: 50, type: WidthType.PERCENTAGE },
+
                             children: [
                                 new Paragraph({
                                     alignment: AlignmentType.START,
@@ -464,6 +489,7 @@ export const handleWordReportDownload = async ({
         ],
     });
 
+    
 
     const doc = new Document({
         styles: {
@@ -482,29 +508,30 @@ export const handleWordReportDownload = async ({
             },
         },
         sections: [
-
             // Project Title
             {
                 properties: createPageProperties(),
                 // headers: { default: header },
                 // footers: { default: footer },
                 children: [
+
                     new Paragraph({
+                        alignment: AlignmentType.CENTER,
+                        spacing: { after: 300 },
                         children: [
                             createTextRun(projectTitle, textStyle.arial24, { bold: true }),
                         ],
-                        alignment: AlignmentType.CENTER,
-                        spacing: { after: 300 },
                     }),
                     new Paragraph({
+                        alignment: AlignmentType.CENTER,
+                        spacing: { before: 400, after: 800 },
                         children: [
                             createTextRun(projectSubTitle, textStyle.arial14, { bold: true }),
                         ],
-                        alignment: AlignmentType.CENTER,
-                        spacing: { before: 400, after: 800 },
                     }),
                 ],
             },
+
             // Table Content
             {
                 properties: createPageProperties(),
@@ -658,6 +685,7 @@ export const handleWordReportDownload = async ({
                                                 children: [
                                                     new Paragraph({
                                                         alignment: AlignmentType.CENTER,
+                                                        spacing: { before: 0, after: 0 },
                                                         children: [
                                                             createTextRun("Bibliographic Details", textStyle.arial10, { bold: true }),
                                                         ],
@@ -666,7 +694,6 @@ export const handleWordReportDownload = async ({
                                                 borders: commonBorders,
                                                 margins: marginsStyle.margins,
                                             }),
-
                                         ],
                                     }),
                                     new TableRow({
@@ -726,6 +753,7 @@ export const handleWordReportDownload = async ({
                                                     children: [
                                                         new Paragraph({
                                                             alignment: AlignmentType.CENTER,
+                                                            spacing: { before: 0, after: 0 },
                                                             children: [
                                                                 createTextRun("Relevant Excerpts", textStyle.arial10, { bold: true }),
                                                             ],
@@ -738,18 +766,19 @@ export const handleWordReportDownload = async ({
                                         }),
                                     ],
                                 }),
-                                new Paragraph({
-                                    spacing: { before: 200, after: 400 },
-                                    children: [
-                                        createTextRun(sanitizeText("[Abstract]"), textStyle.arial10, { bold: true }),
-                                    ],
-                                    alignment: AlignmentType.LEFT,
-                                }),
+                                // new Paragraph({
+                                //     spacing: { before: 200, after: 400 },
+                                //     children: [
+                                //         createTextRun(sanitizeText("[Abstract]"), textStyle.arial10, { bold: true }),
+                                //     ],
+                                //     alignment: AlignmentType.LEFT,
+                                // }),
                                 new Paragraph({
                                     spacing: { before: 200, after: 400 },
                                     children: [
                                         (pub.abstract || pub.relevantExcerpts) ?
-                                            createTextRun(sanitizeText(pub.abstract || pub.relevantExcerpts), textStyle.arial10)
+                                            // createTextRun(sanitizeText(pub.abstract || pub.relevantExcerpts), textStyle.arial10)
+                                            createTextRun(sanitizeText(pub.relevantExcerpts), textStyle.arial10)
                                             :
                                             createTextRun(
                                                 '*Abstract is not available, please fill it yourself',
@@ -775,7 +804,7 @@ export const handleWordReportDownload = async ({
                         children: [
                             createTextRun("5. Related References", textStyle.arial14, { bold: true, color: "000000" }),
                         ],
-                        spacing: { after: 400 },
+                        spacing: { after: 300 },
                         heading: HeadingLevel.HEADING_1,
                     }),
                     new Paragraph({
@@ -786,7 +815,7 @@ export const handleWordReportDownload = async ({
                                 { italics: true }
                             ),
                         ],
-                        spacing: { after: 400 },
+                        spacing: { after: 300 },
                     }),
                     relatedReferencesTable
                 ],
@@ -851,6 +880,7 @@ export const handleWordReportDownload = async ({
                         indent: { left: 720 },
                     }),
 
+
                     new Table({
                         width: {
                             size: 100,
@@ -858,12 +888,13 @@ export const handleWordReportDownload = async ({
                         },
                         rows: [
                             new TableRow({
-                                tableHeader: true,
+                                // tableHeader: true,
                                 children: [
                                     new TableCell({
                                         verticalAlign: VerticalAlign.CENTER,
                                         children: [
                                             new Paragraph({
+                                                spacing: { before: 0, after: 0 },
                                                 alignment: AlignmentType.CENTER,
                                                 children: [
                                                     createTextRun("S. No.", textStyle.arial10, { bold: true, color: "FFFFFF" }),
@@ -879,6 +910,7 @@ export const handleWordReportDownload = async ({
                                         children: [
                                             new Paragraph({
                                                 alignment: AlignmentType.CENTER,
+                                                spacing: { before: 0, after: 0 },
                                                 children: [
                                                     createTextRun("Key strings (Patents/Patent Applications)", textStyle.arial10, { bold: true, color: "FFFFFF" }),
                                                 ],
@@ -895,6 +927,7 @@ export const handleWordReportDownload = async ({
                                 new TableRow({
                                     children: [
                                         new TableCell({
+                                            verticalAlign: AlignmentType.CENTER,
                                             children: [
                                                 new Paragraph({
                                                     alignment: AlignmentType.CENTER,
@@ -905,9 +938,11 @@ export const handleWordReportDownload = async ({
                                             ],
                                         }),
                                         new TableCell({
+                                            verticalAlign: AlignmentType.CENTER,
                                             children: [
                                                 new Paragraph({
                                                     alignment: AlignmentType.LEFT,
+                                                    spacing: { before: 20, after: 20 },
                                                     children: [
                                                         createTextRun(keyStr.keyStringsText, textStyle.arial10),
                                                     ],
@@ -928,12 +963,193 @@ export const handleWordReportDownload = async ({
                         },
                     }),
 
+                    new Table({
+                        width: {
+                            size: 100,
+                            type: WidthType.PERCENTAGE,
+                        },
+                        rows: [
+                            new TableRow({
+                                // tableHeader: true,
+                                children: [
+                                    new TableCell({
+                                        verticalAlign: VerticalAlign.CENTER,
+                                        children: [
+                                            new Paragraph({
+                                                alignment: AlignmentType.CENTER,
+                                                children: [
+                                                    createTextRun("", { bold: true, color: "FFFFFF" }),
+                                                ],
+                                            }),
+                                        ],
+                                        shading: {
+                                            fill: "000000",
+                                        },
+                                    }),
+                                    new TableCell({
+                                        verticalAlign: VerticalAlign.CENTER,
+                                        children: [
+                                            new Paragraph({
+                                                alignment: AlignmentType.CENTER,
+                                                spacing: { before: 10, after: 20 },
+                                                children: [
+                                                    createTextRun("Key strings (Non-Patent Literatures)", textStyle.arial10, { bold: true, color: "FFFFFF" }),
+                                                ],
+                                            }),
+                                        ],
+                                        shading: {
+                                            fill: "000000",
+                                        },
+                                    }),
+                                ],
+                            }),
+                            ...appendix1?.keyStringsNpl?.map((keyStr, index) =>
+                                new TableRow({
+                                    children: [
+                                        new TableCell({
+                                            verticalAlign: AlignmentType.CENTER,
+                                            children: [
+                                                new Paragraph({
+                                                    alignment: AlignmentType.CENTER,
+                                                    children: [
+                                                        createTextRun(`${(appendix1.keyStrings.length) + (index + 1)}.`, textStyle.arial10),
+                                                    ],
+                                                }),
+                                            ],
+                                        }),
+                                        new TableCell({
+                                            verticalAlign: AlignmentType.CENTER,
+                                            children: [
+                                                new Paragraph({
+                                                    alignment: AlignmentType.LEFT,
+
+                                                    children: [
+                                                        createTextRun(keyStr.keyStringsNplText, textStyle.arial10),
+                                                    ],
+                                                    spacing: { after: 0, before: 0 }
+                                                }),
+                                            ],
+                                        }),
+                                    ],
+                                })
+                            ),
+                        ],
+                        borders: {
+                            top: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                            bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                            left: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                            right: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                            insideHorizontal: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                            insideVertical: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                        },
+                    }),
+
+                    new Table({
+                        width: {
+                            size: 100,
+                            type: WidthType.PERCENTAGE,
+                        },
+                        rows: [
+                            // Table Header
+                            new TableRow({
+                                children: [
+                                    new TableCell({
+                                        verticalAlign: VerticalAlign.CENTER,
+                                        children: [
+                                            new Paragraph({
+                                                alignment: AlignmentType.CENTER,
+                                                children: [
+                                                    createTextRun("", { bold: true, color: "FFFFFF" }),
+                                                ],
+                                            }),
+                                        ],
+                                        shading: {
+                                            fill: "000000",
+                                        },
+                                    }),
+                                    new TableCell({
+                                        verticalAlign: VerticalAlign.CENTER,
+                                        children: [
+                                            new Paragraph({
+                                                alignment: AlignmentType.CENTER,
+                                                spacing: { before: 10, after: 20 },
+                                                children: [
+                                                    createTextRun("Additional Search", textStyle.arial10, { bold: true, color: "FFFFFF" }),
+                                                ],
+                                            }),
+                                        ],
+                                        shading: {
+                                            fill: "000000",
+                                        },
+                                    }),
+                                ],
+                            }),
+
+                            // Dynamic Rows
+                            ...appendix1?.keyStringsAdditional?.map((keyStr, index) =>
+                                new TableRow({
+                                    children: [
+                                        new TableCell({
+                                            verticalAlign: VerticalAlign.CENTER,
+                                            children: [
+                                                new Paragraph({
+                                                    alignment: AlignmentType.CENTER,
+                                                    children: [
+                                                        createTextRun(`${(appendix1?.keyStrings.length + appendix1?.keyStringsNpl.length) + (index + 1)}.`, textStyle.arial10),
+                                                    ],
+                                                }),
+                                            ],
+                                        }),
+                                        new TableCell({
+                                            verticalAlign: VerticalAlign.CENTER,
+                                            children: [
+                                                new Paragraph({
+                                                    alignment: AlignmentType.LEFT,
+                                                    spacing: { before: 0, after: 0 },
+                                                    children: [
+                                                        createTextRun(keyStr.keyStringsAdditionalText, textStyle.arial10),
+                                                    ],
+                                                }),
+                                            ],
+                                        }),
+                                    ],
+                                })
+                            ),
+                        ],
+                        borders: {
+                            top: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                            bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                            left: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                            right: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                            insideHorizontal: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                            insideVertical: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                        },
+                    }),
+                    new Paragraph({
+                        alignment: AlignmentType.RIGHT,
+                        children: [
+                            new InternalHyperlink({
+                                anchor: "back-to-table-of-content",
+                                children: [
+                                    createTextRun("Back to Table of Contents", {
+                                        color: "800080",
+                                        underline: true,
+                                        italics: true,
+                                        size: 16,
+                                        font: "Arial"
+                                    }),
+                                ],
+                            }),
+                        ],
+                        spacing: { before: 50, after: 0 },
+                    }),
+
                     new Paragraph({
                         children: [
                             createTextRun("Data Availability", textStyle.arial11, { bold: true }),
                         ],
                         alignment: AlignmentType.START,
-                        spacing: { after: 100 },
+                        spacing: { before: 200, after: 100 },
                         indent: { left: 520 },
                     }),
                     ...appendix1.dataAvailability.map((mapData) =>
@@ -965,7 +1181,7 @@ export const handleWordReportDownload = async ({
                         ],
                         heading: HeadingLevel.HEADING_1,
                         alignment: AlignmentType.START,
-                        spacing: { after: 100 },
+                        spacing: { after: 30 },
                     }),
 
                     new Paragraph({
@@ -974,7 +1190,7 @@ export const handleWordReportDownload = async ({
                         ],
                         heading: HeadingLevel.HEADING_2,
                         alignment: AlignmentType.START,
-                        spacing: { after: 200 },
+                        spacing: { after: 0 },
                         indent: { left: 520 },
                     }),
 
@@ -995,6 +1211,7 @@ export const handleWordReportDownload = async ({
                             new TableRow({
                                 children: [
                                     new TableCell({
+                                        verticalAlign: AlignmentType.CENTER,
                                         borders: {
                                             top: { style: BorderStyle.NONE },
                                             bottom: { style: BorderStyle.NONE },
@@ -1006,7 +1223,7 @@ export const handleWordReportDownload = async ({
                                                 children: [
                                                     createTextRun("Patents", textStyle.arial10, { bold: true }),
                                                 ],
-                                                spacing: { after: 100 },
+                                                spacing: { after: 50 },
                                                 indent: { left: 520 }
                                             }),
                                             ...cleanListWithEtc(appendix2.patents)
@@ -1021,6 +1238,7 @@ export const handleWordReportDownload = async ({
                                         ],
                                     }),
                                     new TableCell({
+                                        verticalAlign: AlignmentType.CENTER,
                                         borders: {
                                             top: { style: BorderStyle.NONE },
                                             bottom: { style: BorderStyle.NONE },
@@ -1032,7 +1250,7 @@ export const handleWordReportDownload = async ({
                                                 children: [
                                                     createTextRun("Non-patent Literature", textStyle.arial10, { bold: true }),
                                                 ],
-                                                spacing: { after: 100 },
+                                                spacing: { after: 50 },
                                             }),
                                             ...appendix2.nonPatentLiterature
                                                 .split("\n")

@@ -105,6 +105,12 @@ const MappingProjectCreation = () => {
     const [keyString, setKeyString] = useState("");
     const [keyStringsList, setKeyStringsList] = useState("");
 
+    const [keyStringNpl, setKeyStringNpl] = useState("");
+    const [keyStringsNplList, setKeyStringsNplList] = useState("");
+
+    const [keyStringAdditional, setKeyStringAdditional] = useState("");
+    const [keyStringsAdditionalList, setKeyStringsAdditionalList] = useState("");
+
     const [dataAvailability, setDataAvailability] = useState("")
     const [dataAvailabilityValue, setDataAvailabilityValue] = useState("");
 
@@ -175,6 +181,8 @@ const MappingProjectCreation = () => {
     const [showDeleteRelatedReferenceModal, setShowDeleteRelatedReferenceModal] = useState(false);
     const [showDeleteSearchTermModal, setShowDeleteSearchTermModal] = useState(false);
     const [showDeleteKeyStringModal, setShowDeleteKeyStringModal] = useState(false);
+    const [showDeleteKeyStringNplModal, setShowDeleteKeyStringNplModal] = useState(false);
+    const [showDeleteKeyStringAdditionalModal, setShowDeleteKeyStringAdditionalModal] = useState(false);
     const [showDeleteDataAvailabilityModal, setShowDeleteDataAvailabilityModal] = useState(false);
 
 
@@ -201,6 +209,15 @@ const MappingProjectCreation = () => {
     const onKeyStringsDelete = (rowData) => {
         setSelectedRow(rowData);
         setShowDeleteKeyStringModal(true);
+    }
+
+    const onKeyStringsNplDelete = (rowData) => {
+        setSelectedRow(rowData);
+        setShowDeleteKeyStringNplModal(true);
+    }
+    const onKeyStringsAdditionalDelete = (rowData) => {
+        setSelectedRow(rowData);
+        setShowDeleteKeyStringAdditionalModal(true);
     }
 
     const onDataAvailabilityDelete = (rowData) => {
@@ -308,6 +325,8 @@ const MappingProjectCreation = () => {
                     setOverallSummary(singleProject.stages.relevantReferences?.overallSummary || "");
                     setBaseSearchTermsList(singleProject.stages.appendix1?.[0]?.baseSearchTerms || []);
                     setKeyStringsList(singleProject.stages.appendix1?.[0]?.keyStrings || []);
+                    setKeyStringsNplList(singleProject.stages.appendix1?.[0]?.keyStringsNpl || []);
+                    setKeyStringsAdditionalList(singleProject.stages.appendix1?.[0]?.keyStringsAdditional || []);
                     setDataAvailabilityValue(singleProject.stages.appendix1?.[0]?.dataAvailability || "");
                     setAppendix2Patents(singleProject.stages.appendix2?.[0]?.patents || []);
                     setAppendix2NPL(singleProject.stages.appendix2?.[0]?.nonPatentLiterature || []);
@@ -363,7 +382,6 @@ const MappingProjectCreation = () => {
         }
     };
 
-
     const handleSearchTermDelete = async () => {
         try {
             const response = await axios.delete(
@@ -399,8 +417,7 @@ const MappingProjectCreation = () => {
         }
     };
 
-
-    const handleDeleteKeyString = async () => {
+        const handleDeleteKeyString = async () => {
         try {
             const response = await axios.delete(
                 `http://localhost:8080/live/projectname/delete-key-string/${id}/${selectedRow._id}`
@@ -414,6 +431,79 @@ const MappingProjectCreation = () => {
             console.error("❌ Error deleting Key String:", err);
         } finally {
             setShowDeleteKeyStringModal(false);
+            setSelectedRow(null);
+        }
+    };
+
+    const handleSaveKeyStringNpl = async () => {
+        if (!keyStringNpl.trim()) return;
+
+        try {
+            const response = await axios.post(
+                `http://localhost:8080/live/projectname/add-key-string-npl/${id}`, { keyStringsNplText: keyStringNpl },
+                { headers: { "Content-Type": "application/json" } }
+
+            );
+
+            const appendixData = response.data.stages.appendix1[0]?.keyStringsNpl;
+            setKeyStringsNplList(appendixData);
+            setKeyStringNpl("");
+        } catch (err) {
+            console.error("❌ Error saving Key String:", err);
+        }
+    };
+
+    const handleDeleteKeyStringNpl = async () => {
+        try {
+            const response = await axios.delete(
+                `http://localhost:8080/live/projectname/delete-key-string-npl/${id}/${selectedRow._id}`
+            );
+
+            if (response.status === 200) {
+                setKeyStringsNplList(response.data.stages.appendix1[0].keyStringsNpl);
+
+            }
+        } catch (err) {
+            console.error("❌ Error deleting Key String Npl:", err);
+        } finally {
+            setShowDeleteKeyStringNplModal(false);
+            setSelectedRow(null);
+        }
+    };
+
+
+      const handleSaveKeyStringAdditional = async () => {
+        if (!keyStringAdditional.trim()) return;
+
+        try {
+            const response = await axios.post(
+                `http://localhost:8080/live/projectname/add-key-string-additional/${id}`, { keyStringsAdditionalText: keyStringAdditional },
+                { headers: { "Content-Type": "application/json" } }
+
+            );
+
+            const appendixData = response.data.stages.appendix1[0]?.keyStringsAdditional;
+            setKeyStringsAdditionalList(appendixData);
+            setKeyStringAdditional("");
+        } catch (err) {
+            console.error("❌ Error saving Additional:", err);
+        }
+    };
+
+    const handleDeleteKeyStringAdditional = async () => {
+        try {
+            const response = await axios.delete(
+                `http://localhost:8080/live/projectname/delete-key-string-additional/${id}/${selectedRow._id}`
+            );
+
+            if (response.status === 200) {
+                setKeyStringsAdditionalList(response.data.stages.appendix1[0].keyStringsAdditional);
+
+            }
+        } catch (err) {
+            console.error("❌ Error deleting Additional Key String:", err);
+        } finally {
+            setShowDeleteKeyStringAdditionalModal(false);
             setSelectedRow(null);
         }
     };
@@ -2443,6 +2533,19 @@ const relatedApplicantNames = useMemo(() => {
                                                             message="Are you sure you want to delete this Key String?"
                                                             onConfirm={handleDeleteKeyString}
                                                         />
+                                                        <ReusableDeleteComp
+                                                            show={showDeleteKeyStringNplModal}
+                                                            toggle={() => setShowDeleteKeyStringNplModal(false)}
+                                                            message="Are you sure you want to delete this Key String(Npl)?"
+                                                            onConfirm={handleDeleteKeyStringNpl}
+                                                        />
+
+                                                         <ReusableDeleteComp
+                                                            show={showDeleteKeyStringAdditionalModal}
+                                                            toggle={() => setShowDeleteKeyStringAdditionalModal(false)}
+                                                            message="Are you sure you want to delete this Additional Key String?"
+                                                            onConfirm={handleDeleteKeyStringAdditional}
+                                                        />
 
                                                         <ReusableDeleteComp
                                                             show={showDeleteDataAvailabilityModal}
@@ -2480,6 +2583,18 @@ const relatedApplicantNames = useMemo(() => {
                                                         onKeyStringsDelete={onKeyStringsDelete}
                                                         setKeyString={setKeyString}
                                                         handleSaveKeyString={handleSaveKeyString}
+
+                                                        keyStringNpl={keyStringNpl}
+                                                        setKeyStringNpl={setKeyStringNpl}
+                                                        keyStringsNplList={keyStringsNplList}
+                                                        handleSaveKeyStringNpl={handleSaveKeyStringNpl}
+                                                        onKeyStringsNplDelete={onKeyStringsNplDelete}
+
+                                                        keyStringAdditional={keyStringAdditional}
+                                                        setKeyStringAdditional={setKeyStringAdditional}
+                                                        handleSaveKeyStringAdditional={handleSaveKeyStringAdditional}
+                                                        onKeyStringsAdditionalDelete={onKeyStringsAdditionalDelete}
+                                                        keyStringsAdditionalList={keyStringsAdditionalList}
 
                                                         dataAvailability={dataAvailability}
                                                         setDataAvailability={setDataAvailability}

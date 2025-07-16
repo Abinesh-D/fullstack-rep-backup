@@ -251,9 +251,14 @@ const RelatedRefComponent = ({
                     <TableContainer
                         columns={relatedColumns}
                         data={relatedFormData || []}
+                        isPagination={true}
+                        isCustomPageSize={true}
                         SearchPlaceholder="Search..."
                         tableClass="align-middle table-nowrap table-hover dt-responsive nowrap w-100 dataTable no-footer dtr-inline"
                         theadClass="table-light"
+                        paginationWrapper="dataTables_paginate paging_simple_numbers pagination-rounded"
+                        pagination="pagination"
+
 
                     />
                 )

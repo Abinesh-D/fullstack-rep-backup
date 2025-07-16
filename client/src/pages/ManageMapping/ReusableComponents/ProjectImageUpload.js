@@ -13,8 +13,6 @@ const ImageUploader = ({ images, onUpload, onDelete, onRemove }) => {
         onDrop: onUpload,
     });
 
-    console.log("images", images);
-
     return (
         <div>
             <div {...getRootProps()} style={{ border: "2px dashed #ccc", borderRadius: "10px", padding: "30px", textAlign: "center", backgroundColor: isDragActive ? "#f1f1f1" : "#fafafa", cursor: "pointer", transition: "background-color 0.3s ease", }}>

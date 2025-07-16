@@ -45,39 +45,51 @@ const relatedReferenceSchema = new Schema({
 
 const SearchItemSchemaAppendix1 = new Schema({
   _id: { type: String, default: uuidv4 },
-  searchTermText: { type: String, required: true }
+  searchTermText: { type: String, required: false }
 }, { _id: false });
 
 
 const KeyStringsSchemaAppendix1 = new Schema({
   _id: { type: String, default: uuidv4 },
-  keyStringsText: { type: String, required: true }
+  keyStringsText: { type: String, required: false },
 }, { _id: false });
 
 
+const KeyStringsNplSchemaAppendix1 = new Schema({
+  _id: { type: String, default: uuidv4 },
+  keyStringsNplText: { type: String, required: false },
+}, { _id: false });
+
+const KeyStringsAdditionalSchemaAppendix1 = new Schema({
+  _id: { type: String, default: uuidv4 },
+  keyStringsAdditionalText: { type: String, required: false },
+}, { _id: false });
+
 const DataAvailabilitySchemaAppendix1 = new Schema({
   _id: { type: String, default: uuidv4 },
-  dataAvailableText: { type: String, required: true }
+  dataAvailableText: { type: String, required: false }
 }, { _id: false });
 
 const appendix1Schema = new Schema({
   _id: { type: String, default: uuidv4 },
   baseSearchTerms: { type: [SearchItemSchemaAppendix1], default: [] },
   keyStrings: { type: [KeyStringsSchemaAppendix1], default: [] },
+  keyStringsNpl: { type: [KeyStringsNplSchemaAppendix1], default: [] },
+  keyStringsAdditional: { type: [KeyStringsAdditionalSchemaAppendix1], default: [] },
   dataAvailability: { type: [DataAvailabilitySchemaAppendix1], default: [] }
 });
 
 
 const ImageSchema = new mongoose.Schema({
   _id: { type: String, default: uuidv4 },
-  name: { type: String, required: true },
-  size: { type: Number, required: true },
+  name: { type: String, required: false },
+  size: { type: Number, required: false },
   formattedSize: { type: String },
-  type: { type: String, required: true },
-  base64Url: { type: String, required: true },
+  type: { type: String, required: false },
+  base64Url: { type: String, required: false },
   uploadedAt: { type: Date, default: Date.now },
   uploader: { type: String },
-  public_id: { type: String, required: true },
+  public_id: { type: String, required: false },
 });
 
 
@@ -98,7 +110,7 @@ const appendix2 = new Schema({
 });
 
 const fullProjectSchema = new Schema({
-  projectName: { type: String, required: true },
+  projectName: { type: String, required: false },
   projectType: String,
   createdOn: {
     type: String,

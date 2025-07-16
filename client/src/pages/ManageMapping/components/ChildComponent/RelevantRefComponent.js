@@ -387,9 +387,13 @@ const RelevantRefComponent = ({
                 <TableContainer
                     columns={columns}
                     data={relevantFormData || []}
-                    SearchPlaceholder="Search..."
-                    tableClass="align-middle table-nowrap table-hover dt-responsive nowrap w-100 dataTable no-footer dtr-inline"
-                    theadClass="table-light"
+                     isPagination={true}
+                        isCustomPageSize={true}
+                        SearchPlaceholder="Search..."
+                        tableClass="align-middle table-nowrap table-hover dt-responsive nowrap w-100 dataTable no-footer dtr-inline"
+                        theadClass="table-light"
+                        paginationWrapper="dataTables_paginate paging_simple_numbers pagination-rounded"
+                        pagination="pagination"
                 />
             )}
 
@@ -482,9 +486,13 @@ const RelevantRefComponent = ({
                 <TableContainer
                     columns={nplColumns}
                     data={nonPatentFormData || []}
-                    SearchPlaceholder="Search..."
-                    tableClass="align-middle table-nowrap table-hover dt-responsive nowrap w-100 dataTable no-footer dtr-inline"
-                    theadClass="table-light"
+                     isPagination={true}
+                        isCustomPageSize={true}
+                        SearchPlaceholder="Search..."
+                        tableClass="align-middle table-nowrap table-hover dt-responsive nowrap w-100 dataTable no-footer dtr-inline"
+                        theadClass="table-light"
+                        paginationWrapper="dataTables_paginate paging_simple_numbers pagination-rounded"
+                        pagination="pagination"
                 />
             )}
 
