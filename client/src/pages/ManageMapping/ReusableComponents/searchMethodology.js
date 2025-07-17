@@ -1,5 +1,5 @@
 
-import { Paragraph, HeadingLevel, TextRun, UnderlineType, InternalHyperlink } from "docx";
+import { Paragraph, HeadingLevel, TextRun, UnderlineType, InternalHyperlink, Bookmark } from "docx";
 
 // const makeIndentedParagraphs = (texts, left = 720) =>
 //     texts.map(
@@ -17,7 +17,7 @@ const makeIndentedParagraphs = (texts, left = 720) =>
         const parts = text.split(/(Appendix 1|Appendix 2)/);
 
         return new Paragraph({
-            spacing: { before: 100, after: 100 },
+            spacing: { before: 50, after: 50 },
             indent: { left },
             children: parts.map((part) => {
                 if (part === "Appendix 1") {
@@ -59,15 +59,13 @@ const makeIndentedParagraphs = (texts, left = 720) =>
 export const getSearchMethodology = (projectTitle) => [
     new Paragraph({
         heading: HeadingLevel.HEADING_1,
-        spacing: { after: 200 },
+        spacing: { after: 100 },
         children: [
-            new TextRun({
-                text: "2. Search Methodology",
-                font: "Arial",
-                size: 28,
-                color: "000000",
-                bold: true,
-            }),
+            new Bookmark({
+                id: "search-methodology",
+                children: [new TextRun({ text: "2. Search Methodology", font: "Arial", size: 28, color: "000000", bold: true, }),
+                ]
+            })
         ],
         indent: { left: 720 }
     }),
@@ -95,7 +93,7 @@ export const getSearchMethodology = (projectTitle) => [
             new TextRun("” analyzed in terms of project requirements."),
         ],
         indent: { left: 720 },
-        spacing: { before: 100, after: 100 },
+        spacing: { before: 50, after: 50 },
     }),
 
     ...makeIndentedParagraphs([

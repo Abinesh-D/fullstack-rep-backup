@@ -1,18 +1,17 @@
 import {
     Document, BorderStyle, Packer, Paragraph, TextRun, Table, TableRow, AlignmentType, TableCell, VerticalAlign, WidthType, ShadingType,
-    ExternalHyperlink, HeadingLevel, ImageRun, SimpleField, InternalHyperlink, PageBorderDisplay, PageBorderOffsetFrom, PageBorderZOrder,
-    Bookmark, Footer, PageNumber, Header, PageMargin, PageBorders
+    ExternalHyperlink, HeadingLevel, ImageRun, InternalHyperlink, Bookmark, Footer, Header, TabStopPosition, TabStopType,
+    UnderlineType,
 } from "docx";
 import { saveAs } from "file-saver";
 import { getSearchMethodology } from "./searchMethodology";
-import { fileToBase64, formatBytes } from "./base64Convertion";
-
 
 const textStyle = {
     arial24: { font: "Arial", size: 48 },
     arial14: { font: "Arial", size: 28 },
     arial11: { font: "Arial", size: 22 },
     arial10: { font: "Arial", size: 20 },
+    arial13: { font: "Arial", size: 26 },
 };
 
 const commonBorders = {
@@ -105,9 +104,7 @@ export const handleWordReportDownload = async ({
     overallSummary,
 }) => {
 
-    console.log('appendix1', appendix1);
-
-    const createPageProperties = (margin = 720, orientation = "portrait") => ({
+    const createPageProperties = (margin = 920, orientation = "portrait") => ({
         page: {
             margin: {
                 top: margin,
@@ -189,38 +186,117 @@ export const handleWordReportDownload = async ({
         ],
     });
 
-
     const cloudinaryUrls = projectImageUrl.map(buf => buf.base64Url);
 
     const imageBuffers = await Promise.all(
         cloudinaryUrls.map(async (url) => await getImageArrayBufferFromUrl(url))
     );
 
-    const tableOfContentsTitle = new Paragraph({
-        alignment: AlignmentType.CENTER,
-        spacing: { after: 300, before: 300 },
+
+    const tocTitle = new Paragraph({
         children: [
             new Bookmark({
                 id: "back-to-table-of-content",
                 children: [
-                    createTextRun("Table of Contents", textStyle.arial14, {
-                        bold: true, underline: { type: "single", color: "000000", },
-                    })
+                    createTextRun("Table of Contents", textStyle.arial14, { bold: true, underline: true })
                 ]
             })
         ],
+        // alignment: AlignmentType.CENTER,
+        spacing: { after: 200, before: 100 },
     });
 
+//     const createTocEntry = ({ label, pageNumber = "0", indent = 0, isBold = false, font13 = false }) => {
+//         const fontStyle = font13 ? textStyle.arial13 : textStyle.arial11;
 
-    const tocField = new Paragraph({
+//     return new Paragraph({
+//         children: [
+//             createTextRun(label, fontStyle, { bold: isBold }),
+//             createTextRun("\t"),
+//             createTextRun(pageNumber, fontStyle),
+//         ],
+//         tabStops: [
+//             {
+//                 type: TabStopType.RIGHT,
+//                 position: TabStopPosition.MAX,                
+//                 leader: "dot",
+//             },
+//         ],
+//         indent: { left: indent },
+//         spacing: { after: 20 },
+//     });
+// };
+
+
+const createTocEntry = ({ label, pageNumber = "0", indent = 0, isBold = false, font13 = false, anchor }) => {
+    const fontStyle = font13 ? textStyle.arial13 : textStyle.arial11;
+
+    return new Paragraph({
         children: [
-            new SimpleField({
-                instruction: "TOC \\o \"1-3\" \\h \\z \\u",
-                dirty: true,
+            new InternalHyperlink({
+                anchor: anchor,
+                children: [
+                    createTextRun(label, fontStyle, { bold: isBold }),
+                    createTextRun("\t"),
+                    createTextRun(pageNumber, fontStyle),
+                ],
             }),
         ],
-        spacing: { after: 400 },
+        tabStops: [
+            {
+                type: TabStopType.RIGHT,
+                position: TabStopPosition.MAX,
+                leader: "dot",
+            },
+        ],
+        indent: { left: indent },
+        spacing: { after: 20 },
     });
+};
+
+
+const tocConfig = [
+    { label: "1.   Search Features", anchor: "search-features", isBold: true },
+    { label: "2.   Search Methodology", anchor: "search-methodology", isBold: true },
+    { label: "3.   Potentially Relevant References", anchor: "potentially-relevant-references", isBold: true },
+    { label: "4.   Potentially Relevant References", anchor: "potentially-relevant-references-2", isBold: true },
+    ...relevantReferences.map((ref, index) => ({
+        label: `${index + 1}.    ${ref.patentNumber}`,
+        anchor: `patentNumberCount-${index + 1}`,
+        indent: 360,
+    })),
+    { label: "5.   Related References", anchor: "related-references", isBold: true },
+    { label: "Appendix 1", anchor: "appendix-link-1", isBold: true },
+    { label: "Search Terms & Search Strings", anchor: "search-terms", indent: 720, font13: true },
+    { label: "Data Availability", anchor: "data-availability", indent: 720, font13: true },
+    { label: "Appendix 2", anchor: "appendix-link-2", isBold: true },
+    { label: "Databases", anchor: "databases", indent: 720, font13: true },
+    { label: "Disclaimer", anchor: "disclaimer", isBold: true },
+];
+
+
+
+
+    // const tocConfig = [
+    //     { label: "1.   Search Features", isBold: true },
+    //     { label: "2.   Search Methodology", isBold: true },
+    //     { label: "3.   Potentially Relevant References", isBold: true },
+    //     { label: "4.   Potentially Relevant References", isBold: true },
+    //     ...relevantReferences.map((ref, index) => ({
+    //         label: `${index + 1}.    ${ref.patentNumber}`,
+    //         indent: 360,
+    //     })),
+    //     { label: "5.   Related References", isBold: true },
+    //     { label: "Appendix 1", isBold: true },
+    //     { label: "Search Terms & Search Strings", indent: 720, font13: true },
+    //     { label: "Data Availability", indent: 720, font13: true },
+    //     { label: "Appendix 2", isBold: true },
+    //     { label: "Databases", indent: 720, font13: true },
+    //     { label: "Disclaimer", isBold: true },
+    // ];
+
+    const tocEntries = tocConfig.map(createTocEntry);
+
 
 
     const relatedReferencesTable = new Table({
@@ -239,7 +315,7 @@ export const handleWordReportDownload = async ({
                     new TableCell({
                         verticalAlign: AlignmentType.CENTER,
                         shading: {
-                            fill: "BDD7EE",
+                            fill: "A7C7E7",
                             type: ShadingType.CLEAR,
                             color: "auto",
                         },
@@ -409,7 +485,7 @@ export const handleWordReportDownload = async ({
                 children: [
                     new TableCell({
                         verticalAlign: AlignmentType.CENTER,
-                        shading: { fill: "BDD7EE" },
+                        shading: { fill: "A7C7E7" },
                         columnSpan: 2,
                         children: [
                             new Paragraph({
@@ -476,7 +552,12 @@ export const handleWordReportDownload = async ({
                                         new ExternalHyperlink({
                                             link: ref.publicationUrl,
                                             children: [
-                                                createTextRun(ref.patentNumber, { color: "0000FF", underline: true, }),
+                                                // new Bookmark({
+                                                //     id: `patentNumberCount-${index + 1}`,
+                                                //     children: [
+                                                        createTextRun(ref.patentNumber, { color: "0000FF", underline: true, }),
+                                                //     ]
+                                                // })
                                             ],
                                         }),
                                     ],
@@ -538,10 +619,23 @@ export const handleWordReportDownload = async ({
                 headers: { default: header },
                 footers: { default: footer },
                 children: [
-                    tableOfContentsTitle,
-                    tocField,
+                    tocTitle,
+                    ...tocEntries,
+                    
+                    new Paragraph({
+                        children:[
+                            new ExternalHyperlink({
+                                link: "https://par.molecularconnections.com/mc-review/form/IDF-34131Top%20Load%20Washer%20with%20Flexible%20Dispenser%20and%20Serviceable%20Dosing%20System",
+                                children:[
+                                    createTextRun("Please rate this search report", textStyle.arial10, { bold: true, color: "0000FF", underline: { type: UnderlineType.SINGLE }, })
+                                ]
+                            })                            
+                        ],
+                        spacing: { before: 100 }
+                    })
                 ],
             },
+
             // Search Features
             {
                 properties: createPageProperties(),
@@ -550,7 +644,12 @@ export const handleWordReportDownload = async ({
                 children: [
                     new Paragraph({
                         children: [
-                            createTextRun("1. Search Features", textStyle.arial14, { bold: true, color: "000000" }),
+                            new Bookmark({
+                                id: "search-features",
+                                children: [
+                                    createTextRun("1. Search Features", textStyle.arial14, { bold: true, color: "000000" }),
+                                ]
+                            })
                         ],
                         alignment: AlignmentType.LEFT,
                         spacing: { before: 200, after: 400 },
@@ -601,7 +700,12 @@ export const handleWordReportDownload = async ({
                 children: [
                     new Paragraph({
                         children: [
-                            createTextRun("3. Potentially Relevant References", textStyle.arial14, { bold: true, color: "000000" }),
+                            new Bookmark({
+                                id: "potentially-relevant-references",
+                                children: [
+                                    createTextRun("3. Potentially Relevant References", textStyle.arial14, { bold: true, color: "000000" }),
+                                ]
+                            })
                         ],
                         heading: HeadingLevel.HEADING_1,
                         spacing: { after: 400 },
@@ -631,7 +735,12 @@ export const handleWordReportDownload = async ({
                 children: [
                     new Paragraph({
                         children: [
-                            createTextRun("4. Potentially Relevant References", textStyle.arial14, { bold: true, color: "000000" }),
+                            new Bookmark({
+                                id: "potentially-relevant-references-2",
+                                children: [
+                                    createTextRun("4. Potentially Relevant References", textStyle.arial14, { bold: true, color: "000000" }),
+                                ]
+                            })
                         ],
                         heading: HeadingLevel.HEADING_1,
                         spacing: { after: 400 },
@@ -677,7 +786,8 @@ export const handleWordReportDownload = async ({
                                             new TableCell({
                                                 columnSpan: 2,
                                                 shading: {
-                                                    fill: "BDD7EE",
+                                                    // fill: "A7C7E7",
+                                                    fill: "A7C7E7",
                                                     type: ShadingType.CLEAR,
                                                     color: "auto",
                                                 },
@@ -745,7 +855,7 @@ export const handleWordReportDownload = async ({
                                                 new TableCell({
                                                     columnSpan: 2,
                                                     shading: {
-                                                        fill: "BDD7EE",
+                                                        fill: "A7C7E7",
                                                         type: ShadingType.CLEAR,
                                                         color: "auto",
                                                     },
@@ -766,13 +876,7 @@ export const handleWordReportDownload = async ({
                                         }),
                                     ],
                                 }),
-                                // new Paragraph({
-                                //     spacing: { before: 200, after: 400 },
-                                //     children: [
-                                //         createTextRun(sanitizeText("[Abstract]"), textStyle.arial10, { bold: true }),
-                                //     ],
-                                //     alignment: AlignmentType.LEFT,
-                                // }),
+
                                 new Paragraph({
                                     spacing: { before: 200, after: 400 },
                                     children: [
@@ -802,7 +906,12 @@ export const handleWordReportDownload = async ({
                 children: [
                     new Paragraph({
                         children: [
-                            createTextRun("5. Related References", textStyle.arial14, { bold: true, color: "000000" }),
+                            new Bookmark({
+                                id: "related-references",
+                                children: [
+                                    createTextRun("5. Related References", textStyle.arial14, { bold: true, color: "000000" }),
+                                ]
+                            })
                         ],
                         spacing: { after: 300 },
                         heading: HeadingLevel.HEADING_1,
@@ -833,13 +942,14 @@ export const handleWordReportDownload = async ({
                                 children: [
                                     createTextRun("Appendix 1", textStyle.arial14, { bold: true, color: "000000" }),
                                 ],
-                            })
+                            }),
                         ],
-
                         heading: HeadingLevel.HEADING_1,
                         alignment: AlignmentType.START,
                         spacing: { after: 50 },
                     }),
+
+
 
                     new Paragraph({
                         children: [
@@ -902,7 +1012,7 @@ export const handleWordReportDownload = async ({
                                             }),
                                         ],
                                         shading: {
-                                            fill: "000000",
+                                            fill: "353839",
                                         },
                                     }),
                                     new TableCell({
@@ -917,7 +1027,7 @@ export const handleWordReportDownload = async ({
                                             }),
                                         ],
                                         shading: {
-                                            fill: "000000",
+                                            fill: "353839",
                                         },
                                     }),
                                 ],
@@ -983,7 +1093,7 @@ export const handleWordReportDownload = async ({
                                             }),
                                         ],
                                         shading: {
-                                            fill: "000000",
+                                            fill: "353839",
                                         },
                                     }),
                                     new TableCell({
@@ -998,7 +1108,7 @@ export const handleWordReportDownload = async ({
                                             }),
                                         ],
                                         shading: {
-                                            fill: "000000",
+                                            fill: "353839",
                                         },
                                     }),
                                 ],
@@ -1064,7 +1174,7 @@ export const handleWordReportDownload = async ({
                                             }),
                                         ],
                                         shading: {
-                                            fill: "000000",
+                                            fill: "353839",
                                         },
                                     }),
                                     new TableCell({
@@ -1079,7 +1189,7 @@ export const handleWordReportDownload = async ({
                                             }),
                                         ],
                                         shading: {
-                                            fill: "000000",
+                                            fill: "353839",
                                         },
                                     }),
                                 ],
@@ -1094,6 +1204,7 @@ export const handleWordReportDownload = async ({
                                             children: [
                                                 new Paragraph({
                                                     alignment: AlignmentType.CENTER,
+                                                    spacing: { before: 20, after: 20 },
                                                     children: [
                                                         createTextRun(`${(appendix1?.keyStrings.length + appendix1?.keyStringsNpl.length) + (index + 1)}.`, textStyle.arial10),
                                                     ],
@@ -1105,7 +1216,7 @@ export const handleWordReportDownload = async ({
                                             children: [
                                                 new Paragraph({
                                                     alignment: AlignmentType.LEFT,
-                                                    spacing: { before: 0, after: 0 },
+                                                    spacing: { before: 20, after: 20 },
                                                     children: [
                                                         createTextRun(keyStr.keyStringsAdditionalText, textStyle.arial10),
                                                     ],
@@ -1132,7 +1243,7 @@ export const handleWordReportDownload = async ({
                                 anchor: "back-to-table-of-content",
                                 children: [
                                     createTextRun("Back to Table of Contents", {
-                                        color: "800080",
+                                        color: "0000FF",
                                         underline: true,
                                         italics: true,
                                         size: 16,

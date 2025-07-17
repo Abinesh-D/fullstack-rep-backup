@@ -45,7 +45,8 @@ const relatedReferenceSchema = new Schema({
 
 const SearchItemSchemaAppendix1 = new Schema({
   _id: { type: String, default: uuidv4 },
-  searchTermText: { type: String, required: false }
+  searchTermText: { type: String, required: true },
+  relevantWords: { type: String, required: false },
 }, { _id: false });
 
 

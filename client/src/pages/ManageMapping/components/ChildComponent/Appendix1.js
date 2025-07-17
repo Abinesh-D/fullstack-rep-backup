@@ -1,6 +1,6 @@
 import { isEmptyArray } from "formik";
-import React, { useMemo } from "react";
-import { Row, Col, Button, Label, Input } from "reactstrap";
+import React, { useMemo, useState } from "react";
+import { Row, Col, Button, Label, Input, Spinner } from "reactstrap";
 import TableContainer from "../../ReusableComponents/TableContainer";
 import { Link } from "react-router-dom";
 
@@ -11,6 +11,13 @@ const Appendix1 = ({
     baseSearchTermsList,
     handleSaveBaseSearchTerm,
     onSearchTermDelete,
+    relevantWords,
+    setRelevantWords,
+    handleFindRelevantWord,
+    handleAddSearchTerms,
+    findLoading,
+    relevantWordsList,
+    onRelevantWordsDelete,
 
     keyString,
     setKeyString,
@@ -38,7 +45,10 @@ const Appendix1 = ({
 
 }) => {
 
-    const baseSearchColumns = useMemo(() => [
+
+ console.log('relevantWordsList', relevantWordsList)
+
+    const baseSearchTermsColumns = useMemo(() => [
         {
             header: "S. No.",
             accessorKey: "serial_number",
@@ -47,8 +57,14 @@ const Appendix1 = ({
             enableSorting: false,
         },
         {
-            header: "Search Terms",
+            header: "Key Word",
             accessorKey: "searchTermText",
+            enableColumnFilter: false,
+            enableSorting: true,
+        },
+        {
+            header: "Relevant Words",
+            accessorKey: "relevantWords",
             enableColumnFilter: false,
             enableSorting: true,
         },
@@ -62,8 +78,8 @@ const Appendix1 = ({
                             to="#"
                             data-bs-toggle="tooltip"
                             data-bs-placement="top"
-                            title="Delete Publication"
-                            onClick={() => onSearchTermDelete(rowData)}
+                            title="Delete Search Term"
+                            onClick={() => onRelevantWordsDelete(rowData)}
                         >
                             <i className="mdi mdi-delete text-danger font-size-18"></i>
                         </Link>
@@ -71,7 +87,8 @@ const Appendix1 = ({
                 );
             },
         },
-    ], [baseSearchTermsList]);
+    ], [relevantWordsList]);
+
 
 
     const keyStringsColumns = useMemo(() => [
@@ -216,6 +233,9 @@ const Appendix1 = ({
         },
     ], [dataAvailabilityValue]);
 
+
+
+
     return (
         <>
             <h4 className="fw-bold mb-3">Appendix 1</h4>
@@ -224,7 +244,81 @@ const Appendix1 = ({
             </p>
 
             <h5 className="fw-semibold">1. Base Search Terms</h5>
+
             <Row>
+                <Col lg="4">
+                    <div className="mb-3">
+                        <Label for="base-search-terms">Key Word</Label>
+                        <Input
+                            type="text"
+                            id="base-search-terms"
+                            className="form-control"
+                            placeholder="Enter Key Word"
+                            value={baseSearchTerm}
+                            onChange={e => setBaseSearchTerm(e.target.value)}
+                        />
+                    </div>
+
+                    <div className="mb-3 d-flex gap-2">
+                        <Button
+                            color="success"
+                            type="button"
+                            onClick={handleFindRelevantWord}
+                            className="flex-fill"
+                        >
+                            {findLoading ? (
+                                <>
+                                    <Spinner size="sm" /> Loading...
+                                </>
+                            ) : (
+                                "Find"
+                            )}
+                        </Button>
+
+                        <Button
+                            color="primary"
+                            type="button"
+                            onClick={handleAddSearchTerms}
+                            className="flex-fill"
+                        >
+                            + Add Search Terms
+                        </Button>
+                    </div>
+                </Col>
+
+                <Col lg="8">
+                    <div className="mb-3">
+                        <Label for="relevantapiword">Relevant Words</Label>
+                        <textarea
+                            id="relevantapiword"
+                            className="form-control"
+                            rows="4"
+                            placeholder="Relevant Words."
+                            value={relevantWords}
+                            onChange={(e) => setRelevantWords(e.target.value)}
+                        />
+                    </div>
+                </Col>
+            </Row>
+
+            {
+                !isEmptyArray(relevantWordsList) && (
+                    <TableContainer
+                        columns={baseSearchTermsColumns}
+                        data={relevantWordsList || []}
+                        isPagination={true}
+                        isCustomPageSize={true}
+                        tableClass="align-middle table-nowrap table-hover dt-responsive nowrap w-100 dataTable no-footer dtr-inline"
+                        theadClass="table-light"
+                        paginationWrapper="dataTables_paginate paging_simple_numbers pagination-rounded"
+                        pagination="pagination"
+                    />
+                )
+            }
+
+
+
+            {/* <Row>
                 <Col lg="12">
                     <div className="mb-3">
                         <Label for="base-search-terms">Enter Terms</Label>
@@ -261,7 +355,7 @@ const Appendix1 = ({
                         pagination="pagination"
                     />
                 )
-            }
+            } */}
 
             <h5 className="fw-semibold mt-5">2. Search Strings</h5>
             <Row>

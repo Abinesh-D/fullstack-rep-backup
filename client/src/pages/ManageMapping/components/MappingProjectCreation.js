@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import {
-    Card, CardBody, Col, Container, Form, Input, Label, NavItem, NavLink, Row, TabContent, TabPane, Button, Spinner,
-    Modal, ModalBody, ModalFooter, ModalHeader,
+    Card, CardBody, Col, Container, NavItem, NavLink, Row, TabContent, TabPane,
 } from "reactstrap";
 import classnames from "classnames";
 import { Link, useNavigate, useLocation } from "react-router-dom";
@@ -19,16 +18,9 @@ import IntroductionTab from "./ChildComponent/IntroductionTab ";
 import RelatedRefComponent from "./ChildComponent/RelatedrefComponent";
 import Appendix1 from "./ChildComponent/Appendix1";
 import Appendix2 from "./ChildComponent/Appendix2";
-import ReusableDeleteComp from "../ReusableComponents/ResuableDeleteComp";
 import { handleWordReportDownload } from "../ReusableComponents/handleWordReportDownload";
+import DeleteModal from "../ReusableComponents/ResuableDeleteComp";
 
-import { saveAs } from "file-saver";
-import {
-    Document, BorderStyle, Packer, Paragraph, TextRun, Table, TableRow, AlignmentType, TableCell, VerticalAlign, WidthType, ShadingType,
-    ExternalHyperlink, TabStopType, HeadingLevel, ImageRun, 
-} from "docx";
-import { getSearchMethodology } from "../ReusableComponents/searchMethodology";
-import { fileToBase64, formatBytes } from "../ReusableComponents/base64Convertion";
 
 
 const MappingProjectCreation = () => {
@@ -101,6 +93,12 @@ const MappingProjectCreation = () => {
 
     const [baseSearchTerm, setBaseSearchTerm] = useState("");
     const [baseSearchTermsList, setBaseSearchTermsList] = useState([]);
+
+    const [relevantWords, setRelevantWords] = useState("");
+    const [relevantWordsList, setRelevantWordsList] = useState([]);
+    const [findLoading, setFindLoading] = useState(false);
+
+
 
     const [keyString, setKeyString] = useState("");
     const [keyStringsList, setKeyStringsList] = useState("");
@@ -176,53 +174,49 @@ const MappingProjectCreation = () => {
 
     const [selectedRow, setSelectedRow] = useState(null);
 
-    const [showDeletePublicationModal, setShowDeletePublicationModal] = useState(false);
-    const [showDeleteNonPatentModal, setShowDeleteNonPatentModal] = useState(false);
-    const [showDeleteRelatedReferenceModal, setShowDeleteRelatedReferenceModal] = useState(false);
-    const [showDeleteSearchTermModal, setShowDeleteSearchTermModal] = useState(false);
-    const [showDeleteKeyStringModal, setShowDeleteKeyStringModal] = useState(false);
-    const [showDeleteKeyStringNplModal, setShowDeleteKeyStringNplModal] = useState(false);
-    const [showDeleteKeyStringAdditionalModal, setShowDeleteKeyStringAdditionalModal] = useState(false);
-    const [showDeleteDataAvailabilityModal, setShowDeleteDataAvailabilityModal] = useState(false);
-
+    const [activeModal, setActiveModal] = useState(null);
 
     const onDeleteClick = (rowData) => {
         setSelectedRow(rowData);
-        setShowDeletePublicationModal(true);
+        setActiveModal("publication");
     };
 
     const onNplDeleteClick = (rowData) => {
         setSelectedRow(rowData);
-        setShowDeleteNonPatentModal(true);
+        setActiveModal("nonPatent");
     };
 
     const onRelatedDelete = (rowData) => {
         setSelectedRow(rowData);
-        setShowDeleteRelatedReferenceModal(true);
+        setActiveModal("relatedReference");
     }
 
     const onSearchTermDelete = (rowData) => {
         setSelectedRow(rowData);
-        setShowDeleteSearchTermModal(true);
+        setActiveModal("searchTerm");
     }
 
     const onKeyStringsDelete = (rowData) => {
         setSelectedRow(rowData);
-        setShowDeleteKeyStringModal(true);
+        setActiveModal("keyString");
     }
 
     const onKeyStringsNplDelete = (rowData) => {
         setSelectedRow(rowData);
-        setShowDeleteKeyStringNplModal(true);
+        setActiveModal("keyStringNpl");
     }
     const onKeyStringsAdditionalDelete = (rowData) => {
         setSelectedRow(rowData);
-        setShowDeleteKeyStringAdditionalModal(true);
+        setActiveModal("keyStringAdditional");
     }
 
     const onDataAvailabilityDelete = (rowData) => {
         setSelectedRow(rowData);
-        setShowDeleteDataAvailabilityModal(true);
+        setActiveModal("dataAvailability");
+    }
+    const onRelevantWordsDelete = (rowData) => {
+        setSelectedRow(rowData);
+        setActiveModal("relevantWords");
     }
 
 
@@ -237,10 +231,68 @@ const MappingProjectCreation = () => {
         } catch (error) {
             console.error("❌ Error deleting related reference:", error);
         } finally {
-            setShowDeleteRelatedReferenceModal(false);
+            setActiveModal(null);
             setSelectedRow(null);
         }
     };
+
+
+    const handleAddSearchTerms = async () => {
+        if (!baseSearchTerm.trim() || !relevantWords.trim()) {
+            alert("Please fill both Key Word and Relevant Words before adding.");
+            return;
+        }
+        const keyWordsData = {
+            baseSearchTerm,
+            relevantWords
+        }
+        try {
+            const response = await axios.post(
+                `http://localhost:8080/live/projectname/add-keywordslist-term/${id}`, { searchTermText: keyWordsData },
+                { headers: { "Content-Type": "application/json" } }
+            );
+
+            console.log('response.data', response.data)
+
+            const updatedBaseSearchTerms = response.data.stages.appendix1[0]?.baseSearchTerms || [];
+            setRelevantWordsList(updatedBaseSearchTerms);
+            setBaseSearchTerm("");
+            setRelevantWords("");
+        } catch (err) {
+            console.error("❌ Error saving Base Search Term:", err);
+        }
+    };
+
+
+
+    const handleFindRelevantWord = async () => {
+        if (!baseSearchTerm.trim()) {
+            alert("Please enter a search term.");
+            return;
+        }
+        setFindLoading(true);
+
+        try {
+            const encodedTerm = encodeURIComponent(baseSearchTerm.trim());
+            const response = await fetch(`https://api.datamuse.com/words?ml=${encodedTerm}&max=10`);
+
+            if (!response.ok) {
+                throw new Error("API request failed");
+            }
+
+            const data = await response.json();
+            const words = data.map(item => item.word).join(", ");
+            setRelevantWords(words || "No relevant words found.");
+        } catch (error) {
+            console.error("Error fetching relevant words:", error);
+            setRelevantWords("Error fetching relevant words.");
+        } finally {
+            setFindLoading(false);
+        }
+    };
+
+
+
 
     const handleNonPatentDelete = async () => {
         try {
@@ -255,7 +307,7 @@ const MappingProjectCreation = () => {
         } catch (error) {
             console.error("❌ Error deleting NPL:", error);
         } finally {
-            setShowDeleteNonPatentModal(false);
+            setActiveModal(null);
             setSelectedRow(null);
         }
     };
@@ -280,7 +332,7 @@ const MappingProjectCreation = () => {
         } catch (error) {
             console.error("❌ Error deleting publication detail:", error);
         } finally {
-            setShowDeletePublicationModal(false);
+            setActiveModal(null);
             setSelectedRow(null);
         }
     };
@@ -304,7 +356,7 @@ const MappingProjectCreation = () => {
 
 
 
-
+    
 
 
 
@@ -324,6 +376,7 @@ const MappingProjectCreation = () => {
                     setNonPatentFormData(singleProject.stages.relevantReferences?.nonPatentLiteratures || []);
                     setOverallSummary(singleProject.stages.relevantReferences?.overallSummary || "");
                     setBaseSearchTermsList(singleProject.stages.appendix1?.[0]?.baseSearchTerms || []);
+                    setRelevantWordsList(singleProject.stages.appendix1?.[0]?.baseSearchTerms || []);
                     setKeyStringsList(singleProject.stages.appendix1?.[0]?.keyStrings || []);
                     setKeyStringsNplList(singleProject.stages.appendix1?.[0]?.keyStringsNpl || []);
                     setKeyStringsAdditionalList(singleProject.stages.appendix1?.[0]?.keyStringsAdditional || []);
@@ -382,6 +435,27 @@ const MappingProjectCreation = () => {
         }
     };
 
+
+    const handleRelevantWordsDelete = async () => {
+        try {
+            console.log('selectedRow, id', selectedRow, id)
+            const response = await axios.delete(
+                `http://localhost:8080/live/projectname/delete-keywordslist-term/${id}/${selectedRow._id}`
+            );
+
+            if (response.status === 200) {
+                setRelevantWordsList(response.data.stages.appendix1[0].baseSearchTerms);
+            }
+        } catch (err) {
+            console.error("❌ Error deleting Base Search Term:", err);
+        } finally {
+            setActiveModal(null);
+            setSelectedRow(null);
+        }
+    };
+
+
+
     const handleSearchTermDelete = async () => {
         try {
             const response = await axios.delete(
@@ -394,7 +468,7 @@ const MappingProjectCreation = () => {
         } catch (err) {
             console.error("❌ Error deleting Base Search Term:", err);
         } finally {
-            setShowDeleteSearchTermModal(false);
+            setActiveModal(null);
             setSelectedRow(null);
         }
     };
@@ -430,7 +504,7 @@ const MappingProjectCreation = () => {
         } catch (err) {
             console.error("❌ Error deleting Key String:", err);
         } finally {
-            setShowDeleteKeyStringModal(false);
+            setActiveModal(null);
             setSelectedRow(null);
         }
     };
@@ -466,7 +540,7 @@ const MappingProjectCreation = () => {
         } catch (err) {
             console.error("❌ Error deleting Key String Npl:", err);
         } finally {
-            setShowDeleteKeyStringNplModal(false);
+            setActiveModal(null);
             setSelectedRow(null);
         }
     };
@@ -503,7 +577,7 @@ const MappingProjectCreation = () => {
         } catch (err) {
             console.error("❌ Error deleting Additional Key String:", err);
         } finally {
-            setShowDeleteKeyStringAdditionalModal(false);
+            setActiveModal(null);
             setSelectedRow(null);
         }
     };
@@ -541,7 +615,7 @@ const MappingProjectCreation = () => {
         } catch (err) {
             console.error("❌ Error deleting dataAvailability:", err);
         } finally {
-            setShowDeleteDataAvailabilityModal(false);
+            setActiveModal(null);
             setSelectedRow(null);
         }
     };
@@ -981,86 +1055,6 @@ const relatedApplicantNames = useMemo(() => {
 }, [relatedBiblioData]);
 
 
-
-
-
-
-// const relatedInventorNames = useMemo(() => {
-//     const inventors = relatedBiblioData?.parties?.inventors?.inventor;
-//     const array = Array.isArray(inventors) ? inventors : inventors ? [inventors] : [];
-
-//     // Define priority: epodoc > original > docdb
-//     const priority = { epodoc: 1, original: 2, docdb: 3 };
-
-// const cleanedInventors = [...array] // clone first
-//     .sort((a, b) =>
-//         priority[a?.$?.['data-format']] - priority[b?.$?.['data-format']]
-//     )
-//     .map(item =>
-//         item?.['inventor-name']?.name
-//             ?.replace(/\[.*?\]/g, '')      // Remove [US], [AT]
-//             ?.replace(/[.,;]/g, '')        // Remove punctuation
-//             ?.replace(/\s+/g, ' ')         // Collapse spaces
-//             ?.trim()
-//     )
-//     .filter(Boolean);
-
-
-//     // Deduplicate based on normalized string
-//     const uniqueInventors = [...new Map(
-//         cleanedInventors.map(name => [
-//             name.toLowerCase(), // key (normalized)
-//             name                // value (original casing)
-//         ])
-//     ).values()];
-
-//     // Title Case
-//     const titleCasedInventors = uniqueInventors.map(str =>
-//         str.replace(/\b\w/g, char => char.toUpperCase())
-//     );
-
-//     return titleCasedInventors.join('; ');
-// }, [relatedBiblioData]);
-
-// const relatedApplicantNames = useMemo(() => {
-//     const applicants = relatedBiblioData?.parties?.applicants?.applicant;
-//     const array = Array.isArray(applicants) ? applicants : applicants ? [applicants] : [];
-
-//     // Define priority: epodoc > original > docdb
-//     const priority = { epodoc: 1, original: 2, docdb: 3 };
-
-//     const cleanedApplicants = array
-//         .sort((a, b) =>
-//             priority[a?.$?.['data-format']] - priority[b?.$?.['data-format']]
-//         )
-//         .map(app =>
-//             app?.['applicant-name']?.name
-//                 ?.replace(/\[.*?\]/g, '')      // Remove [US], [AT]
-//                 ?.replace(/[.,;]/g, '')        // Remove punctuation
-//                 ?.replace(/\s+/g, ' ')         // Collapse spaces
-//                 ?.trim()
-//         )
-//         .filter(Boolean);
-
-//     // Deduplicate based on normalized string
-//     const uniqueApplicants = [...new Map(
-//         cleanedApplicants.map(name => [
-//             name.toLowerCase(), // key (normalized)
-//             name                // value (original casing)
-//         ])
-//     ).values()];
-
-//     // Title Case
-//     const titleCasedApplicants = uniqueApplicants.map(str =>
-//         str.replace(/\b\w/g, char => char.toUpperCase())
-//     );
-
-//     return titleCasedApplicants.join('; ');
-// }, [relatedBiblioData]);
-
-
-
-
     const assigneeAndInventorsName = useMemo(() => {
         return relatedApplicantNames && relatedInventorNames ? `${relatedApplicantNames} / ${relatedInventorNames}` : '';
     }, [relatedApplicantNames, relatedInventorNames]);
@@ -1398,934 +1392,6 @@ const relatedApplicantNames = useMemo(() => {
         }
     };
 
-
-
-
-
-
-
-
-
-
-    // const createPageProperties = (margin = 720, orientation = "portrait") => ({
-    //     page: {
-    //         margin: {
-    //             top: margin,
-    //             bottom: margin,
-    //             left: margin,
-    //             right: margin,
-    //         },
-    //         size: {
-    //             orientation: orientation,
-    //             width: 15840,
-    //             height: 11573,
-    //         },
-    //     },
-    // });
-
-    // const textStyle = {
-    //     arial24: { font: "Arial", size: 48 },
-    //     arial14: { font: "Arial", size: 28 },
-    //     arial11: { font: "Arial", size: 22 },
-    //     arial10: { font: "Arial", size: 20 },
-    // };
-
-    // const createTextRun = (text, style = textStyle.arial11, overrides = {}) =>
-    //     new TextRun({ text, ...style, ...overrides });
-
-
-
-    // const commonBorders = {
-    //     top: { style: BorderStyle.SINGLE, size: 1, color: "D3D3D3" },
-    //     bottom: { style: BorderStyle.SINGLE, size: 1, color: "D3D3D3" },
-    //     left: { style: BorderStyle.SINGLE, size: 1, color: "D3D3D3" },
-    //     right: { style: BorderStyle.SINGLE, size: 1, color: "D3D3D3" },
-    // };
-
-    // const borderNone = {
-    //     top: { style: BorderStyle.SINGLE, size: 1, color: "FFFFFF" },
-    //     bottom: { style: BorderStyle.SINGLE, size: 1, color: "FFFFFF" },
-    //     left: { style: BorderStyle.SINGLE, size: 1, color: "FFFFFF" },
-    //     right: { style: BorderStyle.SINGLE, size: 1, color: "FFFFFF" },
-    // };
-
-
-    // const createSingleColumnTableRows = (rows) =>
-    //     rows.map(({ label, value }) =>
-    //         new TableRow({
-    //             children: [
-    //                 new TableCell({
-    //                     children: [new Paragraph({ text: `${label}:`, bold: true })],
-    //                     borders: borderNone,
-    //                 }),
-    //                 new TableCell({
-    //                     children: [new Paragraph(value)],
-    //                     borders: borderNone,
-    //                 }),
-    //             ],
-    //         })
-    //     );
-
-    // const marginsStyle = { margins: { top: 100, bottom: 100, left: 100, right: 100, }, }
-    // const margins150 = { margins: { top: 100, bottom: 100, left: 100, right: 100, }, }
-
-    // function formatAssigneeOrInventor(str) {
-    //     if (!str) return "";
-
-    //     if (str.includes(";")) {
-    //         return str.toLowerCase()
-    //             .replace(/\b\w/g, char => char.toUpperCase());
-    //     }
-
-    //     return str.toLowerCase().replace(/\b\w/g, char => char.toUpperCase());
-    // }
-
-    // function toTitleCase(str) {
-    //     if (!str) return "";
-    //     return String(str)
-    //         .toLowerCase()
-    //         .split(" ")
-    //         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    //         .join(" ");
-    // };
-
-    // const sanitizeText = (text) =>
-    //     (text || "").replace(/[&<>"]/g, (c) => ({
-    //         "&": "&amp;",
-    //         "<": "&lt;",
-    //         ">": "&gt;",
-    //         "\"": "&quot;"
-    //     }[c]));
-
-    // function cleanListWithEtc(input) {
-    //     const items = input.split(",").map((item) => item.trim());
-    //     const result = [];
-
-    //     for (let i = 0; i < items.length; i++) {
-    //         if (items[i].toLowerCase() === "etc." && i > 0) {
-    //             result[result.length - 1] += ", etc.";
-    //         } else if (items[i].toLowerCase().endsWith("etc.")) {
-    //             result.push(items[i]);
-    //         } else {
-    //             result.push(items[i]);
-    //         }
-    //     }
-
-    //     return result;
-    // }
-
-    // async function getImageArrayBufferFromUrl(url) {
-    //     const response = await fetch(url);
-    //     const blob = await response.blob();
-    //     return blob.arrayBuffer();
-    // }
-
-    // const disclaimer = "This search report is based on the resources available in public domain such as published patents/applications, non-patent literature, products, blogs, technology news, company websites and available/accessible/downloadable. Furthermore, the report is based upon individual expert’s view/judgment & such analysis may vary from expert to expert. Kindly refrain concurring them as Molecular Connections’ views. The contents of this research is for general information purposes only. While Molecular Connections endeavor is to keep the information up to date and correct, Molecular Connections makes no representations OR warranties of any kind, express OR implied, about the completeness OR availability with respect to the contents of this research paper. Any reliance placed on such information is therefore strictly at user’s own risk."
-
-
-    // const handleWordReportDownload = async ({
-    //     projectTitle,
-    //     projectSubTitle,
-    //     searchFeatures,
-    //     relevantReferences,
-    //     relatedReferences,
-    //     appendix1,
-    //     appendix2,
-    //     projectImageUrl,
-
-    // }) => {
-
-    //     const cloudinaryUrls = projectImageUrl.map(buf => buf.base64Url);
-
-    //     const imageBuffers = await Promise.all(
-    //         cloudinaryUrls.map(async (url) => await getImageArrayBufferFromUrl(url))
-    //     );
-
-    //     const relatedReferencesTable = new Table({
-    //         width: { size: 100, type: WidthType.PERCENTAGE },
-    //         rows: [
-    //             new TableRow({
-    //                 children: [
-    //                     "S. No",
-    //                     "Publication Number",
-    //                     "Title",
-    //                     "Assignee/Inventor",
-    //                     "Priority Date",
-    //                     "Publication Date",
-    //                     "Family Members",
-    //                 ].map((header) =>
-    //                     new TableCell({
-    //                         shading: {
-    //                             fill: "BDD7EE",
-    //                             type: ShadingType.CLEAR,
-    //                             color: "auto",
-    //                         },
-    //                         verticalAlign: VerticalAlign.CENTER,
-    //                         margins: margins150.margins,
-    //                         children: [
-    //                             new Paragraph({
-    //                                 alignment: AlignmentType.CENTER,
-    //                                 children: [
-    //                                     createTextRun(header, textStyle.arial10, { bold: true }),
-    //                                 ],
-    //                             }),
-    //                         ],
-    //                         borders: commonBorders,
-    //                     })
-    //                 ),
-    //             }),
-    //             ...(relatedReferences || []).map((pub, index) =>
-    //                 new TableRow({
-    //                     children: [
-    //                         new TableCell({
-    //                             verticalAlign: VerticalAlign.CENTER,
-    //                             margins: margins150.margins,
-    //                             children: [
-    //                                 new Paragraph({
-    //                                     alignment: AlignmentType.LEFT,
-    //                                     children: [
-    //                                         createTextRun(String(index + 1), textStyle.arial10),
-    //                                     ],
-    //                                 }),
-    //                             ],
-    //                             borders: commonBorders,
-    //                         }),
-    //                         new TableCell({
-    //                             verticalAlign: VerticalAlign.CENTER,
-    //                             margins: margins150.margins,
-    //                             children: [
-    //                                 new Paragraph({
-    //                                     alignment: AlignmentType.LEFT,
-    //                                     children: [
-    //                                         new ExternalHyperlink({
-    //                                             link: pub.relatedPublicationUrl,
-    //                                             children: [
-    //                                                 createTextRun(
-    //                                                     sanitizeText(pub.publicationNumber.toUpperCase()),
-    //                                                     textStyle.arial10,
-    //                                                     { style: "Hyperlink" }
-    //                                                 ),
-    //                                             ],
-    //                                         }),
-    //                                     ],
-    //                                 }),
-    //                             ],
-    //                             borders: commonBorders,
-    //                         }),
-    //                         new TableCell({
-    //                             verticalAlign: VerticalAlign.CENTER,
-    //                             margins: margins150.margins,
-    //                             children: [
-    //                                 new Paragraph({
-    //                                     alignment: AlignmentType.LEFT,
-    //                                     children: [
-    //                                         createTextRun(
-    //                                             sanitizeText(toTitleCase(pub.relatedTitle)),
-    //                                             textStyle.arial10
-    //                                         ),
-    //                                     ],
-    //                                 }),
-    //                             ],
-    //                             borders: commonBorders,
-    //                         }),
-    //                         new TableCell({
-    //                             verticalAlign: VerticalAlign.CENTER,
-    //                             margins: margins150.margins,
-    //                             children: [
-    //                                 new Paragraph({
-    //                                     alignment: AlignmentType.LEFT,
-    //                                     children: [
-    //                                         createTextRun(
-    //                                             pub.relatedAssignee?.length
-    //                                                 ? pub.relatedAssignee.map(formatAssigneeOrInventor).join('; ')
-    //                                                 : pub.relatedInventor?.map(formatAssigneeOrInventor).join('; ') || 'N/A',
-    //                                             textStyle.arial10
-    //                                         ),
-    //                                     ],
-    //                                 }),
-    //                             ],
-    //                             borders: commonBorders,
-    //                         }),
-    //                         new TableCell({
-    //                             width: { size: 10, type: WidthType.PERCENTAGE },
-    //                             verticalAlign: VerticalAlign.CENTER,
-    //                             margins: margins150.margins,
-    //                             children: [
-    //                                 new Paragraph({
-    //                                     alignment: AlignmentType.LEFT,
-    //                                     children: [
-    //                                         createTextRun(
-    //                                             sanitizeText(pub.relatedPriorityDate || "N/A"),
-    //                                             textStyle.arial10
-    //                                         ),
-    //                                     ],
-    //                                 }),
-    //                             ],
-    //                             borders: commonBorders,
-    //                         }),
-    //                         new TableCell({
-    //                             width: { size: 10, type: WidthType.PERCENTAGE },
-    //                             verticalAlign: VerticalAlign.CENTER,
-    //                             margins: margins150.margins,
-    //                             children: [
-    //                                 new Paragraph({
-    //                                     alignment: AlignmentType.LEFT,
-    //                                     children: [
-    //                                         createTextRun(
-    //                                             sanitizeText(pub.relatedPublicationDate || "N/A"),
-    //                                             textStyle.arial10
-    //                                         ),
-    //                                     ],
-    //                                 }),
-    //                             ],
-    //                             borders: commonBorders,
-    //                         }),
-    //                         new TableCell({
-    //                             verticalAlign: VerticalAlign.CENTER,
-    //                             margins: margins150.margins,
-    //                             children: [
-    //                                 new Paragraph({
-    //                                     alignment: AlignmentType.LEFT,
-    //                                     children: [
-    //                                         createTextRun(
-    //                                             sanitizeText(
-    //                                                 (pub.relatedFamilyMembers || []).join(", ") || "N/A"
-    //                                             ),
-    //                                             textStyle.arial10
-    //                                         ),
-    //                                     ],
-    //                                 }),
-    //                             ],
-    //                             borders: commonBorders,
-    //                         }),
-    //                     ],
-    //                 })
-    //             ),
-    //         ],
-    //     });
-
-    //     const doc = new Document({
-    //         styles: {
-    //             default: {
-    //                 document: {
-    //                     run: {
-    //                         font: "Arial",
-    //                         size: 20,
-    //                     },
-    //                     paragraph: {
-    //                         spacing: {
-    //                             after: 120,
-    //                         },
-    //                     },
-    //                 },
-    //             },
-    //         },
-    //         sections: [
-    //             // Project Title
-    //             {
-    //                 properties: createPageProperties(),
-    //                 children: [
-    //                     new Paragraph({
-    //                         children: [
-    //                             createTextRun(projectTitle, textStyle.arial24, { bold: true }),
-    //                         ],
-    //                         alignment: AlignmentType.CENTER,
-    //                         spacing: { after: 300 },
-    //                     }),
-    //                     new Paragraph({
-    //                         children: [
-    //                             createTextRun(projectSubTitle, textStyle.arial14, { bold: true }),
-    //                         ],
-    //                         alignment: AlignmentType.CENTER,
-    //                         spacing: { before: 400, after: 800 },
-    //                     }),
-    //                 ],
-    //             },
-    //             // Search Features
-    //             {
-    //                 properties: createPageProperties(),
-    //                 children: [
-    //                     new Paragraph({
-    //                         children: [
-    //                             createTextRun("1. Search Features", textStyle.arial14, { bold: true, color: "000000" }),
-    //                         ],
-    //                         alignment: AlignmentType.LEFT,
-    //                         spacing: { before: 200, after: 400 },
-    //                         indent: { left: 720 },
-    //                         heading: HeadingLevel.HEADING_1,
-    //                     }),
-    //                     ...searchFeatures
-    //                         .filter((p) => p.trim() !== "")
-    //                         .map((para) =>
-    //                             new Paragraph({
-    //                                 children: [
-    //                                     createTextRun(sanitizeText(para.trim() + "."), textStyle.arial10),
-    //                                 ],
-    //                                 alignment: AlignmentType.JUSTIFIED,
-    //                                 spacing: { before: 200, after: 200 },
-    //                             })
-    //                         ),
-
-    //                     // ...imageBuffers.map((buffer) =>
-    //                     //     new Paragraph({
-    //                     //         children: [
-    //                     //             new ImageRun({
-    //                     //                 data: buffer,
-    //                     //                 transformation: {
-    //                     //                     width: 200,
-    //                     //                     height: 150,
-    //                     //                 },
-    //                     //             }),
-    //                     //         ],
-    //                     //         alignment: AlignmentType.CENTER,
-    //                     //         spacing: { after: 300 },
-    //                     //     })
-    //                     // ),
-    //                 ],
-    //             },
-    //             // Search Methodology
-    //             {
-    //                 properties: createPageProperties(),
-    //                 children: getSearchMethodology(projectTitle),
-    //             },
-    //             // Relevant
-    //             {
-    //                 properties: createPageProperties(),
-    //                 children: [
-    //                     new Paragraph({
-    //                         children: [
-    //                             createTextRun("3. Potentially Relevant References", textStyle.arial14, { bold: true, color: "000000" }),
-    //                         ],
-    //                         heading: HeadingLevel.HEADING_1,
-    //                         spacing: { after: 400 },
-    //                     }),
-
-    //                     ...(Array.isArray(relevantReferences)
-    //                         ? relevantReferences.flatMap((pub, pubIndex) => {
-    //                             const leftTableRows = [
-    //                                 { label: "Publication No", value: pub.patentNumber.toUpperCase() },
-    //                                 { label: "Title", value: sanitizeText(pub.title) },
-    //                                 { label: "Inventor", value: sanitizeText((pub.inventors || []).join(", ")) },
-    //                                 { label: "Assignee", value: (pub.assignee || []).join(", ") },
-    //                             ];
-
-    //                             const rightTableRows = [
-    //                                 { label: "Grant/Publication Date", value: sanitizeText(pub.grantDate) },
-    //                                 { label: "Filing/Application Date", value: sanitizeText(pub.filingDate) },
-    //                                 { label: "Priority Date", value: sanitizeText(pub.priorityDate) },
-    //                                 { label: "IPC/CPC Classifications", value: sanitizeText((pub.classifications || []).join(", ")) },
-    //                                 { label: "Family Member", value: sanitizeText((pub.familyMembers || []).join(", ")) },
-    //                             ];
-
-    //                             const ptnNumber = new Paragraph({
-    //                                 alignment: AlignmentType.START,
-    //                                 children: [
-    //                                     createTextRun(` ${pubIndex + 1}. ${pub.patentNumber}`, textStyle.arial11, { bold: true, color: "000000" })
-    //                                 ],
-    //                                 heading: HeadingLevel.HEADING_2,
-    //                                 spacing: { after: 200 },
-    //                             });
-
-    //                             const table = new Table({
-    //                                 width: { size: 100, type: WidthType.PERCENTAGE },
-    //                                 rows: [
-    //                                     new TableRow({
-    //                                         children: [
-    //                                             new TableCell({
-    //                                                 columnSpan: 2,
-    //                                                 shading: {
-    //                                                     fill: "BDD7EE",
-    //                                                     type: ShadingType.CLEAR,
-    //                                                     color: "auto",
-    //                                                 },
-    //                                                 verticalAlign: VerticalAlign.CENTER,
-    //                                                 children: [
-    //                                                     new Paragraph({
-    //                                                         alignment: AlignmentType.CENTER,
-    //                                                         children: [
-    //                                                             createTextRun("Bibliographic Details", textStyle.arial10, { bold: true }),
-    //                                                         ],
-    //                                                     }),
-    //                                                 ],
-    //                                                 borders: commonBorders,
-    //                                                 margins: marginsStyle.margins,
-    //                                             }),
-
-    //                                         ],
-    //                                     }),
-    //                                     new TableRow({
-    //                                         margins: marginsStyle.margins,
-    //                                         children: [
-    //                                             new TableCell({
-    //                                                 width: { size: 50, type: WidthType.PERCENTAGE },
-    //                                                 borders: commonBorders,
-    //                                                 margins: marginsStyle.margins,
-    //                                                 children: [
-    //                                                     new Table({
-    //                                                         width: { size: 100, type: WidthType.PERCENTAGE },
-    //                                                         rows: createSingleColumnTableRows(leftTableRows),
-    //                                                     }),
-    //                                                 ],
-    //                                             }),
-    //                                             new TableCell({
-    //                                                 width: { size: 50, type: WidthType.PERCENTAGE },
-    //                                                 borders: commonBorders,
-    //                                                 margins: marginsStyle.margins,
-    //                                                 children: [
-    //                                                     new Table({
-    //                                                         width: { size: 100, type: WidthType.PERCENTAGE },
-    //                                                         rows: createSingleColumnTableRows(rightTableRows),
-    //                                                     }),
-    //                                                 ],
-    //                                             }),
-    //                                         ],
-    //                                     }),
-    //                                 ],
-    //                             });
-
-    //                             const analystComment = pub.analystComments
-    //                                 ? new Paragraph({
-    //                                     spacing: { before: 300, after: 300 },
-    //                                     children: [
-    //                                         createTextRun("Analyst Comments – ", textStyle.arial10, { bold: true }),
-    //                                         createTextRun(sanitizeText(pub.analystComments), textStyle.arial10, { italics: true }),
-    //                                     ],
-    //                                 })
-    //                                 : null;
-
-    //                             const relevantExcerpts = [
-    //                                 new Table({
-    //                                     width: { size: 100, type: WidthType.PERCENTAGE },
-    //                                     rows: [
-    //                                         new TableRow({
-    //                                             children: [
-    //                                                 new TableCell({
-    //                                                     columnSpan: 2,
-    //                                                     shading: {
-    //                                                         fill: "BDD7EE",
-    //                                                         type: ShadingType.CLEAR,
-    //                                                         color: "auto",
-    //                                                     },
-    //                                                     verticalAlign: VerticalAlign.CENTER,
-    //                                                     children: [
-    //                                                         new Paragraph({
-    //                                                             alignment: AlignmentType.CENTER,
-    //                                                             children: [
-    //                                                                 createTextRun("Relevant Excerpts", textStyle.arial10, { bold: true }),
-    //                                                             ],
-    //                                                         }),
-    //                                                     ],
-    //                                                     borders: commonBorders,
-    //                                                     margins: marginsStyle.margins,
-    //                                                 }),
-    //                                             ],
-    //                                         }),
-    //                                     ],
-    //                                 }),
-    //                                 new Paragraph({
-    //                                     spacing: { before: 200, after: 400 },
-    //                                     children: [
-    //                                         createTextRun(sanitizeText("[Abstract]"), textStyle.arial10, { bold: true }),
-    //                                     ],
-    //                                     alignment: AlignmentType.LEFT,
-    //                                 }),
-    //                                 new Paragraph({
-    //                                     spacing: { before: 200, after: 400 },
-    //                                     children: [
-    //                                         (pub.abstract || pub.relevantExcerpts) ?
-    //                                             createTextRun(sanitizeText(pub.abstract || pub.relevantExcerpts), textStyle.arial10)
-    //                                             :
-    //                                             createTextRun(
-    //                                                 '*Abstract is not available, please fill it yourself',
-    //                                                 { ...textStyle.arial10, color: 'FF0000' }
-    //                                             ),
-    //                                     ],
-    //                                     alignment: AlignmentType.LEFT,
-    //                                 }),
-    //                             ].filter(Boolean);
-    //                             return [ptnNumber, table, ...(analystComment ? [analystComment] : []), ...relevantExcerpts];
-    //                         })
-    //                         : []
-    //                     ),
-    //                 ],
-    //             },
-    //             // Related
-    //             {
-    //                 properties: createPageProperties(),
-    //                 children: [
-    //                     new Paragraph({
-    //                         children: [
-    //                             createTextRun("4. Related References", textStyle.arial14, { bold: true, color: "000000" }),
-    //                         ],
-    //                         spacing: { after: 400 },
-    //                         heading: HeadingLevel.HEADING_1,
-    //                     }),
-    //                     new Paragraph({
-    //                         children: [
-    //                             createTextRun(
-    //                                 " (Note: Below references obtained from the quick search are listed as related, as these references fail to disclose at least one or more critical features)",
-    //                                 textStyle.arial10,
-    //                                 { italics: true }
-    //                             ),
-    //                         ],
-    //                         spacing: { after: 400 },
-    //                     }),
-    //                     relatedReferencesTable
-    //                 ],
-    //             },
-    //             // Appendix 1
-    //             {
-    //                 properties: createPageProperties(),
-    //                 children: [
-    //                     new Paragraph({
-    //                         children: [
-    //                             createTextRun("Appendix 1", textStyle.arial14, { bold: true, color: "000000" }),
-    //                         ],
-    //                         heading: HeadingLevel.HEADING_1,
-    //                         alignment: AlignmentType.START,
-    //                         spacing: { after: 50 },
-    //                     }),
-
-    //                     new Paragraph({
-    //                         children: [
-    //                             createTextRun("Search Terms & Search Strings", textStyle.arial10, { bold: true, color: "000000" }),
-    //                         ],
-    //                         heading: HeadingLevel.HEADING_2,
-    //                         alignment: AlignmentType.START,
-    //                         spacing: { after: 30 },
-    //                         indent: { left: 520 },
-    //                     }),
-
-    //                     new Paragraph({
-    //                         children: [
-    //                             createTextRun(
-    //                                 "The search terms and key strings to extract relevant patent publications and non-patent literature are provided below.",
-    //                                 textStyle.arial10
-    //                             ),
-    //                         ],
-    //                         alignment: AlignmentType.START,
-    //                         spacing: { after: 30 },
-    //                     }),
-
-    //                     new Paragraph({
-    //                         children: [
-    //                             createTextRun("▶ Search Terms", textStyle.arial11, { bold: true }),
-    //                         ],
-    //                         alignment: AlignmentType.START,
-    //                         spacing: { after: 100 },
-    //                         indent: { left: 720 },
-    //                     }),
-
-    //                     new Paragraph({
-    //                         children: [
-    //                             createTextRun("▶ Search Strings", textStyle.arial11, { bold: true }),
-    //                         ],
-    //                         alignment: AlignmentType.START,
-    //                         spacing: { after: 100 },
-    //                         indent: { left: 720 },
-    //                     }),
-
-    //                     new Table({
-    //                         width: {
-    //                             size: 100,
-    //                             type: WidthType.PERCENTAGE,
-    //                         },
-    //                         rows: [
-    //                             // Header Row
-    //                             new TableRow({
-    //                                 tableHeader: true,
-    //                                 children: [
-    //                                     new TableCell({
-    //                                         verticalAlign: VerticalAlign.CENTER, // ✅ Vertically center
-    //                                         children: [
-    //                                             new Paragraph({
-    //                                                 alignment: AlignmentType.CENTER, // ✅ Horizontally center
-    //                                                 children: [
-    //                                                     createTextRun("S. No.", textStyle.arial10, { bold: true, color: "FFFFFF" }),
-    //                                                 ],
-    //                                             }),
-    //                                         ],
-    //                                         shading: {
-    //                                             fill: "000000", // Black background
-    //                                         },
-    //                                     }),
-    //                                     new TableCell({
-    //                                         verticalAlign: VerticalAlign.CENTER, // ✅ Vertically center
-    //                                         children: [
-    //                                             new Paragraph({
-    //                                                 alignment: AlignmentType.CENTER, // ✅ Horizontally center
-    //                                                 children: [
-    //                                                     createTextRun("Key strings (Patents/Patent Applications)", textStyle.arial10, { bold: true, color: "FFFFFF" }),
-    //                                                 ],
-    //                                             }),
-    //                                         ],
-    //                                         shading: {
-    //                                             fill: "000000", // Black background
-    //                                         },
-    //                                     }),
-    //                                 ],
-    //                             }),
-
-    //                             // Data Rows
-    //                             ...appendix1?.keyStrings?.map((keyStr, index) =>
-    //                                 new TableRow({
-    //                                     children: [
-    //                                         new TableCell({
-    //                                             children: [
-    //                                                 new Paragraph({
-    //                                                     alignment: AlignmentType.CENTER,
-    //                                                     children: [
-    //                                                         createTextRun(`${index + 1}.`, textStyle.arial10),
-    //                                                     ],
-    //                                                 }),
-    //                                             ],
-    //                                         }),
-    //                                         new TableCell({
-    //                                             children: [
-    //                                                 new Paragraph({
-    //                                                     alignment: AlignmentType.LEFT,
-    //                                                     children: [
-    //                                                         createTextRun(keyStr.keyStringsText, textStyle.arial10),
-    //                                                     ],
-    //                                                 }),
-    //                                             ],
-    //                                         }),
-    //                                     ],
-    //                                 })
-    //                             ),
-    //                         ],
-    //                         borders: {
-    //                             top: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-    //                             bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-    //                             left: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-    //                             right: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-    //                             insideHorizontal: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-    //                             insideVertical: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-    //                         },
-    //                     }),
-
-
-    //                     // new Table({
-    //                     //     width: {
-    //                     //         size: 100,
-    //                     //         type: WidthType.PERCENTAGE,
-    //                     //     },
-    //                     //     rows: [
-    //                     //         new TableRow({
-    //                     //             tableHeader: true,
-    //                     //             children: [
-    //                     //                 new TableCell({
-    //                     //                     children: [
-    //                     //                         new Paragraph({
-    //                     //                             children: [
-    //                     //                                 createTextRun("S. No.", textStyle.arial10, { bold: true, color: "FFFFFF" }),
-    //                     //                             ],
-    //                     //                             alignment: AlignmentType.CENTER,
-    //                     //                         }),
-    //                     //                     ],
-    //                     //                     shading: {
-    //                     //                         fill: "000000",
-    //                     //                     },
-    //                     //                 }),
-    //                     //                 new TableCell({
-    //                     //                     children: [
-    //                     //                         new Paragraph({
-    //                     //                             children: [
-    //                     //                                 createTextRun("Key strings (Patents/Patent Applications)", textStyle.arial10, { bold: true, color: "FFFFFF" }),
-    //                     //                             ],
-    //                     //                             alignment: AlignmentType.CENTER,
-    //                     //                         }),
-    //                     //                     ],
-    //                     //                     shading: {
-    //                     //                         fill: "000000",
-    //                     //                     },
-    //                     //                 }),
-    //                     //             ],
-    //                     //         }),
-
-    //                     //         ...appendix1?.keyStrings?.map((keyStr, index) =>
-    //                     //             new TableRow({
-    //                     //                 children: [
-    //                     //                     new TableCell({
-    //                     //                         children: [
-    //                     //                             new Paragraph({
-    //                     //                                 children: [
-    //                     //                                     createTextRun(`${index + 1}.`, textStyle.arial10),
-    //                     //                                 ],
-    //                     //                                 alignment: AlignmentType.CENTER,
-    //                     //                             }),
-    //                     //                         ],
-    //                     //                     }),
-    //                     //                     new TableCell({
-    //                     //                         children: [
-    //                     //                             new Paragraph({
-    //                     //                                 children: [
-    //                     //                                     createTextRun(keyStr.keyStringsText, textStyle.arial10),
-    //                     //                                 ],
-    //                     //                                 alignment: AlignmentType.LEFT,
-    //                     //                             }),
-    //                     //                         ],
-    //                     //                     }),
-    //                     //                 ],
-    //                     //             })
-    //                     //         ),
-    //                     //     ],
-    //                     //     borders: {
-    //                     //         top: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-    //                     //         bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-    //                     //         left: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-    //                     //         right: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-    //                     //         insideHorizontal: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-    //                     //         insideVertical: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-    //                     //     },
-    //                     // }),
-
-    //                     new Paragraph({
-    //                         children: [
-    //                             createTextRun("Data Availability", textStyle.arial11, { bold: true }),
-    //                         ],
-    //                         alignment: AlignmentType.START,
-    //                         spacing: { after: 100 },
-    //                         indent: { left: 520 },
-    //                     }),
-    //                     ...appendix1.dataAvailability.map((mapData) =>
-    //                         new Paragraph({
-    //                             children: [
-    //                                 createTextRun(`✓ ${mapData.dataAvailableText.trim()}`, textStyle.arial10),
-    //                             ],
-    //                             alignment: AlignmentType.START,
-    //                             spacing: { after: 100 },
-    //                             indent: { left: 720 },
-    //                         }),
-    //                     )
-    //                 ],
-    //             },
-    //             // Appendix 2
-    //             {
-    //                 properties: createPageProperties(),
-    //                 children: [
-    //                     new Paragraph({
-    //                         children: [
-    //                             createTextRun("Appendix 2", textStyle.arial14, { bold: true, color: "000000" }),
-    //                         ],
-    //                         heading: HeadingLevel.HEADING_1,
-    //                         alignment: AlignmentType.START,
-    //                         spacing: { after: 100 },
-    //                     }),
-
-    //                     new Paragraph({
-    //                         children: [
-    //                             createTextRun("Databases", textStyle.arial11, { bold: true, color: "000000" }),
-    //                         ],
-    //                         heading: HeadingLevel.HEADING_2,
-    //                         alignment: AlignmentType.START,
-    //                         spacing: { after: 200 },
-    //                         indent: { left: 520 },
-    //                     }),
-
-    //                     new Table({
-    //                         width: {
-    //                             size: 100,
-    //                             type: WidthType.PERCENTAGE,
-    //                         },
-    //                         borders: {
-    //                             top: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
-    //                             bottom: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
-    //                             left: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
-    //                             right: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
-    //                             insideHorizontal: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
-    //                             insideVertical: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
-    //                         },
-    //                         rows: [
-    //                             new TableRow({
-    //                                 children: [
-    //                                     new TableCell({
-    //                                         borders: {
-    //                                             top: { style: BorderStyle.NONE },
-    //                                             bottom: { style: BorderStyle.NONE },
-    //                                             left: { style: BorderStyle.NONE },
-    //                                             right: { style: BorderStyle.NONE },
-    //                                         },
-    //                                         children: [
-    //                                             new Paragraph({
-    //                                                 children: [
-    //                                                     createTextRun("Patents", textStyle.arial10, { bold: true }),
-    //                                                 ],
-    //                                                 spacing: { after: 100 },
-    //                                                 indent: { left: 520 }
-    //                                             }),
-    //                                             ...cleanListWithEtc(appendix2.patents)
-    //                                                 .map((item) =>
-    //                                                     new Paragraph({
-    //                                                         children: [
-    //                                                             createTextRun(`✓ ${item.trim()}`, textStyle.arial10),
-    //                                                         ],
-    //                                                         indent: { left: 520 }
-    //                                                     })
-    //                                                 ),
-    //                                         ],
-    //                                     }),
-    //                                     new TableCell({
-    //                                         borders: {
-    //                                             top: { style: BorderStyle.NONE },
-    //                                             bottom: { style: BorderStyle.NONE },
-    //                                             left: { style: BorderStyle.NONE },
-    //                                             right: { style: BorderStyle.NONE },
-    //                                         },
-    //                                         children: [
-    //                                             new Paragraph({
-    //                                                 children: [
-    //                                                     createTextRun("Non-patent Literature", textStyle.arial10, { bold: true }),
-    //                                                 ],
-    //                                                 spacing: { after: 100 },
-    //                                             }),
-    //                                             ...appendix2.nonPatentLiterature
-    //                                                 .split("\n")
-    //                                                 .map((item) =>
-    //                                                     new Paragraph({
-    //                                                         children: [
-    //                                                             createTextRun(`✓ ${item.trim()}`, textStyle.arial10),
-    //                                                         ],
-    //                                                     })
-    //                                                 ),
-    //                                         ],
-    //                                     }),
-    //                                 ],
-    //                             }),
-    //                         ],
-    //                     })
-    //                 ],
-    //             },
-    //             // Disclaimer
-    //             {
-    //                 properties: createPageProperties(),
-    //                 children: [
-    //                     new Paragraph({
-    //                         children: [
-    //                             createTextRun("Disclaimer", textStyle.arial14, { bold: true, color: "000000" }),
-    //                         ],
-    //                         heading: HeadingLevel.HEADING_1,
-    //                         alignment: AlignmentType.START,
-    //                         spacing: { after: 100 },
-    //                     }),
-
-    //                     new Paragraph({
-    //                         children: [
-    //                             createTextRun(disclaimer, textStyle.arial10,),
-    //                         ],
-    //                         alignment: AlignmentType.START,
-    //                         spacing: { after: 200 },
-    //                     }),
-    //                 ],
-    //             },
-    //         ],
-    //     });
-
-    //     const blob = await Packer.toBlob(doc);
-    //     saveAs(blob, `${projectTitle || "StaticData"}.docx`);
-    // };
-
-
     const handleReportDownload = async () => {
         try {
             const getProjectValue = await fetchProjectById(id);
@@ -2346,7 +1412,44 @@ const relatedApplicantNames = useMemo(() => {
     };
 
 
-
+    const modalConfig = {
+        publication: {
+            message: "Are you sure you want to delete this publication?",
+            onConfirm: handlePublicationDelete,
+        },
+        nonPatent: {
+            message: "Are you sure you want to delete this Non-Patent?",
+            onConfirm: handleNonPatentDelete,
+        },
+        relatedReference: {
+            message: "Are you sure you want to delete this Related reference?",
+            onConfirm: handleRelatedReferenceDelete,
+        },
+        searchTerm: {
+            message: "Are you sure you want to delete this Search Term Text?",
+            onConfirm: handleSearchTermDelete,
+        },
+        relevantWords: {
+            message: "Are you sure you want to delete this Key word and its relevant text?",
+            onConfirm: handleRelevantWordsDelete,
+        },
+        keyString: {
+            message: "Are you sure you want to delete this Key String?",
+            onConfirm: handleDeleteKeyString,
+        },
+        keyStringNpl: {
+            message: "Are you sure you want to delete this Key String (Npl)?",
+            onConfirm: handleDeleteKeyStringNpl,
+        },
+        keyStringAdditional: {
+            message: "Are you sure you want to delete this Additional Key String?",
+            onConfirm: handleDeleteKeyStringAdditional,
+        },
+        dataAvailability: {
+            message: "Are you sure you want to delete this Data Availability Value?",
+            onConfirm: handleDeleteDataAvailability,
+        },
+    };
 
 
 
@@ -2376,23 +1479,11 @@ const relatedApplicantNames = useMemo(() => {
                                 <CardBody>
                                     {
                                         selectedProject && (
-                                            <p
-                                                style={{
-                                                    fontSize: "10px",
-                                                    color: "#198754",
-                                                    fontWeight: "600",
-                                                    backgroundColor: "#f1fdf7",
-                                                    padding: "8px 12px",
-                                                    borderRadius: "6px",
-                                                    display: "inline-block",
-                                                }}
-                                            >
+                                            <p style={{ fontSize: "10px", color: "#198754", fontWeight: "600", backgroundColor: "#f1fdf7", padding: "8px 12px", borderRadius: "6px", display: "inline-block", }}>
                                                 {selectedProject.projectName} /-- {selectedProject.projectType}
                                             </p>
                                         )
                                     }
-
-
                                     <div className="wizard clearfix">
                                         <div className="steps clearfix">
                                             <ul>
@@ -2498,62 +1589,17 @@ const relatedApplicantNames = useMemo(() => {
                                                 </TabPane>
 
                                                 <>
-                                                    <>
-                                                        <ReusableDeleteComp
-                                                            show={showDeletePublicationModal}
-                                                            toggle={() => setShowDeletePublicationModal(false)}
-                                                            message="Are you sure you want to delete this publication?"
-                                                            onConfirm={handlePublicationDelete}
+                                                    {activeModal && (
+                                                        <DeleteModal
+                                                            show={true}
+                                                            toggle={() => setActiveModal(null)}
+                                                            message={modalConfig[activeModal].message}
+                                                            onConfirm={() => {
+                                                                modalConfig[activeModal].onConfirm();
+                                                                setActiveModal(null);
+                                                            }}
                                                         />
-
-                                                        <ReusableDeleteComp
-                                                            show={showDeleteNonPatentModal}
-                                                            toggle={() => setShowDeleteNonPatentModal(false)}
-                                                            message="Are you sure you want to delete this Non-Patent?"
-                                                            onConfirm={handleNonPatentDelete}
-                                                        />
-
-                                                        <ReusableDeleteComp
-                                                            show={showDeleteRelatedReferenceModal}
-                                                            toggle={() => setShowDeleteRelatedReferenceModal(false)}
-                                                            message="Are you sure you want to delete this Related reference?"
-                                                            onConfirm={handleRelatedReferenceDelete}
-                                                        />
-
-                                                        <ReusableDeleteComp
-                                                            show={showDeleteSearchTermModal}
-                                                            toggle={() => setShowDeleteSearchTermModal(false)}
-                                                            message="Are you sure you want to delete this Search Term Text?"
-                                                            onConfirm={handleSearchTermDelete}
-                                                        />
-
-                                                        <ReusableDeleteComp
-                                                            show={showDeleteKeyStringModal}
-                                                            toggle={() => setShowDeleteKeyStringModal(false)}
-                                                            message="Are you sure you want to delete this Key String?"
-                                                            onConfirm={handleDeleteKeyString}
-                                                        />
-                                                        <ReusableDeleteComp
-                                                            show={showDeleteKeyStringNplModal}
-                                                            toggle={() => setShowDeleteKeyStringNplModal(false)}
-                                                            message="Are you sure you want to delete this Key String(Npl)?"
-                                                            onConfirm={handleDeleteKeyStringNpl}
-                                                        />
-
-                                                         <ReusableDeleteComp
-                                                            show={showDeleteKeyStringAdditionalModal}
-                                                            toggle={() => setShowDeleteKeyStringAdditionalModal(false)}
-                                                            message="Are you sure you want to delete this Additional Key String?"
-                                                            onConfirm={handleDeleteKeyStringAdditional}
-                                                        />
-
-                                                        <ReusableDeleteComp
-                                                            show={showDeleteDataAvailabilityModal}
-                                                            toggle={() => setShowDeleteDataAvailabilityModal(false)}
-                                                            message="Are you sure you want to delete this Data Availability Value?"
-                                                            onConfirm={handleDeleteDataAvailability}
-                                                        />
-                                                    </>
+                                                    )}
                                                 </>
                                                 <TabPane tabId={3}>
                                                     <RelatedRefComponent
@@ -2577,6 +1623,13 @@ const relatedApplicantNames = useMemo(() => {
                                                         setBaseSearchTerm={setBaseSearchTerm}
                                                         handleSaveBaseSearchTerm={handleSaveBaseSearchTerm}
                                                         onSearchTermDelete={onSearchTermDelete}
+                                                        relevantWords={relevantWords}
+                                                        setRelevantWords={setRelevantWords}
+                                                        handleFindRelevantWord={handleFindRelevantWord}
+                                                        handleAddSearchTerms={handleAddSearchTerms}
+                                                        findLoading={findLoading}
+                                                        relevantWordsList={relevantWordsList}
+                                                        onRelevantWordsDelete={onRelevantWordsDelete}
 
                                                         keyString={keyString}
                                                         keyStringsList={keyStringsList}

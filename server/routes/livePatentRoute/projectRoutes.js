@@ -416,6 +416,76 @@ router.delete("/delete-related/:projectId/:relatedId", async (req, res) => {
 });
 
 
+// Save api Keywords List
+router.post("/add-keywordslist-term/:id", async (req, res) => {
+    const projectId = req.params.id;
+    const { searchTermText } = req.body;
+
+    if (!searchTermText || !searchTermText.baseSearchTerm ) {
+        return res.status(400).json({ message: "BaseSearchTerm and RelevantWords are required." });
+    }
+
+    try {
+        const newSearchItem = {
+            _id: uuidv4(),
+            searchTermText: searchTermText.baseSearchTerm,
+            relevantWords: searchTermText.relevantWords,
+        };
+
+        const updatedProject = await cln_prior_report_schema.findByIdAndUpdate(
+            projectId,
+            {
+                $push: {
+                    "stages.appendix1.0.baseSearchTerms": newSearchItem,
+                },
+            },
+            { new: true }
+        );
+
+        if (!updatedProject) {
+            return res.status(404).json({ message: "Project not found." });
+        }
+
+        res.status(200).json(updatedProject);
+    } catch (error) {
+        console.error("❌ Error adding base search term:", error);
+        res.status(500).json({ message: "Server error while saving base search term." });
+    }
+});
+
+
+// Delete relevantWord Api
+router.delete("/delete-keywordslist-term/:id/:keywordId", async (req, res) => {
+    const projectId = req.params.id;
+    const keywordId = req.params.keywordId; 
+
+    if (!keywordId) {
+        return res.status(400).json({ message: "Keyword _id is required." });
+    }
+
+    try {
+        const updatedProject = await cln_prior_report_schema.findByIdAndUpdate(
+            projectId,
+            {
+                $pull: {
+                    "stages.appendix1.0.baseSearchTerms": { _id: keywordId }
+                }
+            },
+            { new: true }
+        );
+
+        if (!updatedProject) {
+            return res.status(404).json({ message: "Project not found." });
+        }
+
+        res.status(200).json(updatedProject);
+    } catch (error) {
+        console.error("❌ Error deleting keyword:", error);
+        res.status(500).json({ message: "Server error while deleting keyword." });
+    }
+});
+
+
 
 // Add Base Search Term to appendix1
 router.post("/add-base-search-term/:id", async (req, res) => {
