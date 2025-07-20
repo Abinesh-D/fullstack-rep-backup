@@ -27,8 +27,8 @@ const RelatedRefComponent = ({
         const [feedbackOpen, setFeedbackOpen] = useState(false);
     
 
-    const relatedAssigneeOrIntentor = (relatedForm.relatedAssignee && relatedForm.relatedAssignee) ?
-        `${relatedForm.relatedAssignee} / ${relatedForm.relatedAssignee}` : "";
+    const relatedAssigneeOrIntentor = (relatedForm.relatedAssignee && relatedForm.relatedInventor) ?
+        `${relatedForm.relatedAssignee} / ${relatedForm.relatedInventor}` : "";
 
 
     const relatedColumns = useMemo(() => [
@@ -180,7 +180,8 @@ const RelatedRefComponent = ({
                                     id="related-assigneeOrInventor"
                                     className="form-control"
                                     placeholder="Enter Assignees/Inventors"
-                                    value={relatedAssigneeOrIntentor}
+                                    // value={relatedAssigneeOrIntentor}
+                                    value={relatedForm.relatedAssignee || relatedForm.relatedInventor}
                                     onChange={handleRelatedInputChange}
                                 />
                             </div>

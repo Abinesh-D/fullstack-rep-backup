@@ -684,12 +684,18 @@ const MappingProjectCreation = () => {
     const getCleanPartyNames = (partyArray = [], nameKey = '') => {
         if (!Array.isArray(partyArray) || !nameKey) return '';
 
-        const priority = { epodoc: 1, original: 2, docdb: 3 };
+        const priority = ['epodoc', 'original', 'docdb'];
 
-        const cleanedNames = [...partyArray]
-            .sort((a, b) =>
-                (priority[a?.$?.['data-format']] || 999) - (priority[b?.$?.['data-format']] || 999)
-            )
+        const availableFormat = priority.find(format =>
+            partyArray.some(item => item?.$?.['data-format'] === format)
+        );
+
+        if (!availableFormat) return ''; 
+        const filteredArray = partyArray.filter(
+            item => item?.$?.['data-format'] === availableFormat
+        );
+
+        const cleanedNames = filteredArray
             .map(item =>
                 nameKey.split('.').reduce((obj, key) => obj?.[key], item)
                     ?.replace(/\[.*?\]/g, '')
@@ -709,6 +715,38 @@ const MappingProjectCreation = () => {
 
         return titleCasedNames.join('; ');
     };
+
+
+
+
+    // const getCleanPartyNames = (partyArray = [], nameKey = '') => {
+    //     if (!Array.isArray(partyArray) || !nameKey) return '';
+
+    //     const priority = { epodoc: 1, original: 2, docdb: 3 };
+
+    //     const cleanedNames = [...partyArray]
+    //         .sort((a, b) =>
+    //             (priority[a?.$?.['data-format']] || 999) - (priority[b?.$?.['data-format']] || 999)
+    //         )
+    //         .map(item =>
+    //             nameKey.split('.').reduce((obj, key) => obj?.[key], item)
+    //                 ?.replace(/\[.*?\]/g, '')
+    //                 ?.replace(/[.,;]/g, '')
+    //                 ?.replace(/\s+/g, ' ')
+    //                 ?.trim()
+    //         )
+    //         .filter(Boolean);
+
+    //     const uniqueNames = [...new Map(
+    //         cleanedNames.map(name => [name.toLowerCase(), name])
+    //     ).values()];
+
+    //     const titleCasedNames = uniqueNames.map(str =>
+    //         str.replace(/\b\w/g, char => char.toUpperCase())
+    //     );
+
+    //     return titleCasedNames.join('; ');
+    // };
 
 
     // ------------------ Relevant -------------------------
@@ -1059,10 +1097,18 @@ const relatedApplicantNames = useMemo(() => {
         return relatedApplicantNames && relatedInventorNames ? `${relatedApplicantNames} / ${relatedInventorNames}` : '';
     }, [relatedApplicantNames, relatedInventorNames]);
 
+
+console.log('relatedApplicantNames', relatedApplicantNames);
+console.log('relatedInventorNames', relatedInventorNames)
+
+
+
     const glAssigneesAndInventor = useMemo(() => {
         return relatedBiblioGoogleData.intentor && relatedBiblioGoogleData.assignees ? ` ${relatedBiblioGoogleData.assignees} / ${relatedBiblioGoogleData.inventors}` : ''
 
     }, [relatedBiblioGoogleData.intentors, relatedBiblioGoogleData.assignees]);
+
+    console.log('glAssigneesAndInventor', glAssigneesAndInventor);
 
     const relatedInventionTitle = () => {
         const titleData = relatedBiblioData?.['invention-title'];

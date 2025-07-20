@@ -2,6 +2,7 @@ import {
     Document, BorderStyle, Packer, Paragraph, TextRun, Table, TableRow, AlignmentType, TableCell, VerticalAlign, WidthType, ShadingType,
     ExternalHyperlink, HeadingLevel, ImageRun, InternalHyperlink, Bookmark, Footer, Header, TabStopPosition, TabStopType,
     UnderlineType,
+    PositionalTabLeader,
 } from "docx";
 import { saveAs } from "file-saver";
 import { getSearchMethodology } from "./searchMethodology";
@@ -104,6 +105,8 @@ export const handleWordReportDownload = async ({
     overallSummary,
 }) => {
 
+    console.log('appendix1', appendix1)
+
     const createPageProperties = (margin = 920, orientation = "portrait") => ({
         page: {
             margin: {
@@ -193,86 +196,137 @@ export const handleWordReportDownload = async ({
     );
 
 
-    const tocTitle = new Paragraph({
-        children: [
-            new Bookmark({
-                id: "back-to-table-of-content",
+    const IMAGES_PER_ROW = 4;
+
+const imageTableRows = [];
+for (let i = 0; i < imageBuffers.length; i += IMAGES_PER_ROW) {
+    const rowImages = imageBuffers.slice(i, i + IMAGES_PER_ROW);
+
+    const row = new TableRow({
+        children: rowImages.map((buffer) =>
+            new TableCell({
                 children: [
-                    createTextRun("Table of Contents", textStyle.arial14, { bold: true, underline: true })
-                ]
-            })
-        ],
-        // alignment: AlignmentType.CENTER,
-        spacing: { after: 200, before: 100 },
-    });
-
-//     const createTocEntry = ({ label, pageNumber = "0", indent = 0, isBold = false, font13 = false }) => {
-//         const fontStyle = font13 ? textStyle.arial13 : textStyle.arial11;
-
-//     return new Paragraph({
-//         children: [
-//             createTextRun(label, fontStyle, { bold: isBold }),
-//             createTextRun("\t"),
-//             createTextRun(pageNumber, fontStyle),
-//         ],
-//         tabStops: [
-//             {
-//                 type: TabStopType.RIGHT,
-//                 position: TabStopPosition.MAX,                
-//                 leader: "dot",
-//             },
-//         ],
-//         indent: { left: indent },
-//         spacing: { after: 20 },
-//     });
-// };
-
-
-const createTocEntry = ({ label, pageNumber = "0", indent = 0, isBold = false, font13 = false, anchor }) => {
-    const fontStyle = font13 ? textStyle.arial13 : textStyle.arial11;
-
-    return new Paragraph({
-        children: [
-            new InternalHyperlink({
-                anchor: anchor,
-                children: [
-                    createTextRun(label, fontStyle, { bold: isBold }),
-                    createTextRun("\t"),
-                    createTextRun(pageNumber, fontStyle),
+                    new Paragraph({
+                        alignment: AlignmentType.CENTER,
+                        children: [
+                            new ImageRun({
+                                data: buffer,
+                                transformation: {
+                                    width: 120,  // Set your preferred width
+                                    height: 90,  // Adjust height proportionally
+                                },
+                            }),
+                        ],
+                    }),
                 ],
-            }),
-        ],
-        tabStops: [
-            {
-                type: TabStopType.RIGHT,
-                position: TabStopPosition.MAX,
-                leader: "dot",
-            },
-        ],
-        indent: { left: indent },
-        spacing: { after: 20 },
+                borders: {
+                    top: { style: "none" },
+                    bottom: { style: "none" },
+                    left: { style: "none" },
+                    right: { style: "none" },
+                },
+            })
+        ),
     });
-};
+
+    imageTableRows.push(row);
+}
+
+const imageGridTable = new Table({
+    rows: imageTableRows,
+    width: {
+        size: 100,
+        type: "pct",
+    },
+    borders: {
+        top: { style: "none" },
+        bottom: { style: "none" },
+        left: { style: "none" },
+        right: { style: "none" },
+        insideHorizontal: { style: "none" },
+        insideVertical: { style: "none" },
+    },
+});
+    // const tocTitle = new Paragraph({
+    //     children: [
+    //         new Bookmark({
+    //             id: "back-to-table-of-content",
+    //             children: [
+    //                 createTextRun("Table of Contents", textStyle.arial14, { bold: true, underline: true })
+    //             ]
+    //         })
+    //     ],
+    //     // alignment: AlignmentType.CENTER,
+    //     spacing: { after: 200, before: 100 },
+    // });
+
+    //     const createTocEntry = ({ label, pageNumber = "0", indent = 0, isBold = false, font13 = false }) => {
+    //         const fontStyle = font13 ? textStyle.arial13 : textStyle.arial11;
+
+    //     return new Paragraph({
+    //         children: [
+    //             createTextRun(label, fontStyle, { bold: isBold }),
+    //             createTextRun("\t"),
+    //             createTextRun(pageNumber, fontStyle),
+    //         ],
+    //         tabStops: [
+    //             {
+    //                 type: TabStopType.RIGHT,
+    //                 position: TabStopPosition.MAX,
+    //                 leader: "dot",
+    //             },
+    //         ],
+    //         indent: { left: indent },
+    //         spacing: { after: 20 },
+    //     });
+    // };
 
 
-const tocConfig = [
-    { label: "1.   Search Features", anchor: "search-features", isBold: true },
-    { label: "2.   Search Methodology", anchor: "search-methodology", isBold: true },
-    { label: "3.   Potentially Relevant References", anchor: "potentially-relevant-references", isBold: true },
-    { label: "4.   Potentially Relevant References", anchor: "potentially-relevant-references-2", isBold: true },
-    ...relevantReferences.map((ref, index) => ({
-        label: `${index + 1}.    ${ref.patentNumber}`,
-        anchor: `patentNumberCount-${index + 1}`,
-        indent: 360,
-    })),
-    { label: "5.   Related References", anchor: "related-references", isBold: true },
-    { label: "Appendix 1", anchor: "appendix-link-1", isBold: true },
-    { label: "Search Terms & Search Strings", anchor: "search-terms", indent: 720, font13: true },
-    { label: "Data Availability", anchor: "data-availability", indent: 720, font13: true },
-    { label: "Appendix 2", anchor: "appendix-link-2", isBold: true },
-    { label: "Databases", anchor: "databases", indent: 720, font13: true },
-    { label: "Disclaimer", anchor: "disclaimer", isBold: true },
-];
+    const createTocEntry = ({ label, pageNumber = "0", indent = 0, isBold = false, font13 = false, anchor }) => {
+        const fontStyle = font13 ? textStyle.arial13 : textStyle.arial11;
+
+        return new Paragraph({
+            children: [
+                new InternalHyperlink({
+                    anchor: anchor,
+                    children: [
+                        createTextRun(label, fontStyle, { bold: isBold }),
+                        createTextRun("\t"),
+                        createTextRun(pageNumber, fontStyle),
+                    ],
+                }),
+            ],
+            tabStops: [
+                {
+                    type: TabStopType.RIGHT,
+                    position: TabStopPosition.MAX,
+                    leader: "dot",
+                },
+            ],
+            indent: { left: indent },
+            spacing: { after: 20 },
+        });
+    };
+
+
+    const tocConfig = [
+        { label: "1.   Search Features", anchor: "search-features", isBold: true },
+        { label: "2.   Search Methodology", anchor: "search-methodology", isBold: true },
+        { label: "3.   Potentially Relevant References", anchor: "potentially-relevant-references", isBold: true },
+        { label: "4.   Potentially Relevant References", anchor: "potentially-relevant-references-2", isBold: true },
+        ...relevantReferences.map((ref, index) => ({
+            label: `${index + 1}.    ${ref.patentNumber}`,
+            anchor: `patentNumberCount-${index + 1}`,
+            indent: 360,
+        })),
+        { label: "5.   Related References", anchor: "related-references", isBold: true },
+        { label: "Appendix 1", anchor: "appendix-link-1", isBold: true },
+        { label: "Search Terms & Search Strings", anchor: "search-terms", indent: 720, font13: true },
+        { label: "Data Availability", anchor: "data-availability", indent: 720, font13: true },
+        { label: "Appendix 2", anchor: "appendix-link-2", isBold: true },
+        { label: "Databases", anchor: "databases", indent: 720, font13: true },
+        { label: "Disclaimer", anchor: "disclaimer", isBold: true },
+    ];
 
 
 
@@ -295,7 +349,7 @@ const tocConfig = [
     //     { label: "Disclaimer", isBold: true },
     // ];
 
-    const tocEntries = tocConfig.map(createTocEntry);
+    // const tocEntries = tocConfig.map(createTocEntry);
 
 
 
@@ -336,11 +390,12 @@ const tocConfig = [
                 new TableRow({
                     children: [
                         new TableCell({
+                            width: { size: 5, type: WidthType.PERCENTAGE, },
                             verticalAlign: VerticalAlign.CENTER,
                             children: [
                                 new Paragraph({
-                                    spacing: { before: 20, after: 0 },
-                                    alignment: AlignmentType.LEFT,
+                                    spacing: { before: 20, after: 0 },  
+                                    alignment: AlignmentType.CENTER,
                                     children: [
                                         createTextRun(String(index + 1), textStyle.arial10),
                                     ],
@@ -354,6 +409,7 @@ const tocConfig = [
                                 new Paragraph({
                                     alignment: AlignmentType.LEFT,
                                     spacing: { before: 20, after: 0 },
+                                    indent: { left: 20 },
                                     children: [
                                         new ExternalHyperlink({
                                             link: pub.relatedPublicationUrl,
@@ -555,7 +611,7 @@ const tocConfig = [
                                                 // new Bookmark({
                                                 //     id: `patentNumberCount-${index + 1}`,
                                                 //     children: [
-                                                        createTextRun(ref.patentNumber, { color: "0000FF", underline: true, }),
+                                                createTextRun(ref.patentNumber, { color: "0000FF", underline: true, }),
                                                 //     ]
                                                 // })
                                             ],
@@ -570,7 +626,156 @@ const tocConfig = [
         ],
     });
 
-    
+    const tocTitle = new Paragraph({
+        alignment: AlignmentType.CENTER,
+        children: [
+            new Bookmark({
+                id: "back-to-table-of-content",
+                children: [
+                    createTextRun("Table of Contents", textStyle.arial14, { bold: true, underline: true })
+                ]
+            })
+        ],
+        spacing: { after: 200, before: 100 },
+    });
+
+
+    // const tocTable = new Table({
+    //     width: {
+    //         size: 95,
+    //         type: WidthType.PERCENTAGE,
+    //     },
+    //     indent: {
+    //         size: 0,
+    //         type: WidthType.DXA,
+    //     },
+    //     alignment: AlignmentType.CENTER,
+    //     rows: tocConfig.map(item =>
+    //         new TableRow({
+    //             children: [
+    //                 new TableCell({
+    //                     children: [
+    //                         new Paragraph({
+    //                             spacing: { before: 0, after: 0 },
+    //                             indent: item.indent ? { left: item.indent } : undefined,
+    //                             tabStops: [
+    //                                 {
+    //                                     type: TabStopType.RIGHT,
+    //                                     position: TabStopPosition.MAX,
+    //                                     leader: "dot",
+    //                                 },
+    //                             ],
+    //                             children: [
+    //                                 createTextRun(item.label, textStyle.arial10, {
+    //                                     bold: item.isBold || false,
+    //                                     size: item.font13 ? 26 : 22,
+    //                                 }),
+    //                                 createTextRun("\t"),
+    //                                 createTextRun("0", textStyle.arial10),
+    //                             ],
+    //                         }),
+    //                     ],
+    //                     borders: {
+    //                         top: { style: BorderStyle.NONE },
+    //                         bottom: { style: BorderStyle.NONE },
+    //                         left: { style: BorderStyle.NONE },
+    //                         right: { style: BorderStyle.NONE },
+    //                     },
+    //                 }),
+    //             ],
+    //         })
+    //     ),
+    //     borders: {
+    //         top: { style: BorderStyle.NONE },
+    //         bottom: { style: BorderStyle.NONE },
+    //         left: { style: BorderStyle.NONE },
+    //         right: { style: BorderStyle.NONE },
+    //         insideHorizontal: { style: BorderStyle.NONE },
+    //         insideVertical: { style: BorderStyle.NONE },
+    //     },
+    // });
+
+
+    const tocTable = new Table({
+        width: {
+            size: 95,
+            type: WidthType.PERCENTAGE,
+        },
+        indent: {
+            size: 0, 
+            type: WidthType.DXA,
+        },
+        alignment: AlignmentType.CENTER,
+        rows: tocConfig.map(item =>
+            new TableRow({
+                children: [
+                    new TableCell({
+                        children: [
+                            new Paragraph({
+                                spacing: { before: 0, after: 0 },
+                                indent: item.indent ? { left: item.indent } : undefined,
+                                tabStops: [
+                                    {
+                                        type: TabStopType.RIGHT,
+                                        position: TabStopPosition.MAX,
+                                        leader: "dot",
+                                    },
+                                ],
+                                children: [
+                                    createTextRun(item.label, textStyle.arial10, {
+                                        bold: item.isBold || false,
+                                        size: item.font13 ? 26 : 22, 
+                                    }),
+                                ],
+                            }),
+                        ],
+                        borders: {
+                            top: { style: BorderStyle.NONE },
+                            bottom: { style: BorderStyle.NONE },
+                            left: { style: BorderStyle.NONE },
+                            right: { style: BorderStyle.NONE },
+                        },
+                    }),
+                    new TableCell({
+                        children: [
+                            new Paragraph({
+                                alignment: AlignmentType.RIGHT,
+                                 tabStops: [
+                                    {
+                                        type: TabStopType.RIGHT,
+                                        position: TabStopPosition.MAX,
+                                        leader: "dot",
+                                    },
+                                ],
+
+                                children: [
+
+                                    createTextRun("0", textStyle.arial10),
+                                ],
+                            }),
+                        ],
+                        borders: {
+                            top: { style: BorderStyle.NONE },
+                            bottom: { style: BorderStyle.NONE },
+                            left: { style: BorderStyle.NONE },
+                            right: { style: BorderStyle.NONE },
+                        },
+                    }),
+                ],
+            })
+        ),
+        borders: {
+            top: { style: BorderStyle.NONE },
+            bottom: { style: BorderStyle.NONE },
+            left: { style: BorderStyle.NONE },
+            right: { style: BorderStyle.NONE },
+            insideHorizontal: { style: BorderStyle.NONE },
+            insideVertical: { style: BorderStyle.NONE },
+        },
+    });
+
+
+
 
     const doc = new Document({
         styles: {
@@ -598,16 +803,16 @@ const tocConfig = [
 
                     new Paragraph({
                         alignment: AlignmentType.CENTER,
-                        spacing: { after: 300 },
+                        spacing: { after: 50 },
                         children: [
                             createTextRun(projectTitle, textStyle.arial24, { bold: true }),
                         ],
                     }),
                     new Paragraph({
                         alignment: AlignmentType.CENTER,
-                        spacing: { before: 400, after: 800 },
+                        spacing: { before: 50, after: 50 },
                         children: [
-                            createTextRun(projectSubTitle, textStyle.arial14, { bold: true }),
+                            createTextRun(projectSubTitle, textStyle.arial24, { bold: true }),
                         ],
                     }),
                 ],
@@ -618,20 +823,21 @@ const tocConfig = [
                 properties: createPageProperties(),
                 headers: { default: header },
                 footers: { default: footer },
+                
                 children: [
                     tocTitle,
-                    ...tocEntries,
-                    
+                    tocTable,
                     new Paragraph({
-                        children:[
+                        children: [
                             new ExternalHyperlink({
                                 link: "https://par.molecularconnections.com/mc-review/form/IDF-34131Top%20Load%20Washer%20with%20Flexible%20Dispenser%20and%20Serviceable%20Dosing%20System",
-                                children:[
+                                children: [
                                     createTextRun("Please rate this search report", textStyle.arial10, { bold: true, color: "0000FF", underline: { type: UnderlineType.SINGLE }, })
                                 ]
-                            })                            
+                            })
                         ],
-                        spacing: { before: 100 }
+                        spacing: { before: 100 },
+                        indent: { left: 380}
                     })
                 ],
             },
@@ -647,13 +853,13 @@ const tocConfig = [
                             new Bookmark({
                                 id: "search-features",
                                 children: [
-                                    createTextRun("1. Search Features", textStyle.arial14, { bold: true, color: "000000" }),
+                                    createTextRun("1.  Search Features", textStyle.arial14, { bold: true, color: "000000" }),
                                 ]
                             })
                         ],
                         alignment: AlignmentType.LEFT,
-                        spacing: { before: 200, after: 400 },
-                        indent: { left: 720 },
+                        spacing: { before: 200, after: 300 },
+                        indent: { left: 880 },
                         heading: HeadingLevel.HEADING_1,
                     }),
                     ...searchFeatures
@@ -665,24 +871,11 @@ const tocConfig = [
                                 ],
                                 alignment: AlignmentType.JUSTIFIED,
                                 spacing: { before: 200, after: 200 },
+                                indent: { left: 380, right: 380 }
                             })
                         ),
+                    // imageGridTable,
 
-                    // ...imageBuffers.map((buffer) =>
-                    //     new Paragraph({
-                    //         children: [
-                    //             new ImageRun({
-                    //                 data: buffer,
-                    //                 transformation: {
-                    //                     width: 200,
-                    //                     height: 150,
-                    //                 },
-                    //             }),
-                    //         ],
-                    //         alignment: AlignmentType.CENTER,
-                    //         spacing: { after: 300 },
-                    //     })
-                    // ),
                 ],
             },
             // Search Methodology
@@ -699,6 +892,7 @@ const tocConfig = [
                 footers: { default: footer },
                 children: [
                     new Paragraph({
+                        indent: { left: 880 },
                         children: [
                             new Bookmark({
                                 id: "potentially-relevant-references",
@@ -708,18 +902,20 @@ const tocConfig = [
                             })
                         ],
                         heading: HeadingLevel.HEADING_1,
-                        spacing: { after: 400 },
+                        spacing: { after: 400, before: 500 },
                     }),
 
                     relevantReferencesTable,
 
                     new Paragraph({
+                        indent: { left: 520 },
                         children: [
                             createTextRun("Overall Summary of Search and Prior Arts:", textStyle.arial10, { bold: true, color: "000000" }),
                         ],
                         spacing: { after: 200, before: 200 },
                     }),
                     new Paragraph({
+                        indent: { left: 520 },
                         children: [
                             createTextRun(overallSummary, textStyle.arial10),
                         ],
@@ -734,6 +930,7 @@ const tocConfig = [
                 footers: { default: footer },
                 children: [
                     new Paragraph({
+                        indent: { left: 880 },
                         children: [
                             new Bookmark({
                                 id: "potentially-relevant-references-2",
@@ -743,7 +940,7 @@ const tocConfig = [
                             })
                         ],
                         heading: HeadingLevel.HEADING_1,
-                        spacing: { after: 400 },
+                        spacing: { after: 50 },
                     }),
 
                     ...(Array.isArray(relevantReferences)
@@ -765,17 +962,18 @@ const tocConfig = [
 
                             const ptnNumber = new Paragraph({
                                 alignment: AlignmentType.START,
+                                indent: { left: 1250 },
                                 children: [
                                     new Bookmark({
                                         id: `patent-${pub.patentNumber}`,
                                         children: [
-                                            createTextRun(` ${pubIndex + 1}. ${pub.patentNumber}`, textStyle.arial11, { bold: true, color: "000000" })
+                                            createTextRun(`${pubIndex + 1}.       ${pub.patentNumber}`, textStyle.arial11, { bold: true, color: "000000" })
                                         ],
                                     }),
                                 ],
 
                                 heading: HeadingLevel.HEADING_2,
-                                spacing: { after: 200 },
+                                spacing: { after: 20 },
                             });
 
                             const table = new Table({
@@ -905,18 +1103,20 @@ const tocConfig = [
                 footers: { default: footer },
                 children: [
                     new Paragraph({
+                        indent: { left: 630 },
                         children: [
                             new Bookmark({
                                 id: "related-references",
                                 children: [
-                                    createTextRun("5. Related References", textStyle.arial14, { bold: true, color: "000000" }),
+                                    createTextRun("5.  Related References", textStyle.arial14, { bold: true, color: "000000" }),
                                 ]
                             })
                         ],
-                        spacing: { after: 300 },
+                        spacing: { after: 50 },
                         heading: HeadingLevel.HEADING_1,
                     }),
                     new Paragraph({
+                        indent: { left: 630 },
                         children: [
                             createTextRun(
                                 " (Note: Below references obtained from the quick search are listed as related, as these references fail to disclose at least one or more critical features)",
@@ -924,7 +1124,7 @@ const tocConfig = [
                                 { italics: true }
                             ),
                         ],
-                        spacing: { after: 300 },
+                        spacing: { after: 50 },
                     }),
                     relatedReferencesTable
                 ],
@@ -947,18 +1147,19 @@ const tocConfig = [
                         heading: HeadingLevel.HEADING_1,
                         alignment: AlignmentType.START,
                         spacing: { after: 50 },
+                        indent: { left: 600 }
                     }),
 
 
 
                     new Paragraph({
                         children: [
-                            createTextRun("Search Terms & Search Strings", textStyle.arial10, { bold: true, color: "000000" }),
+                            createTextRun("Search Terms & Search Strings", textStyle.arial11, { bold: true, color: "000000" }),
                         ],
                         heading: HeadingLevel.HEADING_2,
                         alignment: AlignmentType.START,
                         spacing: { after: 30 },
-                        indent: { left: 520 },
+                        indent: { left: 920 },
                     }),
 
                     new Paragraph({
@@ -970,6 +1171,7 @@ const tocConfig = [
                         ],
                         alignment: AlignmentType.START,
                         spacing: { after: 30 },
+                        indent: { left: 600 }
                     }),
 
                     new Paragraph({
@@ -977,16 +1179,105 @@ const tocConfig = [
                             createTextRun("▶ Search Terms", textStyle.arial11, { bold: true }),
                         ],
                         alignment: AlignmentType.START,
-                        spacing: { after: 100 },
+                        spacing: { before: 50, after: 20 },
                         indent: { left: 720 },
                     }),
+
+                    new Table({
+                        width: {
+                            size: 92,
+                            type: WidthType.PERCENTAGE,
+                        },
+                        alignment: AlignmentType.CENTER,
+                        rows: [
+                            new TableRow({
+                                children: [
+                                    new TableCell({
+                                        verticalAlign: VerticalAlign.CENTER,
+                                        children: [
+                                            new Paragraph({
+                                                spacing: { before: 0, after: 0 },
+                                                alignment: AlignmentType.START,
+                                                indent: { left: 100 },
+                                                children: [
+                                                    createTextRun("Key words", textStyle.arial10, { bold: true, color: "000000" }),
+                                                ],
+                                            }),
+                                        ],
+                                        shading: {
+                                            fill: "A7C7E7",
+                                        },
+                                    }),
+                                    new TableCell({
+                                        verticalAlign: VerticalAlign.CENTER,
+                                        children: [
+                                            new Paragraph({
+                                                alignment: AlignmentType.START,
+                                                spacing: { before: 0, after: 0 },
+                                                indent: { left: 100 },
+                                                children: [
+                                                    createTextRun("Synonyms/Alternative terms", textStyle.arial10, { bold: true, color: "000000" }),
+                                                ],
+                                            }),
+                                        ],
+                                        shading: {
+                                            fill: "A7C7E7",
+                                        },
+                                    }),
+                                ],
+                            }),
+
+                            ...appendix1?.baseSearchTerms?.map((keyStr, index) =>
+                                new TableRow({
+                                    children: [
+                                        new TableCell({
+                                            verticalAlign: AlignmentType.CENTER,
+                                            children: [
+                                                new Paragraph({
+                                                    alignment: AlignmentType.LEFT,
+                                                    spacing: { before: 20, after: 20 },
+                                                    indent: { left: 100 },
+                                                    children: [
+                                                        createTextRun(keyStr.searchTermText, textStyle.arial10),
+                                                    ],
+                                                }),
+                                            ],
+                                        }),
+                                        new TableCell({
+                                            verticalAlign: AlignmentType.CENTER,
+                                            children: [
+                                                new Paragraph({
+                                                    alignment: AlignmentType.LEFT,
+                                                    spacing: { before: 20, after: 20 },
+                                                    indent: { left: 100 },
+                                                    children: [
+                                                        createTextRun(keyStr.relevantWords, textStyle.arial10),
+                                                    ],
+                                                }),
+                                            ],
+                                        }),
+                                    ],
+                                })
+                            ),
+                        ],
+                        borders: {
+                            top: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                            bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                            left: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                            right: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                            insideHorizontal: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                            insideVertical: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                        },
+                    }),
+
+
 
                     new Paragraph({
                         children: [
                             createTextRun("▶ Search Strings", textStyle.arial11, { bold: true }),
                         ],
                         alignment: AlignmentType.START,
-                        spacing: { after: 100 },
+                        spacing: { before: 200, after: 20 },
                         indent: { left: 720 },
                     }),
 
@@ -1038,6 +1329,7 @@ const tocConfig = [
                                     children: [
                                         new TableCell({
                                             verticalAlign: AlignmentType.CENTER,
+                                            width: { size: 5, type: WidthType.PERCENTAGE },
                                             children: [
                                                 new Paragraph({
                                                     alignment: AlignmentType.CENTER,
@@ -1053,6 +1345,7 @@ const tocConfig = [
                                                 new Paragraph({
                                                     alignment: AlignmentType.LEFT,
                                                     spacing: { before: 20, after: 20 },
+                                                    indent: { left: 80 },
                                                     children: [
                                                         createTextRun(keyStr.keyStringsText, textStyle.arial10),
                                                     ],
@@ -1101,7 +1394,7 @@ const tocConfig = [
                                         children: [
                                             new Paragraph({
                                                 alignment: AlignmentType.CENTER,
-                                                spacing: { before: 10, after: 20 },
+                                                spacing: { before: 0, after: 0 },
                                                 children: [
                                                     createTextRun("Key strings (Non-Patent Literatures)", textStyle.arial10, { bold: true, color: "FFFFFF" }),
                                                 ],
@@ -1121,6 +1414,7 @@ const tocConfig = [
                                             children: [
                                                 new Paragraph({
                                                     alignment: AlignmentType.CENTER,
+                                                    spacing:{after:10, before:10},
                                                     children: [
                                                         createTextRun(`${(appendix1.keyStrings.length) + (index + 1)}.`, textStyle.arial10),
                                                     ],
@@ -1132,11 +1426,11 @@ const tocConfig = [
                                             children: [
                                                 new Paragraph({
                                                     alignment: AlignmentType.LEFT,
-
+                                                    indent: { left: 80 },
                                                     children: [
                                                         createTextRun(keyStr.keyStringsNplText, textStyle.arial10),
                                                     ],
-                                                    spacing: { after: 0, before: 0 }
+                                                    spacing: { after: 10, before: 10 }
                                                 }),
                                             ],
                                         }),
@@ -1182,7 +1476,7 @@ const tocConfig = [
                                         children: [
                                             new Paragraph({
                                                 alignment: AlignmentType.CENTER,
-                                                spacing: { before: 10, after: 20 },
+                                                spacing: { before: 0, after: 0 },
                                                 children: [
                                                     createTextRun("Additional Search", textStyle.arial10, { bold: true, color: "FFFFFF" }),
                                                 ],
@@ -1215,6 +1509,7 @@ const tocConfig = [
                                             verticalAlign: VerticalAlign.CENTER,
                                             children: [
                                                 new Paragraph({
+                                                    indent: { left: 80 },
                                                     alignment: AlignmentType.LEFT,
                                                     spacing: { before: 20, after: 20 },
                                                     children: [
@@ -1245,7 +1540,7 @@ const tocConfig = [
                                     createTextRun("Back to Table of Contents", {
                                         color: "0000FF",
                                         underline: true,
-                                        italics: true,
+                                        // italics: true,
                                         size: 16,
                                         font: "Arial"
                                     }),
@@ -1261,7 +1556,7 @@ const tocConfig = [
                         ],
                         alignment: AlignmentType.START,
                         spacing: { before: 200, after: 100 },
-                        indent: { left: 520 },
+                        indent: { left: 720 },
                     }),
                     ...appendix1.dataAvailability.map((mapData) =>
                         new Paragraph({
@@ -1282,6 +1577,7 @@ const tocConfig = [
                 footers: { default: footer },
                 children: [
                     new Paragraph({
+                        indent: { left: 520 },
                         children: [
                             new Bookmark({
                                 id: "Appendix-2",
@@ -1302,7 +1598,7 @@ const tocConfig = [
                         heading: HeadingLevel.HEADING_2,
                         alignment: AlignmentType.START,
                         spacing: { after: 0 },
-                        indent: { left: 520 },
+                        indent: { left: 880 },
                     }),
 
                     new Table({
@@ -1334,8 +1630,8 @@ const tocConfig = [
                                                 children: [
                                                     createTextRun("Patents", textStyle.arial10, { bold: true }),
                                                 ],
-                                                spacing: { after: 50 },
-                                                indent: { left: 520 }
+                                                spacing: { after: 20 },
+                                                indent: { left: 880 },
                                             }),
                                             ...cleanListWithEtc(appendix2.patents)
                                                 .map((item) =>
@@ -1343,7 +1639,8 @@ const tocConfig = [
                                                         children: [
                                                             createTextRun(`✓ ${item.trim()}`, textStyle.arial10),
                                                         ],
-                                                        indent: { left: 520 }
+                                                        indent: { left: 880 },
+                                                        spacing: { after: 0 },
                                                     })
                                                 ),
                                         ],
@@ -1358,15 +1655,18 @@ const tocConfig = [
                                         },
                                         children: [
                                             new Paragraph({
+                                                // indent: { left: 880 },
                                                 children: [
                                                     createTextRun("Non-patent Literature", textStyle.arial10, { bold: true }),
                                                 ],
-                                                spacing: { after: 50 },
+                                                spacing: { after: 0 },
                                             }),
                                             ...appendix2.nonPatentLiterature
                                                 .split("\n")
                                                 .map((item) =>
                                                     new Paragraph({
+                                                        // indent: { left: 880 },
+                                                        spacing: { after: 0 },
                                                         children: [
                                                             createTextRun(`✓ ${item.trim()}`, textStyle.arial10),
                                                         ],
@@ -1387,6 +1687,7 @@ const tocConfig = [
                 footers: { default: footer },
                 children: [
                     new Paragraph({
+                        indent: { left: 520 },
                         children: [
                             createTextRun("Disclaimer", textStyle.arial14, { bold: true, color: "000000" }),
                         ],
@@ -1396,11 +1697,12 @@ const tocConfig = [
                     }),
 
                     new Paragraph({
+                        indent: { left: 520 },
                         children: [
                             createTextRun(disclaimer, textStyle.arial10,),
                         ],
                         alignment: AlignmentType.START,
-                        spacing: { after: 200 },
+                        spacing: { after: 50 },
                     }),
                 ],
             },

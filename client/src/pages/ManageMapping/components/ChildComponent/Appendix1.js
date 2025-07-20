@@ -45,8 +45,7 @@ const Appendix1 = ({
 
 }) => {
 
-
- console.log('relevantWordsList', relevantWordsList)
+    console.log("first")
 
     const baseSearchTermsColumns = useMemo(() => [
         {
@@ -88,7 +87,6 @@ const Appendix1 = ({
             },
         },
     ], [relevantWordsList]);
-
 
 
     const keyStringsColumns = useMemo(() => [
