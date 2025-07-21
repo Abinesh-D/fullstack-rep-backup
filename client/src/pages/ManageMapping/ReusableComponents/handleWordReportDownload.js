@@ -198,55 +198,55 @@ export const handleWordReportDownload = async ({
 
     const IMAGES_PER_ROW = 4;
 
-const imageTableRows = [];
-for (let i = 0; i < imageBuffers.length; i += IMAGES_PER_ROW) {
-    const rowImages = imageBuffers.slice(i, i + IMAGES_PER_ROW);
+    const imageTableRows = [];
+    for (let i = 0; i < imageBuffers.length; i += IMAGES_PER_ROW) {
+        const rowImages = imageBuffers.slice(i, i + IMAGES_PER_ROW);
 
-    const row = new TableRow({
-        children: rowImages.map((buffer) =>
-            new TableCell({
-                children: [
-                    new Paragraph({
-                        alignment: AlignmentType.CENTER,
-                        children: [
-                            new ImageRun({
-                                data: buffer,
-                                transformation: {
-                                    width: 120,  // Set your preferred width
-                                    height: 90,  // Adjust height proportionally
-                                },
-                            }),
-                        ],
-                    }),
-                ],
-                borders: {
-                    top: { style: "none" },
-                    bottom: { style: "none" },
-                    left: { style: "none" },
-                    right: { style: "none" },
-                },
-            })
-        ),
+        const row = new TableRow({
+            children: rowImages.map((buffer) =>
+                new TableCell({
+                    children: [
+                        new Paragraph({
+                            alignment: AlignmentType.CENTER,
+                            children: [
+                                new ImageRun({
+                                    data: buffer,
+                                    transformation: {
+                                        width: 120,  // Set your preferred width
+                                        height: 90,  // Adjust height proportionally
+                                    },
+                                }),
+                            ],
+                        }),
+                    ],
+                    borders: {
+                        top: { style: "none" },
+                        bottom: { style: "none" },
+                        left: { style: "none" },
+                        right: { style: "none" },
+                    },
+                })
+            ),
+        });
+
+        imageTableRows.push(row);
+    }
+
+    const imageGridTable = new Table({
+        rows: imageTableRows,
+        width: {
+            size: 100,
+            type: "pct",
+        },
+        borders: {
+            top: { style: "none" },
+            bottom: { style: "none" },
+            left: { style: "none" },
+            right: { style: "none" },
+            insideHorizontal: { style: "none" },
+            insideVertical: { style: "none" },
+        },
     });
-
-    imageTableRows.push(row);
-}
-
-const imageGridTable = new Table({
-    rows: imageTableRows,
-    width: {
-        size: 100,
-        type: "pct",
-    },
-    borders: {
-        top: { style: "none" },
-        bottom: { style: "none" },
-        left: { style: "none" },
-        right: { style: "none" },
-        insideHorizontal: { style: "none" },
-        insideVertical: { style: "none" },
-    },
-});
     // const tocTitle = new Paragraph({
     //     children: [
     //         new Bookmark({
@@ -394,7 +394,7 @@ const imageGridTable = new Table({
                             verticalAlign: VerticalAlign.CENTER,
                             children: [
                                 new Paragraph({
-                                    spacing: { before: 20, after: 0 },  
+                                    spacing: { before: 20, after: 0 },
                                     alignment: AlignmentType.CENTER,
                                     children: [
                                         createTextRun(String(index + 1), textStyle.arial10),
@@ -702,7 +702,7 @@ const imageGridTable = new Table({
             type: WidthType.PERCENTAGE,
         },
         indent: {
-            size: 0, 
+            size: 0,
             type: WidthType.DXA,
         },
         alignment: AlignmentType.CENTER,
@@ -724,7 +724,7 @@ const imageGridTable = new Table({
                                 children: [
                                     createTextRun(item.label, textStyle.arial10, {
                                         bold: item.isBold || false,
-                                        size: item.font13 ? 26 : 22, 
+                                        size: item.font13 ? 26 : 22,
                                     }),
                                 ],
                             }),
@@ -740,7 +740,7 @@ const imageGridTable = new Table({
                         children: [
                             new Paragraph({
                                 alignment: AlignmentType.RIGHT,
-                                 tabStops: [
+                                tabStops: [
                                     {
                                         type: TabStopType.RIGHT,
                                         position: TabStopPosition.MAX,
@@ -823,7 +823,7 @@ const imageGridTable = new Table({
                 properties: createPageProperties(),
                 headers: { default: header },
                 footers: { default: footer },
-                
+
                 children: [
                     tocTitle,
                     tocTable,
@@ -837,7 +837,7 @@ const imageGridTable = new Table({
                             })
                         ],
                         spacing: { before: 100 },
-                        indent: { left: 380}
+                        indent: { left: 380 }
                     })
                 ],
             },
@@ -1039,7 +1039,7 @@ const imageGridTable = new Table({
                                     spacing: { before: 300, after: 300 },
                                     children: [
                                         createTextRun("Analyst Comments – ", textStyle.arial10, { bold: true }),
-                                        createTextRun(sanitizeText(pub.analystComments), textStyle.arial10, { italics: true }),
+                                        createTextRun(sanitizeText(pub.analystComments), textStyle.arial10),
                                     ],
                                 })
                                 : null;
@@ -1414,7 +1414,7 @@ const imageGridTable = new Table({
                                             children: [
                                                 new Paragraph({
                                                     alignment: AlignmentType.CENTER,
-                                                    spacing:{after:10, before:10},
+                                                    spacing: { after: 10, before: 10 },
                                                     children: [
                                                         createTextRun(`${(appendix1.keyStrings.length) + (index + 1)}.`, textStyle.arial10),
                                                     ],
@@ -1552,11 +1552,12 @@ const imageGridTable = new Table({
 
                     new Paragraph({
                         children: [
-                            createTextRun("Data Availability", textStyle.arial11, { bold: true }),
+                            createTextRun("Data Availability", textStyle.arial11, { bold: true, color: "000000" }),
                         ],
                         alignment: AlignmentType.START,
                         spacing: { before: 200, after: 100 },
                         indent: { left: 720 },
+                        heading: HeadingLevel.HEADING_2,
                     }),
                     ...appendix1.dataAvailability.map((mapData) =>
                         new Paragraph({

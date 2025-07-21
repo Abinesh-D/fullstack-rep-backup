@@ -90,7 +90,7 @@ const ExcelPatentUploader = ({ onUpload }) => {
       const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
 
       const extractedNumbers = jsonData
-        .map((row) => row['Patent Numbers'])
+        .map((row) => row['Patent Number'])
         .filter((val) => val !== undefined && val !== '')
         .map((val) => String(val).trim());
 
