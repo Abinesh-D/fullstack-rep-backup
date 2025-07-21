@@ -350,7 +350,7 @@ router.post("/update-overall-summary/:id", async (req, res) => {
 // Related Ref Data Save
 router.post("/add-related/:id", async (req, res) => {
   const { id } = req.params;
-  const relatedData = req.body;
+  const relatedData = req.body; 
 
   try {
     const updatedProject = await cln_prior_report_schema.findByIdAndUpdate(

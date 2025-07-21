@@ -45,8 +45,6 @@ const Appendix1 = ({
 
 }) => {
 
-    console.log("first")
-
     const baseSearchTermsColumns = useMemo(() => [
         {
             header: "S. No.",
@@ -504,7 +502,7 @@ const Appendix1 = ({
                     <TableContainer
                         columns={availabilityColumns}
                         data={dataAvailabilityValue || []}
-                         isPagination={true}
+                        isPagination={true}
                         isCustomPageSize={true}
                         SearchPlaceholder="Search..."
                         tableClass="align-middle table-nowrap table-hover dt-responsive nowrap w-100 dataTable no-footer dtr-inline"

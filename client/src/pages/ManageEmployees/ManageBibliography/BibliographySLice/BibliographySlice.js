@@ -319,6 +319,7 @@ export const fetchESPData = async (patentNumber, dispatch, type) => {
 // Bulk Patent Biblio Data
 export const fetchBulkESPData = async (patentNumber, dispatch, type) => {
   try {
+    console.log('patentNumber', patentNumber)
 
     // const trimmedNumber = patentNumber.trim();
     // if (!trimmedNumber) throw new Error("Patent number is required.");
@@ -504,13 +505,26 @@ export const fetchRelatedReferences = async (id) => {
 
 
 
-// De;ete Related Ref 
+// Delete Related Ref 
 export const deleteRelatedReference = async (relatedId, id) => {
     try {
         await axios.delete(`http://localhost:8080/live/projectname/delete-related/${id}/${relatedId}`);
     } catch (error) {
         console.error("❌ Error deleting related reference:", error);
     }
+};
+
+
+
+// Related Ref Bulk Excel Save APi
+export const saveExcelRelatedReferences = async (id, relatedData) => {
+  try {
+    const res = await axios.post(`http://localhost:8080/live/projectname/add-related/${id}`, relatedData);
+    return res.data.stages.relatedReferences;
+  } catch (err) {
+    console.error("❌ Error saving related references:", err);
+    alert("Failed to save references. Check console for details.");
+  }
 };
 
 

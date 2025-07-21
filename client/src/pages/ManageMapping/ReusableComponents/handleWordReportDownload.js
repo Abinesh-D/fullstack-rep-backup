@@ -189,7 +189,8 @@ export const handleWordReportDownload = async ({
         ],
     });
 
-    const cloudinaryUrls = projectImageUrl.map(buf => buf.base64Url);
+    const cloudinaryUrls = (projectImageUrl || []).map(buf => buf?.base64Url).filter(Boolean);
+
 
     const imageBuffers = await Promise.all(
         cloudinaryUrls.map(async (url) => await getImageArrayBufferFromUrl(url))
@@ -212,8 +213,8 @@ export const handleWordReportDownload = async ({
                                 new ImageRun({
                                     data: buffer,
                                     transformation: {
-                                        width: 120,  // Set your preferred width
-                                        height: 90,  // Adjust height proportionally
+                                        width: 120,
+                                        height: 90,
                                     },
                                 }),
                             ],

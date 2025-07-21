@@ -110,7 +110,7 @@ const MappingProjectCreation = () => {
     const [keyStringsAdditionalList, setKeyStringsAdditionalList] = useState("");
 
     const [dataAvailability, setDataAvailability] = useState("")
-    const [dataAvailabilityValue, setDataAvailabilityValue] = useState("");
+    const [dataAvailabilityValue, setDataAvailabilityValue] = useState([]);
 
     const [appendix2Patents, setAppendix2Patents] = useState("");
 
@@ -1036,7 +1036,7 @@ const MappingProjectCreation = () => {
 
 
     const handleRelatedFetchPatentData = async () => {
-        const trimmedNumber = relatedForm.publicationNumber.trim();
+        const trimmedNumber = relatedForm.publicationNumber?.trim();
         setRelatedLoading(true);
         try {
             await EPO_API_DATA(trimmedNumber, dispatch, 'related');
@@ -1449,7 +1449,7 @@ console.log('relatedInventorNames', relatedInventorNames)
                 relatedReferences: getProjectValue.stages.relatedReferences || "relatedReferences",
                 appendix1: getProjectValue.stages.appendix1[0] || "Appendix 1",
                 appendix2: getProjectValue.stages.appendix2[0] || "Appendix 2",
-                projectImageUrl: getProjectValue.stages.introduction[0].projectImageUrl || "projectImageUrl",
+                projectImageUrl: getProjectValue.stages.introduction[0]?.projectImageUrl || ["Image"],
                 overallSummary: getProjectValue.stages.relevantReferences.overallSummary || "overallSummary",
             });
         } catch (error) {
@@ -1656,6 +1656,7 @@ console.log('relatedInventorNames', relatedInventorNames)
                                                         handleRelatedInputChange={handleRelatedInputChange}
                                                         relatedFormData={relatedFormData}
                                                         onRelatedDelete={onRelatedDelete}
+                                                        setRelatedFormData={setRelatedFormData}
                                                         relatedErrorValidation={relatedErrorValidation}
                                                         setRelatedErrorValidation={setRelatedErrorValidation}
                                                         resetRelatedForm={resetRelatedForm}

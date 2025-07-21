@@ -84,12 +84,13 @@
     "xlsx": "^0.18.5",
     "yup": "^1.6.1"
   },
-  "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
-  },
+"scripts": {
+  "start": "react-scripts start",
+  "build": "cross-env NODE_OPTIONS=--max-old-space-size=4096 react-scripts build",
+  "test": "react-scripts test",
+  "eject": "react-scripts eject"
+}
+,
   "eslintConfig": {
     "extends": [
       "react-app",
@@ -107,5 +108,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3"
   }
 }

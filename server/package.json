@@ -3,8 +3,12 @@
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "start": "set NODE_ENV=development && nodemon server.js",
+  "start:prod": "set NODE_ENV=production && node server.js",
+  "test": "echo \"Error: no test specified\" && exit 1"
+}
+
+  ,
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -42,5 +46,8 @@
     "streamifier": "^0.1.1",
     "uuid": "^11.1.0",
     "xml2js": "^0.6.2"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3"
   }
 }

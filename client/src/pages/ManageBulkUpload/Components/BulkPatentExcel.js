@@ -1,123 +1,116 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import * as XLSX from 'xlsx';
-import { fetchBulkESPData } from '../../ManageEmployees/ManageBibliography/BibliographySLice/BibliographySlice';
+import { fetchBulkESPData, saveExcelRelatedReferences } from '../../ManageEmployees/ManageBibliography/BibliographySLice/BibliographySlice';
+import {
+    FaFileExcel,
+    FaSpinner,
+    FaDownload,
+    FaTimesCircle,
+
+} from 'react-icons/fa';
 
 
-const styles = {
-  page: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    minHeight: '80vh',
-    background: 'linear-gradient(135deg, #e0f7fa, #e1bee7)',
-    fontFamily: 'Segoe UI, sans-serif',
-    padding: '20px',
-  },
-  card: {
-    backgroundColor: '#ffffff',
-    borderRadius: '16px',
-    boxShadow: '0 10px 20px rgba(0,0,0,0.1)',
-    padding: '30px 40px',
-    maxWidth: '450px',
-    width: '100%',
-    textAlign: 'center',
-    transition: 'transform 0.2s ease-in-out',
-  },
-  heading: {
-    fontSize: '22px',
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: '12px',
-  },
-  subheading: {
-    fontSize: '14px',
-    color: '#666',
-    marginBottom: '20px',
-  },
-  uploadBox: {
-    border: '2px dashed #9c27b0',
-    padding: '25px',
-    borderRadius: '12px',
-    backgroundColor: '#f3e5f5',
-    cursor: 'pointer',
-    transition: '0.3s ease',
-  },
-  fileInput: {
-    display: 'none',
-  },
-  infoBox: {
-    marginTop: '25px',
-    backgroundColor: '#f9fbe7',
-    borderLeft: '6px solid #cddc39',
-    padding: '15px',
-    textAlign: 'left',
-    borderRadius: '6px',
-    color: '#333',
-    fontSize: '14px',
-  },
-  icon: {
-    fontSize: '30px',
-    color: '#7b1fa2',
-    marginBottom: '10px',
-  },
-};
 
-const ExcelPatentUploader = ({ onUpload }) => {
+const ExcelPatentUploader = ({ setRelatedFormData }) => {
 
   const dispatch = useDispatch();
 
-  const bulkESPData = useSelector(state => state.patentSlice.bulkESPData)
+  const espData = useSelector(state => state.patentSlice.espData);
+  console.log('espData', espData);
+  const id = sessionStorage.getItem("_id");
+  const fileInputRef = useRef(null);
 
   const [famId, setfamId] = useState([]);
   const [fileName, setFileName] = useState(null);
   const [patentNumbers, setPatentNumbers] = useState("");
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [submitLoading, setSubmitLoading] = useState(false);
+  const [submitDisable, setSubmitDisable] = useState(false);
+
+
+
+  const bulkBiblioApiCall = async (patentNumbers) => {
+    try {
+      setLoading(true);
+      await fetchBulkESPData(patentNumbers, dispatch, "related");
+    } catch (error) {
+      console.error("❌ Error fetching data:", error);
+    } finally {
+      setLoading(false);
+      setSubmitDisable(true);
+    }
+  };
 
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
     setFileName(file.name);
+    setLoading(true);
 
     const reader = new FileReader();
     reader.onload = (e) => {
       const data = new Uint8Array(e.target.result);
-      const workbook = XLSX.read(data, { type: 'array' });
+      const workbook = XLSX.read(data, { type: "array" });
 
       const sheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[sheetName];
-
-      const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+      const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
 
       const extractedNumbers = jsonData
-        .map((row) => row['Patent Number'])
-        .filter((val) => val !== undefined && val !== '')
-        .map((val) => String(val).trim());
+        .map(row => row["Patent Number"])
+        .filter(val => val)
+        .map(val => String(val).trim());
 
-      const commaSeparated = extractedNumbers.join(', ');
-
-      setPatentNumbers(commaSeparated);
-      if (onUpload) onUpload(commaSeparated);
-
+      const commaSeparated = extractedNumbers.join(", ");
+      setPatentNumbers(commaSeparated.split(',').map(val => val.trim()).filter(val => val !== '').length || 0);
       bulkBiblioApiCall(commaSeparated);
-
     };
 
     reader.readAsArrayBuffer(file);
-
-
   };
 
-
-
-  const bulkBiblioApiCall = async (patentNumbers) => {
-    try {
-      await fetchBulkESPData(patentNumbers, dispatch, "relevant");
-
-    } catch (error) {
-      console.log('error', error)
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    const file = e.dataTransfer.files[0];
+    if (file && (file.name.endsWith(".xlsx") || file.name.endsWith(".xls"))) {
+      handleFileUpload({ target: { files: [file] } });
     }
   };
+
+
+  const handleSubmit = async () => {
+    setSubmitLoading(true);
+    try {
+      const relatedData = mappedValue.map(item => ({
+        publicationNumber: item.patentNumber || "",
+        relatedPublicationUrl: item.publicationUrl || "",
+        relatedTitle: item.invention || "",
+        relatedAssignee: item.applicantNames ? item.applicantNames.split(';').map(name => name.trim()) : [],
+        relatedInventor: item.inventorNames ? item.inventorNames.split(';').map(name => name.trim()) : [],
+        relatedFamilyMembers: item.familyMembersData.map(f => f.familyPatent),
+        relatedPublicationDate: item.publicationDate || "",
+        relatedPriorityDate: item.priorityDates || ""
+      }));
+      const response = await saveExcelRelatedReferences(id, relatedData);
+      setRelatedFormData(response);
+    } catch (error) {
+      console.log(error, "error")
+    } finally {
+      setSubmitLoading(false);
+      setPatentNumbers(0);
+      setSubmitDisable(false);
+      setFileName(null);
+
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
 
 
   const extractAbstractText = (abstractData) => {
@@ -152,7 +145,6 @@ const ExcelPatentUploader = ({ onUpload }) => {
     return titleData?._ || '';
   };
 
-
   const publicationDateFunction = (biblioData) => {
     const docIds = biblioData?.['publication-reference']?.['document-id'];
 
@@ -170,7 +162,6 @@ const ExcelPatentUploader = ({ onUpload }) => {
     return formatDate(epodocDate);
   }
 
-
   const applicationDateFunction = (biblioData) => {
     const docIds = biblioData?.['application-reference']?.['document-id'];
 
@@ -187,7 +178,6 @@ const ExcelPatentUploader = ({ onUpload }) => {
 
     return formatDate(epodocDate);
   }
-
 
   const getPriorityDates = (biblioData) => {
     let claims = biblioData?.['priority-claims']?.['priority-claim'];
@@ -210,9 +200,6 @@ const ExcelPatentUploader = ({ onUpload }) => {
     }
     return '';
   };
-
-
-
 
   const classifications = (biblioData) => {
     const patentClassifications = biblioData?.['patent-classifications']?.['patent-classification'];
@@ -246,19 +233,16 @@ const ExcelPatentUploader = ({ onUpload }) => {
     };
   };
 
-
-
-
   const normalizeText = text => text?.replace(/\s+/g, '').trim();
 
 
 
   useEffect(() => {
-    if (!Array.isArray(bulkESPData)) return;
+    if (!Array.isArray(espData)) return;
 
     const result = [];
 
-    for (const map of bulkESPData) {
+    for (const map of espData) {
       if (!map?.patentNumber) continue;
 
       const familyMember = map.family?.["world-patent-data"]?.["patent-family"]?.["family-member"];
@@ -274,12 +258,10 @@ const ExcelPatentUploader = ({ onUpload }) => {
     }
 
     setfamId(result);
-  }, [bulkESPData]);
-
-
+  }, [espData]);
 
   // Bulk Biblio
-  const mappedValue = bulkESPData.map((map) => {
+  const mappedValue = espData.map((map) => {
 
     const biblioArray = map?.biblio?.['world-patent-data']?.['exchange-documents']?.['exchange-document']?.['bibliographic-data'];
 
@@ -388,45 +370,64 @@ const ExcelPatentUploader = ({ onUpload }) => {
   });
 
   console.log('mappedValue', mappedValue)
-  const count = patentNumbers?.split(',').map(val => val.trim()).filter(val => val !== '').length || 0;
+
+
+
 
 
   return (
-    <div style={styles.page}>
-      <div style={styles.card}>
-        <div style={styles.icon}>📑</div>
-        <h2 style={styles.heading}>Bulk Patent Uploader</h2>
-        <p style={styles.subheading}>
-          Upload an Excel (.xls, .xlsx) file with patent numbers in the first column
-        </p>
+    <div
+      className={`p-4 rounded-lg border shadow-sm transition-all duration-300 ${fileName ? "bg-gradient-to-r from-blue-50 to-green-50" : "bg-light"}`}
+      onDragOver={(e) => {
+        e.preventDefault();
+        setIsDragOver(true);
+      }}
+      onDragLeave={() => setIsDragOver(false)}
+      onDrop={handleDrop}
+    >
+      <label
+        htmlFor="excel-upload"
+        className={`d-block p-5 text-center border rounded-lg ${isDragOver ? "border-primary bg-primary bg-opacity-10" : "border-secondary"
+          }`}
+        style={{ cursor: "pointer" }}
+      >
+        <input ref={fileInputRef} id="excel-upload" type="file" accept=".xlsx, .xls" onChange={handleFileUpload} hidden />
 
-        <label htmlFor="excel-upload" style={styles.uploadBox}
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={(e) => {
-            e.preventDefault();
-            const file = e.dataTransfer.files[0];
-            if (file && (file.name.endsWith('.xlsx') || file.name.endsWith('.xls'))) {
-              handleFileUpload({ target: { files: [file] } });
-            }
-          }}
-        >
-          <div>📤 Click or drag Excel file here</div>
-          <input
-            id="excel-upload"
-            type="file"
-            accept=".xlsx, .xls"
-            style={styles.fileInput}
-            onChange={handleFileUpload}
-          />
-        </label>
-
-        {fileName && (
-          <div style={styles.infoBox}>
-            <div><strong>📂 File:</strong> {fileName}</div>
-            <div><strong>🔢 Total Patents:</strong> {count} </div>
+        <div className="fs-4 mb-2">
+           <FaFileExcel /> Drag & Drop Excel here or <span className="text-primary">Browse</span>
+        </div>
+        <div className="text-muted">Supports .xlsx, .xls</div>
+        {loading && (
+          <div className="mt-3 text-primary">
+            <div className="spinner-border spinner-border-sm me-2" role="status"></div>
+            Loading Excel data...
           </div>
         )}
-      </div>
+      </label>
+
+      {fileName && !loading && (
+        <div className="mt-3">
+          <div><strong>📂 File Name:</strong> {fileName}</div>
+          <div><strong>🔢 Selected Count:</strong> {patentNumbers}</div>
+        </div>
+      )}
+
+      {fileName && !loading && (
+        <button
+          className="btn btn-primary mt-3 w-100 d-flex justify-content-center align-items-center"
+          onClick={handleSubmit}
+          disabled={submitLoading && submitDisable}
+        >
+          {submitLoading && (
+            <span
+              className="spinner-border spinner-border-sm me-2"
+              role="status"
+              aria-hidden="true"
+            ></span>
+          )}
+          {submitLoading ? "Submitting..." : "Submit"}
+        </button>
+      )}
     </div>
   );
 };

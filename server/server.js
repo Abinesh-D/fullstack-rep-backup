@@ -12,14 +12,12 @@ app.use(bodyParser.json());
 
 const PORT = process.env.PORT || 8080;
 
+
 // Atlas cluster URI
 const MONGODB_URI = process.env.MONGODB_URI
 
 // MongoDB Connection
-mongoose.connect(MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
+mongoose.connect(MONGODB_URI)
 .then(() => console.log("MongoDB connected"))
 .catch((err) => console.error("MongoDB connection error:", err));
 
