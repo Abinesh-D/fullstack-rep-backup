@@ -165,150 +165,19 @@ const RelatedRefComponent = ({
                                             <span className="d-none d-sm-block">Excel Upload</span>
                                         </NavLink>
                                     </NavItem>
+                                    <NavItem>
+                                        <NavLink
+                                            style={{ cursor: "pointer" }}
+                                            className={classnames({ active: activeTab === "3" })}
+                                            onClick={() => toggleTab("3")}
+                                        >
+                                            <span className="d-none d-sm-block">Add Multi Patents</span>
+                                        </NavLink>
+                                    </NavItem>
                                 </Nav>
 
                                 <TabContent activeTab={activeTab} className="p-3">
                                     <TabPane tabId="1">
-                                        {/* {relatedLoading ? (
-                                            <div className="blur-loading-overlay text-center mt-4">
-                                                <Spinner color="primary" />
-                                                <p className="mt-2 text-primary">Loading Related References...</p>
-                                            </div>
-                                        ) : (
-                                            <Form onSubmit={handleRelatedSubmit} className="mb-4">
-                                                <Row>
-                                                    <Col lg="4">
-                                                        <div className="mb-3">
-                                                            <Label for="related-publicationNumber">Publication Number</Label>
-                                                            <Input
-                                                                type="text"
-                                                                id="related-publicationNumber"
-                                                                className="form-control"
-                                                                placeholder="Enter Publication Number"
-                                                                value={relatedForm.publicationNumber}
-                                                                onChange={handleRelatedInputChange}
-                                                            />
-                                                        </div>
-                                                    </Col>
-                                                    <Col lg="2 d-grid align-items-end">
-                                                        <div className="mb-3">
-                                                            {
-                                                                relatedForm.publicationNumber && patentSlice.relatedApiTrue ? (
-                                                                    <Button color="danger" onClick={handleClearInputFields} className="w-100">Clear</Button>
-                                                                ) : (
-                                                                    <Button color="success" onClick={handleRelatedFetchPatentData} className="w-100">Submit</Button>
-                                                                )
-                                                            }
-                                                        </div>
-                                                    </Col>
-
-                                                    <Col lg="6">
-                                                        <div className="mb-3">
-                                                            <Label for="related-relatedPublicationUrl">Publication Number (URL)</Label>
-                                                            <Input
-                                                                type="text"
-                                                                id="related-relatedPublicationUrl"
-                                                                className="form-control"
-                                                                placeholder="Enter Publication Number URL"
-                                                                value={relatedForm.relatedPublicationUrl}
-                                                                onChange={handleRelatedInputChange}
-                                                            />
-                                                        </div>
-                                                    </Col>
-                                                </Row>
-
-                                                <Row>
-                                                    <Col lg="6">
-                                                        <div className="mb-3">
-                                                            <Label for="related-relatedTitle">Title</Label>
-                                                            <Input
-                                                                type="text"
-                                                                id="related-relatedTitle"
-                                                                className="form-control"
-                                                                placeholder="Enter Title"
-                                                                value={relatedForm.relatedTitle}
-                                                                onChange={handleRelatedInputChange}
-                                                            />
-                                                        </div>
-                                                    </Col>
-
-                                                    <Col lg="6">
-                                                        <div className="mb-3">
-                                                            <Label for="related-assigneeOrInventor">Assignee(s) / Inventor(s)</Label>
-                                                            <Input
-                                                                type="text"
-                                                                id="related-assigneeOrInventor"
-                                                                className="form-control"
-                                                                placeholder="Enter Assignees/Inventors"
-                                                                // value={relatedAssigneeOrIntentor}
-                                                                value={relatedForm.relatedAssignee || relatedForm.relatedInventor}
-                                                                onChange={handleRelatedInputChange}
-                                                            />
-                                                        </div>
-                                                    </Col>
-                                                </Row>
-
-
-
-
-                                                <Row className="align-items-end">
-                                                    <Col lg="6">
-                                                        <div className="mb-3">
-                                                            <Label for="related-relatedFamilyMembers">Family Member(s)</Label>
-                                                            <textarea
-                                                                id="related-relatedFamilyMembers"
-                                                                className="form-control"
-                                                                rows="3"
-                                                                placeholder="Enter Family Members"
-                                                                value={relatedForm.relatedFamilyMembers}
-                                                                onChange={handleRelatedInputChange}
-                                                            />
-                                                        </div>
-                                                    </Col>
-
-                                                    <Col lg="3">
-                                                        <div className="mb-3">
-                                                            <Label for="related-relatedPriorityDate">Priority Date</Label>
-                                                            <Input
-                                                                type="text"
-                                                                id="related-relatedPriorityDate"
-                                                                className="form-control"
-                                                                placeholder="dd-mm-yyyy"
-                                                                value={relatedForm.relatedPriorityDate}
-                                                                onChange={handleRelatedInputChange}
-                                                            />
-                                                        </div>
-                                                    </Col>
-
-                                                    <Col lg="3">
-                                                        <div className="mb-3">
-                                                            <Label for="related-relatedPublicationDate">Publication Date</Label>
-                                                            <Input
-                                                                type="text"
-                                                                id="related-relatedPublicationDate"
-                                                                className="form-control"
-                                                                placeholder="dd-mm-yyyy"
-                                                                value={relatedForm.relatedPublicationDate}
-                                                                onChange={handleRelatedInputChange}
-                                                            />
-                                                        </div>
-                                                    </Col>
-
-                                                    <Col lg="auto">
-                                                        <div className="mb-3">
-                                                            <Button color="info" type="submit" className="mt-2">
-                                                                + Add Related
-                                                            </Button>
-                                                        </div>
-                                                    </Col>
-                                                </Row>
-
-                                            </Form>
-                                        )} */}
-
-
-
-
                                         <RelatedReferenceForm
                                             relatedLoading={relatedLoading}
                                             relatedForm={relatedForm}
@@ -324,6 +193,9 @@ const RelatedRefComponent = ({
                                         {
                                             <ExcelPatentUploader setRelatedFormData={setRelatedFormData} />
                                         }
+                                    </TabPane>
+                                    <TabPane tabId="3">
+                                        <p>Coming Soon</p>
                                     </TabPane>
                                 </TabContent>
                             </>
@@ -351,8 +223,7 @@ const RelatedRefComponent = ({
                         theadClass="table-light"
                         paginationWrapper="dataTables_paginate paging_simple_numbers pagination-rounded"
                         pagination="pagination"
-
-
+                        related={true}
                     />
                 )
             }

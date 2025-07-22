@@ -1,14 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import * as XLSX from 'xlsx';
-import { fetchBulkESPData, saveExcelRelatedReferences } from '../../ManageEmployees/ManageBibliography/BibliographySLice/BibliographySlice';
-import {
-    FaFileExcel,
-    FaSpinner,
-    FaDownload,
-    FaTimesCircle,
+import sampleExcelImage from "../../../assets/images/bulk_patent_sample_image.png";
 
-} from 'react-icons/fa';
+import { Modal, ModalBody, ModalHeader, Button } from "reactstrap";
+import { fetchBulkESPData, saveExcelRelatedReferences } from '../../ManageEmployees/ManageBibliography/BibliographySLice/BibliographySlice';
+import { FaFileExcel } from 'react-icons/fa';
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { downloadSampleExcel } from './sampleBulkPatentDownload';
+
 
 
 
@@ -17,7 +18,7 @@ const ExcelPatentUploader = ({ setRelatedFormData }) => {
   const dispatch = useDispatch();
 
   const espData = useSelector(state => state.patentSlice.espData);
-  console.log('espData', espData);
+
   const id = sessionStorage.getItem("_id");
   const fileInputRef = useRef(null);
 
@@ -28,6 +29,8 @@ const ExcelPatentUploader = ({ setRelatedFormData }) => {
   const [loading, setLoading] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [submitDisable, setSubmitDisable] = useState(false);
+  const [showSampleModal, setShowSampleModal] = useState(false);
+
 
 
 
@@ -35,8 +38,10 @@ const ExcelPatentUploader = ({ setRelatedFormData }) => {
     try {
       setLoading(true);
       await fetchBulkESPData(patentNumbers, dispatch, "related");
+      toast.success("📚 Biblio data fetched successfully!");
     } catch (error) {
       console.error("❌ Error fetching data:", error);
+      toast.error("Failed to fetch biblio data.");
     } finally {
       setLoading(false);
       setSubmitDisable(true);
@@ -66,6 +71,7 @@ const ExcelPatentUploader = ({ setRelatedFormData }) => {
 
       const commaSeparated = extractedNumbers.join(", ");
       setPatentNumbers(commaSeparated.split(',').map(val => val.trim()).filter(val => val !== '').length || 0);
+      toast.success(`${file.name} uploaded successfully!`);
       bulkBiblioApiCall(commaSeparated);
     };
 
@@ -97,8 +103,10 @@ const ExcelPatentUploader = ({ setRelatedFormData }) => {
       }));
       const response = await saveExcelRelatedReferences(id, relatedData);
       setRelatedFormData(response);
+      toast.success("✅ Biblio submitted successfully!");
     } catch (error) {
       console.log(error, "error")
+      toast.error("❌ Failed to submit biblio.");
     } finally {
       setSubmitLoading(false);
       setPatentNumbers(0);
@@ -374,10 +382,11 @@ const ExcelPatentUploader = ({ setRelatedFormData }) => {
 
 
 
-
   return (
     <div
-      className={`p-4 rounded-lg border shadow-sm transition-all duration-300 ${fileName ? "bg-gradient-to-r from-blue-50 to-green-50" : "bg-light"}`}
+      className={`p-4 rounded-lg border shadow-sm transition-all duration-300 
+      ${fileName ? "bg-gradient-to-r from-blue-50 to-green-50" : "bg-light"}
+      ${isDragOver ? "border-primary animate-pulse" : ""}`}
       onDragOver={(e) => {
         e.preventDefault();
         setIsDragOver(true);
@@ -385,16 +394,33 @@ const ExcelPatentUploader = ({ setRelatedFormData }) => {
       onDragLeave={() => setIsDragOver(false)}
       onDrop={handleDrop}
     >
+      <ToastContainer position="top-right" autoClose={3000} />
+
       <label
         htmlFor="excel-upload"
-        className={`d-block p-5 text-center border rounded-lg ${isDragOver ? "border-primary bg-primary bg-opacity-10" : "border-secondary"
-          }`}
-        style={{ cursor: "pointer" }}
+        className={`d-block p-5 text-center border rounded-lg ${isDragOver ? "border-primary bg-primary bg-opacity-10" : "border-secondary"}`}
+        style={{ cursor: "pointer", transition: "all 0.4s ease" }}
       >
-        <input ref={fileInputRef} id="excel-upload" type="file" accept=".xlsx, .xls" onChange={handleFileUpload} hidden />
-
+        <input
+          ref={fileInputRef}
+          id="excel-upload"
+          type="file"
+          accept=".xlsx, .xls"
+          onChange={handleFileUpload}
+          hidden
+        />
         <div className="fs-4 mb-2">
-           <FaFileExcel /> Drag & Drop Excel here or <span className="text-primary">Browse</span>
+          <FaFileExcel
+            style={{
+              color: "#1D6F42",
+              fontSize: "2.5rem",
+              transform: isDragOver ? "scale(1.2) rotate(5deg)" : "scale(1)",
+              transition: "transform 0.3s ease"
+            }}
+          />
+        </div>
+        <div className="fw-bold text-dark">
+          {isDragOver ? "🚀 Drop your Excel file here" : "📂 Drag & Drop Excel here or Browse"}
         </div>
         <div className="text-muted">Supports .xlsx, .xls</div>
         {loading && (
@@ -405,30 +431,217 @@ const ExcelPatentUploader = ({ setRelatedFormData }) => {
         )}
       </label>
 
+      <div className="d-flex justify-content-between mt-3">
+        <Button
+          color="dark"
+          outline
+          onClick={() => setShowSampleModal(true)}
+        >
+          📄 View Sample Excel
+        </Button>
+        <Button
+          color="dark"
+          outline
+          onClick={downloadSampleExcel}
+        >
+          ⬇️ Download Sample Excel
+        </Button>
+      </div>
+
       {fileName && !loading && (
         <div className="mt-3">
-          <div><strong>📂 File Name:</strong> {fileName}</div>
+          <div><strong>📁 File Name:</strong> {fileName}</div>
           <div><strong>🔢 Selected Count:</strong> {patentNumbers}</div>
         </div>
       )}
 
       {fileName && !loading && (
-        <button
-          className="btn btn-primary mt-3 w-100 d-flex justify-content-center align-items-center"
+        <Button
+          color="primary"
+          className="mt-3 w-100 d-flex justify-content-center align-items-center"
           onClick={handleSubmit}
-          disabled={submitLoading && submitDisable}
         >
           {submitLoading && (
-            <span
-              className="spinner-border spinner-border-sm me-2"
-              role="status"
-              aria-hidden="true"
-            ></span>
+            <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
           )}
           {submitLoading ? "Submitting..." : "Submit"}
-        </button>
+        </Button>
       )}
+
+      <Modal isOpen={showSampleModal} toggle={() => setShowSampleModal(false)} size="lg" centered>
+        <ModalHeader toggle={() => setShowSampleModal(false)}>
+          📄 Sample Excel Format
+        </ModalHeader>
+        <ModalBody className="text-center">
+          <img
+            src={sampleExcelImage}
+            alt="Sample Excel Format"
+            className="img-fluid rounded shadow"
+          />
+        </ModalBody>
+      </Modal>
     </div>
+
+
+
+    // <div
+    //   className={`p-3 rounded-lg border shadow-sm transition-all duration-300 ${fileName ? "bg-gradient-to-r from-blue-50 to-green-50" : "bg-light"
+    //     }`}
+    //   onDragOver={(e) => {
+    //     e.preventDefault();
+    //     setIsDragOver(true);
+    //   }}
+    //   onDragLeave={() => setIsDragOver(false)}
+    //   onDrop={handleDrop}
+    // >
+    //   <ToastContainer position="top-right" autoClose={3000} />
+
+    //   <label htmlFor="excel-upload"
+    //     className={`d-block p-5 text-center border rounded-lg ${isDragOver ? "border-primary bg-primary bg-opacity-10" : "border-secondary"}`}
+    //     style={{ cursor: "pointer" }}>
+    //     <input
+    //       ref={fileInputRef}
+    //       id="excel-upload"
+    //       type="file"
+    //       accept=".xlsx, .xls"
+    //       onChange={handleFileUpload}
+    //       hidden
+    //     />
+
+    //     <div className="fs-4 mb-2">
+    //       <FaFileExcel style={{ color: "#1D6F42" }} /> Drag & Drop Excel here or{" "}
+    //       <span className="text-primary">Browse</span>
+    //     </div>
+    //     <div className="text-muted">Supports .xlsx, .xls</div>
+    //     {loading && (
+    //       <div className="mt-3 text-primary">
+    //         <div
+    //           className="spinner-border spinner-border-sm me-2"
+    //           role="status"
+    //         ></div>
+    //         Loading Excel data...
+    //       </div>
+    //     )}
+    //   </label>
+
+    //   <div className="d-flex justify-content-between mt-3">
+    //     <button
+    //       type="button"
+    //       className="btn btn-outline-info"
+    //       onClick={() => setShowSampleModal(true)}
+    //     >
+    //       📄 View Sample Excel
+    //     </button>
+
+    //     <button
+    //       type="button"
+    //       className="btn btn-outline-success"
+    //       onClick={downloadSampleExcel}
+    //     >
+    //       ⬇️ Download Sample Excel
+    //     </button>
+
+    //   </div>
+
+    //   {fileName && !loading && (
+    //     <div className="mt-3">
+    //       <div>
+    //         <strong>📂 File Name:</strong> {fileName}
+    //       </div>
+    //       <div>
+    //         <strong>🔢 Selected Count:</strong> {patentNumbers}
+    //       </div>
+    //     </div>
+    //   )}
+
+    //   {fileName && !loading && (
+    //     <button
+    //       className="btn btn-primary mt-3 w-100 d-flex justify-content-center align-items-center"
+    //       onClick={handleSubmit}
+    //       disabled={submitLoading && submitDisable}
+    //     >
+    //       {submitLoading && (
+    //         <span
+    //           className="spinner-border spinner-border-sm me-2"
+    //           role="status"
+    //           aria-hidden="true"
+    //         ></span>
+    //       )}
+    //       {submitLoading ? "Submitting..." : "Submit"}
+    //     </button>
+    //   )}
+    //   <Modal isOpen={showSampleModal} toggle={() => setShowSampleModal(false)} size="lg" centered>
+    //     <ModalHeader toggle={() => setShowSampleModal(false)}>
+    //       📄 Sample Excel Format
+    //     </ModalHeader>
+    //     <ModalBody className="text-center">
+    //       <img
+    //         src={sampleExcelImage}
+    //         alt="Sample Excel Format"
+    //         className="img-fluid rounded shadow"
+    //       />
+    //     </ModalBody>
+    //   </Modal>
+    // </div>
+
+
+
+
+
+    // <div
+    //   className={`p-4 rounded-lg border shadow-sm transition-all duration-300 ${fileName ? "bg-gradient-to-r from-blue-50 to-green-50" : "bg-light"}`}
+    //   onDragOver={(e) => {
+    //     e.preventDefault();
+    //     setIsDragOver(true);
+    //   }}
+    //   onDragLeave={() => setIsDragOver(false)}
+    //   onDrop={handleDrop}
+    // >
+    //   <ToastContainer position="top-right" autoClose={3000} />
+    //   <label
+    //     htmlFor="excel-upload"
+    //     className={`d-block p-5 text-center border rounded-lg ${isDragOver ? "border-primary bg-primary bg-opacity-10" : "border-secondary"
+    //       }`}
+    //     style={{ cursor: "pointer" }}
+    //   >
+    //     <input ref={fileInputRef} id="excel-upload" type="file" accept=".xlsx, .xls" onChange={handleFileUpload} hidden />
+
+    //     <div className="fs-4 mb-2">
+    //       <FaFileExcel style={{ color: "#1D6F42" }} /> Drag & Drop Excel here or <span className="text-primary">Browse</span>
+    //     </div>
+    //     <div className="text-muted">Supports .xlsx, .xls</div>
+    //     {loading && (
+    //       <div className="mt-3 text-primary">
+    //         <div className="spinner-border spinner-border-sm me-2" role="status"></div>
+    //         Loading Excel data...
+    //       </div>
+    //     )}
+    //   </label>
+
+    //   {fileName && !loading && (
+    //     <div className="mt-3">
+    //       <div><strong>📂 File Name:</strong> {fileName}</div>
+    //       <div><strong>🔢 Selected Count:</strong> {patentNumbers}</div>
+    //     </div>
+    //   )}
+
+    //   {fileName && !loading && (
+    //     <button
+    //       className="btn btn-primary mt-3 w-100 d-flex justify-content-center align-items-center"
+    //       onClick={handleSubmit}
+    //       disabled={submitLoading && submitDisable}
+    //     >
+    //       {submitLoading && (
+    //         <span
+    //           className="spinner-border spinner-border-sm me-2"
+    //           role="status"
+    //           aria-hidden="true"
+    //         ></span>
+    //       )}
+    //       {submitLoading ? "Submitting..." : "Submit"}
+    //     </button>
+    //   )}
+    // </div>
   );
 };
 

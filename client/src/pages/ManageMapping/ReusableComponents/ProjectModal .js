@@ -20,7 +20,8 @@ const ProjectModal = ({
     projectType,
     setProjectType,
     onCreate,
-    projectTypeOptions
+    projectTypeOptions,
+    setProjectTypeId
 }) => {
     const [errors, setErrors] = useState({ name: "", type: "" });
     const [hasSubmitted, setHasSubmitted] = useState(false);
@@ -51,6 +52,18 @@ const ProjectModal = ({
         }
     };
 
+    const handleProjectTypeChange = (e) => {
+        const selectedLabel = e.target.value;
+        setProjectType(selectedLabel);
+        const selectedOption = projectTypeOptions.find(
+            (type) => type.label === selectedLabel
+        );
+        setProjectTypeId(selectedOption ? selectedOption.value : null);
+    };
+
+
+
+
     return (
         <Modal isOpen={isOpen} toggle={toggle} centered>
             <ModalHeader toggle={toggle}>Create New Project</ModalHeader>
@@ -76,7 +89,8 @@ const ProjectModal = ({
                         type="select"
                         id="projectType"
                         value={projectType}
-                        onChange={(e) => setProjectType(e.target.value)}
+                        // onChange={(e) => setProjectType(e.target.value)}
+                        onChange={handleProjectTypeChange}
                         invalid={hasSubmitted && errors.type ? true : false}
                     >
                         <option value="">--Select Report Type--</option>

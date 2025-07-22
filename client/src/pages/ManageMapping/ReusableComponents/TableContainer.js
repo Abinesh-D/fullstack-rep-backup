@@ -83,6 +83,7 @@ const TableContainer = ({
   isCustomPageSize,
   handleCreate,
   isJobListGlobalFilter,
+  related,
 }) => {
 
   const [columnFilters, setColumnFilters] = useState([]);
@@ -131,6 +132,7 @@ const TableContainer = ({
   // useEffect(() => {
   //   Number(customPageSize) && setPageSize(Number(customPageSize));
   // }, [customPageSize, setPageSize]);
+
 
   return (
     <Fragment>
@@ -217,7 +219,7 @@ const TableContainer = ({
           <tbody>
             {getRowModel().rows.map(row => {
               return (
-                <tr key={row.id}>
+                <tr key={row.id} className="trowbg">
                   {row.getVisibleCells().map(cell => {
                     return (
                       <td key={cell.id}>

@@ -16,14 +16,15 @@ import { ToastContainer } from "react-toastify";
 import ProjectModal from "../ReusableComponents/ProjectModal ";
 import axios from "axios";
 import { setReportRowData } from "../../ManageEmployees/ManageBibliography/BibliographySLice/BibliographySlice";
+import { stratify } from "d3";
 
 
 const projectTypeOptions = [
-    { value: "1", label: "Quick Patentability Report" },
-    { value: "2", label: "Novelty/Patentability Report" },
-    { value: "3", label: "Quick Invalidity Report" },
-    { value: "4", label: "FTO Report - Chemistry" },
-    { value: "5", label: "FTO Report - Life Science" },
+    { value: "0001", label: "Quick Patentability Report - WHRL Template" },
+    { value: "0002", label: "Quick Patentability - Feature Summary Template" },
+    // { value: "0003", label: "Quick Invalidity Report" },
+    // { value: "0004", label: "FTO Report - Chemistry" },
+    // { value: "0005", label: "FTO Report - Life Science" },
 ];
 
 const ProjectContext = createContext();
@@ -41,6 +42,9 @@ const MappingProjectList = () => {
     const [modal, setModal] = useState(false);
     const [projectName, setProjectName] = useState('');
     const [projectType, setProjectType] = useState('');
+    const [projectTypeId, setProjectTypeId] = useState(null);
+
+    console.log('projectTypeId', projectTypeId)
 
     const [reportData, setReportData] = useState([]);
     const [mode, setMode] = useState(null);
@@ -104,7 +108,8 @@ const MappingProjectList = () => {
 
         const payload = {
             projectName,
-            projectType
+            projectType,
+            projectTypeId
         };
 
         if (mode === "1") {
@@ -135,8 +140,13 @@ const MappingProjectList = () => {
 
 
     const handleGo = (rowData) => {
+        const reportInfo = {
+            projectName: rowData.projectName,
+            projectType: rowData.projectType
+        }
         dispatch(setReportRowData(rowData));
         sessionStorage.setItem("_id", rowData._id);
+        sessionStorage.setItem("reportData", JSON.stringify(reportInfo));
     };
 
 
@@ -207,7 +217,6 @@ const MappingProjectList = () => {
                                 data-bs-placement="top"
                                 title="Go to Project"
                                 onClick={() => handleGo(rowData)}
-                                state={{ selectedProject: rowData }}
                             >
                                 <i className="mdi mdi-arrow-right font-size-18 text-primary"></i>
                             </Link>
@@ -248,7 +257,7 @@ const MappingProjectList = () => {
                             true ?
                                 <Col lg="12">
                                     <Card>
-                                        <CardBody>
+                                        <CardBody>  
                                             <TableContainer
                                                 columns={columns}
                                                 data={reportData || []}
@@ -281,6 +290,7 @@ const MappingProjectList = () => {
                                 setProjectName={setProjectName}
                                 projectType={projectType}
                                 setProjectType={setProjectType}
+                                setProjectTypeId={setProjectTypeId}
                                 onCreate={handleProjectCreate}
                                 type={newProject}
                                 projectTypeOptions={projectTypeOptions}

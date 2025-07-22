@@ -123,6 +123,8 @@ const fullProjectSchema = new Schema({
       return `${dd}-${mm}-${yyyy}`;
     }
   },
+  projectTypeId: { type: String, required: false },
+
   stages: {
     introduction: [introductionSchema],
     relevantReferences: {

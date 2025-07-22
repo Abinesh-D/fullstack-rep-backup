@@ -6,6 +6,7 @@ import { isEmptyArray } from "formik";
 import { useSelector, useDispatch } from "react-redux";
 import { setRelevantApiTrue } from "../../../ManageEmployees/ManageBibliography/BibliographySLice/BibliographySlice";
 import FeedbackModal from "../../ReusableComponents/FeedbackModal";
+import NonPatentLiteratureForm from "./NonPatentLiteratureForm";
 
 
 const RelevantRefComponent = ({
@@ -397,7 +398,17 @@ const RelevantRefComponent = ({
                 />
             )}
 
-            <h4 className="mt-5 fw-bold mb-4">2. Non-Patent Literatures(NPL)</h4>
+            {
+                <NonPatentLiteratureForm
+                    nplPatentFormData={nplPatentFormData}
+                    handleNplChange={handleNplChange}
+                    handleNplSubmit={handleNplSubmit}
+                    nonPatentFormData={nonPatentFormData}
+                    nplColumns={nplColumns}
+                />
+            }
+
+            {/* <h4 className="mt-5 fw-bold mb-4">2. Non-Patent Literatures(NPL)</h4>
             <Form onSubmit={handleNplSubmit}>
                 <Row>
                     <Col lg="4">
@@ -494,7 +505,7 @@ const RelevantRefComponent = ({
                         paginationWrapper="dataTables_paginate paging_simple_numbers pagination-rounded"
                         pagination="pagination"
                 />
-            )}
+            )} */}
 
 
 
