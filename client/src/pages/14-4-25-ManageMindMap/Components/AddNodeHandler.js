@@ -34,8 +34,6 @@ const AddNodeHandler = ({ nodes, setNodes, setEdges, deleteNode, onLabelChange }
 
       let spread = 0;
       const newChildIds = [];
-      console.log('lines :>> ', lines);
-
       for (let index = 0; index < lines.length; index++) {
         const line = lines[index];
         const newNodeId = uuidv4();
@@ -1659,7 +1657,6 @@ export default AddNodeHandler;
 //             break;
 //         }
 
-//         console.log(`Creating node ${newNodeId} at x:${newX}, y:${newY}`);
 
 //         const newNode = {
 //           id: newNodeId,

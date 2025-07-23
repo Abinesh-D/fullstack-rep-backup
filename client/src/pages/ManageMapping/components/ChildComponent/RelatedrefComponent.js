@@ -1,14 +1,15 @@
-import React, { useMemo, useState } from "react";
-import { Row, Col, Button, Card, Nav, NavLink, NavItem, TabContent, TabPane } from "reactstrap";
+import React, { useMemo, useState, useEffect } from "react";
+import { Row, Col, Button, Card, Nav, NavLink, NavItem, TabContent, TabPane, Label, Spinner } from "reactstrap";
 import TableContainer from "../../ReusableComponents/TableContainer";
 import { isEmptyArray } from "formik";
 import { Link } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { setRelatedApiTrue, fetchBulkESPData } from "../../../ManageEmployees/ManageBibliography/BibliographySLice/BibliographySlice";
+import { setRelatedApiTrue, fetchBulkESPData, bulkBiblioApiCall, saveExcelRelatedReferences } from "../../../ManageEmployees/ManageBibliography/BibliographySLice/BibliographySlice";
 import FeedbackModal from "../../ReusableComponents/FeedbackModal";
 import ExcelPatentUploader from "../../../ManageBulkUpload/Components/BulkPatentExcel";
 import classnames from "classnames";
 import RelatedReferenceForm from "./RelatedReferenceForm";
+import { computeFamId, mappedValue, mapRelatedData } from "../../../ManageBulkUpload/Components/BulkResponseMap";
 
 
 
@@ -24,11 +25,83 @@ const RelatedRefComponent = ({
     relatedErrorValidation,
     resetRelatedForm,
     setRelatedFormData,
+
 }) => {
+
+    const id = sessionStorage.getItem("_id");
 
     const patentSlice = useSelector(state => state.patentSlice);
     const dispatch = useDispatch();
     const [feedbackOpen, setFeedbackOpen] = useState(false);
+
+    const [patentNumbers, setPatentNumbers] = useState("");
+    const [famId, setfamId] = useState([]);
+    const [apiResponseReceived, setApiResponseReceived] = useState(false);
+    const [submitLoading, setSubmitLoading] = useState(false);
+    const [generateLoading, setGenerateLoading] = useState(false);
+
+
+    useEffect(() => {
+        if (!Array.isArray(patentSlice.multiRelated)) return;
+
+        const famIdResult = computeFamId(patentSlice.multiRelated,);
+        setfamId(famIdResult);
+    }, [patentSlice.multiRelated]);
+
+
+
+
+    const bulkBiblioApiCall = async (patentNumbers) => {
+        try {
+            setGenerateLoading(true);
+            await fetchBulkESPData(patentNumbers, dispatch, "multiRelated");
+            setApiResponseReceived(true);
+        } catch (error) {
+            console.error("❌ Error fetching data:", error);
+        } finally {
+            setGenerateLoading(false);
+        }
+    };
+
+
+
+
+
+
+    const handleSubmitPatentNumbers = async () => {
+        setSubmitLoading(true);
+        try {
+            const relatedData = await mapRelatedData(bulkmappedValue);
+            const response = await saveExcelRelatedReferences(id, relatedData);
+            console.log('response', response)
+            setRelatedFormData(response);
+            setApiResponseReceived(false);
+        } catch (error) {
+            console.log(error, "error")
+        } finally {
+            setSubmitLoading(false);
+            setPatentNumbers("");
+            //   setFileName(null);
+
+            //   if (fileInputRef.current) {
+            // fileInputRef.current.value = "";
+            //   }
+        }
+    };
+
+
+    const handleGenerate = async () => {
+        if (!patentNumbers.trim()) return;
+
+        const cleanedArray = patentNumbers
+            .split(/[\s,]+/)
+            .filter((item) => item.trim() !== "");
+
+        const commaSeparated = cleanedArray.join(", ");
+        console.log('commaSeparated', commaSeparated)
+
+        await bulkBiblioApiCall(commaSeparated);
+    };
 
 
     const relatedAssigneeOrIntentor = (relatedForm.relatedAssignee && relatedForm.relatedInventor) ?
@@ -100,7 +173,7 @@ const RelatedRefComponent = ({
 
 
 
-
+const bulkmappedValue = mappedValue(patentSlice.multiRelated, famId);
 
 
     const handleClearInputFields = () => {
@@ -162,18 +235,20 @@ const RelatedRefComponent = ({
                                             className={classnames({ active: activeTab === "2" })}
                                             onClick={() => toggleTab("2")}
                                         >
-                                            <span className="d-none d-sm-block">Excel Upload</span>
+                                            <span className="d-none d-sm-block">Add Multi Patents</span>
                                         </NavLink>
                                     </NavItem>
+
                                     <NavItem>
                                         <NavLink
                                             style={{ cursor: "pointer" }}
                                             className={classnames({ active: activeTab === "3" })}
                                             onClick={() => toggleTab("3")}
                                         >
-                                            <span className="d-none d-sm-block">Add Multi Patents</span>
+                                            <span className="d-none d-sm-block">Excel Upload</span>
                                         </NavLink>
                                     </NavItem>
+
                                 </Nav>
 
                                 <TabContent activeTab={activeTab} className="p-3">
@@ -190,13 +265,75 @@ const RelatedRefComponent = ({
                                     </TabPane>
 
                                     <TabPane tabId="2">
+                                        <Row>
+                                            <Col lg="12">
+                                                <div className="">
+                                                    <div>
+                                                        <Label
+                                                            for="related-patentnumbers"
+                                                            className="fw-semibold fs-5 text-secondary mb-2 d-block"
+                                                        >
+                                                            Enter Patent Numbers
+                                                        </Label>
+                                                        <textarea
+                                                            id="related-patentnumbers"
+                                                            className="form-control rounded-2 border-secondary"
+                                                            rows="4"
+                                                            placeholder={`Example: US1234567A EP2345678B1 JP3456789C
+(Paste patent numbers from Excel separated by space or comma)`}
+                                                            value={patentNumbers}
+                                                            onChange={(e) => setPatentNumbers(e.target.value)}
+                                                        />
+
+                                                        {apiResponseReceived ? (
+                                                            <div className="mt-2">
+                                                                <button
+                                                                    type="button"
+                                                                    className="btn btn-success btn-md w-100"
+                                                                    onClick={handleSubmitPatentNumbers}
+                                                                >
+                                                                    {submitLoading ? (
+                                                                        <>
+                                                                            <Spinner size="sm" className="me-2" />
+                                                                            Submitting...
+                                                                        </>
+                                                                    ) : (
+                                                                        "Submit"
+                                                                    )}
+                                                                </button>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="text-end mt-2">
+                                                                <button
+                                                                    type="button"
+                                                                    className="btn btn-primary shadow"
+                                                                    onClick={handleGenerate}
+                                                                >
+                                                                    {generateLoading ? (
+                                                                        <>
+                                                                            <Spinner size="sm" className="me-2" />
+                                                                            Generating...
+                                                                        </>
+                                                                    ) : (
+                                                                        "Generate"
+                                                                    )}
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                            </Col>
+
+                                        </Row>
+                                    </TabPane>
+
+                                    <TabPane tabId="3">
                                         {
                                             <ExcelPatentUploader setRelatedFormData={setRelatedFormData} />
                                         }
                                     </TabPane>
-                                    <TabPane tabId="3">
-                                        <p>Coming Soon</p>
-                                    </TabPane>
+
                                 </TabContent>
                             </>
                         </Card>
@@ -204,11 +341,11 @@ const RelatedRefComponent = ({
                 </Row>
             </div>
 
-            
 
-            
 
-          
+
+
+
 
 
             {

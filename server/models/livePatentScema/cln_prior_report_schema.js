@@ -106,8 +106,8 @@ const introductionSchema = new Schema({
 
 const appendix2 = new Schema({
   _id: { type: String, default: uuidv4 },
-  patents: String,
-  nonPatentLiterature: String
+  patents: { type: String, default: "" },
+  nonPatentLiterature: { type: String, default: "" }
 });
 
 const fullProjectSchema = new Schema({

@@ -84,7 +84,6 @@ const ParagraphDescription = ({ paragraphData, filteredDescriptions, setFiltered
               }}
             >
               <p style={{ margin: 0, fontWeight: 'bold', color: '#1e293b' }}>[{key}]</p>
-              {console.log('value :>> ', value)}
               <p style={{ margin: '6px 0 0 0', color: '#334155', whiteSpace: 'pre-wrap' }}>{value}</p>
             </div>
           ))}

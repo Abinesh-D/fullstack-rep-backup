@@ -137,7 +137,6 @@ const RoleTableContainer = ({
     }
 
     const toggleFolder = () => {
-        console.log(page,'page')
         // page.forEach((row) => {
         //     row.original.selected =false;
         //   }); 

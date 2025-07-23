@@ -27,7 +27,6 @@ const RelatedComp = ({ activeTab }) => {
             try {
                 setErrorValidation(false);
                 await googleBiblioData(trimmedNumber, dispatch, 'related');
-                console.log("✅ Google fallback succeeded");
             } catch (googleError) {
                 setErrorValidation(true);
                 console.error("❌ Google fallback failed:", googleError);

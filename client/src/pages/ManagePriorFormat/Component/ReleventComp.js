@@ -38,7 +38,6 @@ const ReleventComp = () => {
             try {
                 setErrorValidation(false);
                 await googleBiblioData(trimmedNumber, dispatch, 'relevant');
-                console.log("✅ Google fallback succeeded");
             } catch (googleError) {
                 setErrorValidation(true);
                 console.error("❌ Google fallback failed:", googleError);
@@ -103,7 +102,6 @@ const ReleventComp = () => {
     }, [data])
 
     const biblioData = data?.biblio?.['world-patent-data']?.['exchange-documents']?.['exchange-document']?.['bibliographic-data'];
-    console.log(biblioData, "relevantbiblioData")
     const inventorsData = biblioData?.parties?.inventors?.inventor;
 
     const inventorsArray = Array.isArray(inventorsData) ? inventorsData : inventorsData ? [inventorsData] : [];
@@ -280,7 +278,6 @@ const ReleventComp = () => {
                 try {
                     setErrorValidation(false);
                     await googleBiblioData(patentNumber.trim(), dispatch, 'relevant');
-                    console.log('✅ Google fallback succeeded');
                 } catch (googleError) {
                     setErrorValidation(true);
                     console.error('❌ Google fallback failed:', googleError);

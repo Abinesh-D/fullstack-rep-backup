@@ -21,7 +21,6 @@ const getStoredColor = (id) => {
 };
 
 const CustomEdge = ({ id, data, sourceX, sourceY, targetX, targetY }) => {
-  console.log('CustomEdge', data);
   const pathRef = useRef(null);
   const isFromExcel = data?.isFromExcel;
 

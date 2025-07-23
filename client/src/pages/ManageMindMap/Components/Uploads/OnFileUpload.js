@@ -117,7 +117,6 @@ const parseHierarchicalData = (
   );
   
 
-  console.log('columnNames :>> ', columnNames);
 
   data.forEach((row, rowIndex) => {
     let parentNodeId = null;

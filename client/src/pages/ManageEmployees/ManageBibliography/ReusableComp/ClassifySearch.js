@@ -145,7 +145,6 @@ const ClassifySearch = (activeTab) => {
       );
 
       if (!cpcItems || cpcItems.length === 0) {
-        console.log("No classification items found.");
       }
 
     } catch (error) {

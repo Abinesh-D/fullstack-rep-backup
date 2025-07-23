@@ -17,7 +17,6 @@ const ViewContent = ({
 }) => {
   const [excelFileNodeData, setExcelFileNodeData] = useState([]);
 
-  console.log('ViewContent', data);
 
   useEffect(() => {
     if (data.nodes && Array.isArray(data.nodes)) {

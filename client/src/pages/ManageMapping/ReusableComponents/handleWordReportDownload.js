@@ -105,8 +105,6 @@ export const handleWordReportDownload = async ({
     overallSummary,
 }) => {
 
-    console.log('appendix1', appendix1)
-
     const createPageProperties = (margin = 920, orientation = "portrait") => ({
         page: {
             margin: {
@@ -128,23 +126,55 @@ export const handleWordReportDownload = async ({
         new TextRun({ text, ...style, ...overrides });
 
 
+    // const createSingleColumnTableRows = (rows) =>
+    //     rows.map(({ label, value }) =>
+    //         new TableRow({
+    //             children: [
+    //                 new TableCell({
+    //                     verticalAlign: AlignmentType.CENTER,
+    //                     children: [new Paragraph({ text: `${label}:`, bold: true })],
+    //                     borders: borderNone,
+    //                 }),
+    //                 new TableCell({
+    //                     verticalAlign: AlignmentType.CENTER,
+    //                     children: [new Paragraph(value)],
+    //                     borders: borderNone,
+    //                 }),
+    //             ],
+    //         })
+    //     );
+
+
     const createSingleColumnTableRows = (rows) =>
-        rows.map(({ label, value }) =>
-            new TableRow({
-                children: [
-                    new TableCell({
-                        verticalAlign: AlignmentType.CENTER,
-                        children: [new Paragraph({ text: `${label}:`, bold: true })],
-                        borders: borderNone,
-                    }),
-                    new TableCell({
-                        verticalAlign: AlignmentType.CENTER,
-                        children: [new Paragraph(value)],
-                        borders: borderNone,
-                    }),
-                ],
-            })
-        );
+    rows.map(({ label, value, isParagraphChildren }) =>
+        new TableRow({
+            children: [
+                new TableCell({
+                    verticalAlign: AlignmentType.CENTER,
+                    children: [
+                        new Paragraph({
+                            text: `${label}:`,
+                            bold: true,
+                        }),
+                    ],
+                    borders: borderNone,
+                }),
+                new TableCell({
+                    verticalAlign: AlignmentType.CENTER,
+                    children: [
+                        isParagraphChildren
+                            ? new Paragraph({ children: value })
+                            : new Paragraph({ text: value })
+                    ],
+                    borders: borderNone,
+                }),
+            ],
+        })
+    );
+
+
+
+
 
     const header = new Header({
         children: [
@@ -249,68 +279,41 @@ export const handleWordReportDownload = async ({
         },
     });
 
+    function getFamilyMembersParagraphChildren(data, textStyle) {
+        const familyMembers = data.FamilyMembers || [];
+        const displayLimit = 4;
+        const totalCount = familyMembers.length;
 
-    
-    // const tocTitle = new Paragraph({
-    //     children: [
-    //         new Bookmark({
-    //             id: "back-to-table-of-content",
-    //             children: [
-    //                 createTextRun("Table of Contents", textStyle.arial14, { bold: true, underline: true })
-    //             ]
-    //         })
-    //     ],
-    //     // alignment: AlignmentType.CENTER,
-    //     spacing: { after: 200, before: 100 },
-    // });
+        const displayedMembers = familyMembers.slice(0, displayLimit).join(", ");
+        const remainingCount = totalCount - displayLimit;
+        const remainingText = remainingCount > 0 ? `+${remainingCount} more` : null;
 
-    //     const createTocEntry = ({ label, pageNumber = "0", indent = 0, isBold = false, font13 = false }) => {
-    //         const fontStyle = font13 ? textStyle.arial13 : textStyle.arial11;
+        const children = [
+            new TextRun({
+                text: sanitizeText(displayedMembers || "N/A"),
+                ...textStyle.arial10,
+            }),
+        ];
 
-    //     return new Paragraph({
-    //         children: [
-    //             createTextRun(label, fontStyle, { bold: isBold }),
-    //             createTextRun("\t"),
-    //             createTextRun(pageNumber, fontStyle),
-    //         ],
-    //         tabStops: [
-    //             {
-    //                 type: TabStopType.RIGHT,
-    //                 position: TabStopPosition.MAX,
-    //                 leader: "dot",
-    //             },
-    //         ],
-    //         indent: { left: indent },
-    //         spacing: { after: 20 },
-    //     });
-    // };
-
-
-    const createTocEntry = ({ label, pageNumber = "0", indent = 0, isBold = false, font13 = false, anchor }) => {
-        const fontStyle = font13 ? textStyle.arial13 : textStyle.arial11;
-
-        return new Paragraph({
-            children: [
-                new InternalHyperlink({
-                    anchor: anchor,
+        if (remainingText) {
+            children.push(
+                new ExternalHyperlink({
+                    link: data.hyperLink,
                     children: [
-                        createTextRun(label, fontStyle, { bold: isBold }),
-                        createTextRun("\t"),
-                        createTextRun(pageNumber, fontStyle),
+                        new TextRun({
+                            text: ` ${sanitizeText(remainingText)}`,
+                            ...textStyle.arial10BoldBlue,
+                            color: "0000FF",
+                            underline: true,
+                        }),
                     ],
-                }),
-            ],
-            tabStops: [
-                {
-                    type: TabStopType.RIGHT,
-                    position: TabStopPosition.MAX,
-                    leader: "dot",
-                },
-            ],
-            indent: { left: indent },
-            spacing: { after: 20 },
-        });
-    };
+                })
+            );
+        }
+
+        return children;
+    }
+
 
 
     const tocConfig = [
@@ -331,30 +334,6 @@ export const handleWordReportDownload = async ({
         { label: "Databases", anchor: "databases", indent: 720, font13: true },
         { label: "Disclaimer", anchor: "disclaimer", isBold: true },
     ];
-
-
-
-
-    // const tocConfig = [
-    //     { label: "1.   Search Features", isBold: true },
-    //     { label: "2.   Search Methodology", isBold: true },
-    //     { label: "3.   Potentially Relevant References", isBold: true },
-    //     { label: "4.   Potentially Relevant References", isBold: true },
-    //     ...relevantReferences.map((ref, index) => ({
-    //         label: `${index + 1}.    ${ref.patentNumber}`,
-    //         indent: 360,
-    //     })),
-    //     { label: "5.   Related References", isBold: true },
-    //     { label: "Appendix 1", isBold: true },
-    //     { label: "Search Terms & Search Strings", indent: 720, font13: true },
-    //     { label: "Data Availability", indent: 720, font13: true },
-    //     { label: "Appendix 2", isBold: true },
-    //     { label: "Databases", indent: 720, font13: true },
-    //     { label: "Disclaimer", isBold: true },
-    // ];
-
-    // const tocEntries = tocConfig.map(createTocEntry);
-
 
 
     const relatedReferencesTable = new Table({
@@ -502,6 +481,7 @@ export const handleWordReportDownload = async ({
                             ],
                             borders: commonBorders,
                         }),
+
                         new TableCell({
                             verticalAlign: VerticalAlign.CENTER,
                             margins: margins150.margins,
@@ -509,18 +489,32 @@ export const handleWordReportDownload = async ({
                                 new Paragraph({
                                     alignment: AlignmentType.LEFT,
                                     spacing: { before: 20, after: 0 },
-                                    children: [
-                                        createTextRun(
-                                            sanitizeText(
-                                                (pub.relatedFamilyMembers || []).join(", ") || "N/A"
-                                            ),
-                                            textStyle.arial10
-                                        ),
-                                    ],
+                                    children: getFamilyMembersParagraphChildren({ FamilyMembers: pub.relatedFamilyMembers, hyperLink: pub.relatedPublicationUrl }, 
+                                        textStyle),
                                 }),
                             ],
                             borders: commonBorders,
                         }),
+
+                        // new TableCell({
+                        //     verticalAlign: VerticalAlign.CENTER,
+                        //     margins: margins150.margins,
+                        //     children: [
+                        //         new Paragraph({
+                        //             alignment: AlignmentType.LEFT,
+                        //             spacing: { before: 20, after: 0 },
+                        //             children: [
+                        //                 createTextRun(
+                        //                     sanitizeText(
+                        //                         (pub.relatedFamilyMembers || []).join(", ") || "N/A"
+                        //                     ),
+                        //                     textStyle.arial10
+                        //                 ),
+                        //             ],
+                        //         }),
+                        //     ],
+                        //     borders: commonBorders,
+                        // }),
                     ],
                 })
             ),
@@ -642,62 +636,6 @@ export const handleWordReportDownload = async ({
         ],
         spacing: { after: 200, before: 100 },
     });
-
-
-    // const tocTable = new Table({
-    //     width: {
-    //         size: 95,
-    //         type: WidthType.PERCENTAGE,
-    //     },
-    //     indent: {
-    //         size: 0,
-    //         type: WidthType.DXA,
-    //     },
-    //     alignment: AlignmentType.CENTER,
-    //     rows: tocConfig.map(item =>
-    //         new TableRow({
-    //             children: [
-    //                 new TableCell({
-    //                     children: [
-    //                         new Paragraph({
-    //                             spacing: { before: 0, after: 0 },
-    //                             indent: item.indent ? { left: item.indent } : undefined,
-    //                             tabStops: [
-    //                                 {
-    //                                     type: TabStopType.RIGHT,
-    //                                     position: TabStopPosition.MAX,
-    //                                     leader: "dot",
-    //                                 },
-    //                             ],
-    //                             children: [
-    //                                 createTextRun(item.label, textStyle.arial10, {
-    //                                     bold: item.isBold || false,
-    //                                     size: item.font13 ? 26 : 22,
-    //                                 }),
-    //                                 createTextRun("\t"),
-    //                                 createTextRun("0", textStyle.arial10),
-    //                             ],
-    //                         }),
-    //                     ],
-    //                     borders: {
-    //                         top: { style: BorderStyle.NONE },
-    //                         bottom: { style: BorderStyle.NONE },
-    //                         left: { style: BorderStyle.NONE },
-    //                         right: { style: BorderStyle.NONE },
-    //                     },
-    //                 }),
-    //             ],
-    //         })
-    //     ),
-    //     borders: {
-    //         top: { style: BorderStyle.NONE },
-    //         bottom: { style: BorderStyle.NONE },
-    //         left: { style: BorderStyle.NONE },
-    //         right: { style: BorderStyle.NONE },
-    //         insideHorizontal: { style: BorderStyle.NONE },
-    //         insideVertical: { style: BorderStyle.NONE },
-    //     },
-    // });
 
 
     const tocTable = new Table({
@@ -960,8 +898,22 @@ export const handleWordReportDownload = async ({
                                 { label: "Grant/Publication Date", value: sanitizeText(pub.grantDate) },
                                 { label: "Filing/Application Date", value: sanitizeText(pub.filingDate) },
                                 { label: "Priority Date", value: sanitizeText(pub.priorityDate) },
-                                { label: "IPC/CPC Classifications", value: sanitizeText((pub.classifications || []).join(", ")) },
-                                { label: "Family Member", value: sanitizeText((pub.familyMembers || []).join(", ")) },
+                                // { label: "IPC/CPC Classifications", value: sanitizeText((pub.classifications || []).join(", ")) },
+                                // { label: "Family Member", value: sanitizeText((pub.familyMembers || []).join(", ")) },
+                                {
+                                    label: "IPC/CPC Classifications",
+                                    value: getFamilyMembersParagraphChildren({ FamilyMembers: pub.classifications, hyperLink: pub.publicationUrl },
+                                        textStyle
+                                    ),
+                                    isParagraphChildren: true
+                                },
+                                {
+                                    label: "Family Member",
+                                    value: getFamilyMembersParagraphChildren({ FamilyMembers: pub.familyMembers, hyperLink: pub.publicationUrl },
+                                        textStyle),
+                                    isParagraphChildren: true
+                                },
+
                             ];
 
                             const ptnNumber = new Paragraph({

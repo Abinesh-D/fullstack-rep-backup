@@ -144,7 +144,7 @@ const RelevantRefComponent = ({
         <>
             <Row className="align-items-center mb-4">
                 <Col className="d-flex align-items-center">
-                    <h4 className="fw-bold m-0">1. Publication Details</h4>
+                    <h4 className="fw-bold m-0">Publication Details</h4>
                 </Col>
                 <Col className="d-flex justify-content-end">
                     <Button color="warning" onClick={() => setFeedbackOpen(true)} className="d-flex align-items-center">
@@ -398,14 +398,14 @@ const RelevantRefComponent = ({
                 />
             )}
 
-            {
+            { patentSlice.singleProject.projectTypeId === "0002" && (
                 <NonPatentLiteratureForm
                     nplPatentFormData={nplPatentFormData}
                     handleNplChange={handleNplChange}
                     handleNplSubmit={handleNplSubmit}
                     nonPatentFormData={nonPatentFormData}
                     nplColumns={nplColumns}
-                />
+                />)
             }
 
             {/* <h4 className="mt-5 fw-bold mb-4">2. Non-Patent Literatures(NPL)</h4>
@@ -509,7 +509,7 @@ const RelevantRefComponent = ({
 
 
 
-            <h4 className="fw-bold mb-4 mt-4">3. Overall Summary of Search and Prior Arts</h4>
+            <h4 className="fw-bold mb-4 mt-4">Overall Summary of Search and Prior Arts</h4>
             <Row>
                 <Col lg="12">
                     <div className="mb-3">

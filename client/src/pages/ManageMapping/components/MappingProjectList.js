@@ -44,8 +44,6 @@ const MappingProjectList = () => {
     const [projectType, setProjectType] = useState('');
     const [projectTypeId, setProjectTypeId] = useState(null);
 
-    console.log('projectTypeId', projectTypeId)
-
     const [reportData, setReportData] = useState([]);
     const [mode, setMode] = useState(null);
     const [selectedProjectId, setSelectedProjectId] = useState(null);

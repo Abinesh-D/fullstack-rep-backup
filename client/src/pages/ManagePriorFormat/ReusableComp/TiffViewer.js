@@ -33,7 +33,6 @@ const TiffViewer = ({ base64Data }) => {
 
   return (
     <div>
-      {console.log('canvasRef :>> ', canvasRef)}
       <canvas ref={canvasRef} style={{ border: '1px solid #ccc', maxWidth: '100%' }} />
     </div>
   );

@@ -15,8 +15,6 @@ const ViewContent = ({
     buttonPositions,
     addNode
 }) => {
-console.log('data.nodes :>> ', data.nodes);
-
 
 const [excelFileNodeData, setexcelFileNodeData] = useState([]);
 

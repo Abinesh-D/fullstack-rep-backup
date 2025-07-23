@@ -42,8 +42,6 @@ const IntroductionTab = ({
                 { headers: { "Content-Type": "multipart/form-data" } }
             );
 
-            console.log("✅ Saved:", response.data);
-
             if (response.status === 200) {
                 setProjectFormData((prev) => ({
                     ...prev,
@@ -64,15 +62,11 @@ const IntroductionTab = ({
 
 
     const handleProjectImageDelete = async (img) => {
-        console.log("🗑 Deleting image:", img);
-
         try {
             await axios.delete(
                 `http://localhost:8080/live/projectname/delete-image/${id}/${img._id}`
             );
             showToast("success", "🗑️ Image deleted successfully!");
-            console.log("✅ Deleted image from server:", img.name);
-
             setProjectFormData((prev) => ({
                 ...prev,
                 projectImageUrl: prev.projectImageUrl.filter(

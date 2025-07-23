@@ -26,7 +26,6 @@ const TabContainer = (props) => {
   const dispatch = useDispatch();
   const patentSlice = useSelector(state => state.patentSlice);
 
-console.log('patentSlice :>> ', patentSlice);
   const [activeTab1, setactiveTab1] = useState("5");
   const [customActiveTab, setcustomActiveTab] = useState("1");
 

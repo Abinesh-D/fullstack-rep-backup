@@ -31,6 +31,8 @@ const initialState = {
   liveGoogleRelatedData: [],
   relevantApiTrue: false,
   relatedApiTrue: false,
+  singleProject: [],
+  multiRelated: [],
 
 
   fullReportData: [],
@@ -121,6 +123,12 @@ const patentSlice = createSlice({
     },
      setRelatedApiTrue: (state, action) => {
       state.relatedApiTrue = action.payload;
+    },
+    setMultiRelated: (state, action) => {
+      state.multiRelated = action.payload;
+    },
+     setSingleProject: (state, action) => {
+      state.singleProject = action.payload;
     },
 
     resetPatentData: () => initialState,
@@ -319,12 +327,11 @@ export const fetchESPData = async (patentNumber, dispatch, type) => {
 // Bulk Patent Biblio Data
 export const fetchBulkESPData = async (patentNumber, dispatch, type) => {
   try {
-    console.log('patentNumber', patentNumber)
-
     // const trimmedNumber = patentNumber.trim();
     // if (!trimmedNumber) throw new Error("Patent number is required.");
 
     const response = await axios.get(`${BASE_URL}/bulk/biblio/${patentNumber}`);
+    console.log('response.data', response.data)
 
     if (response.status === 200 && response.data) {
       if (type === 'relevant') {
@@ -332,6 +339,8 @@ export const fetchBulkESPData = async (patentNumber, dispatch, type) => {
 
       } else if (type === 'related') {
         dispatch(setESPData(response.data));
+      } else if (type === "multiRelated") {
+        dispatch(setMultiRelated(response.data));
       }
 
       return response.data;
@@ -345,6 +354,8 @@ export const fetchBulkESPData = async (patentNumber, dispatch, type) => {
       dispatch(setFetchESPData([]));
     } else if (type === 'related') {
       dispatch(setESPData([]));
+    } else if (type === "multiRelated") {
+      dispatch(setMultiRelated([]));
     }
 
     console.error("❌ Patent fetch error:", error.message || error);
@@ -383,17 +394,14 @@ export const EPO_API_DATA = async (patentNumber, dispatch, type) => {
     if (!trimmedNumber) throw new Error("Patent number is required.");
 
     const response = await axios.get(`${BASE_URL}/live/espbiblio/${trimmedNumber}`);
-    console.log('response.data', response)
 
     if (response.status === 200 && response.data) {
       if (type === 'relevant') {
         dispatch(setRelevantApiTrue(true));
-        console.log("setRelevantApiTrue")
         dispatch(setLiveEpoRelevantData(response.data));
 
       } else if (type === 'related') {
         dispatch(setRelatedApiTrue(true));
-        console.log('setRelatedApiTrue')
         dispatch(setLiveEpoRelatedData(response.data));
       }
 
@@ -455,6 +463,7 @@ export const fetchProjects = async (dispatch) => {
 export const fetchProjectById = async (id) => {
     try {
         const res = await axios.get(`http://localhost:8080/live/projectname/single-report/${id}`);
+        
         return res.data;
     } catch (err) {
         console.error("❌ Error fetching project by id:", err);
@@ -532,12 +541,14 @@ export const saveExcelRelatedReferences = async (id, relatedData) => {
 
 
 
+
 export const { setPatentData, setEspaceApiData, setBulkESPData, resetPatentData, setGoogleApiData, setLensOrgApiData, setFreePatentApiData,
   setPatentLoading, setLensPageUrl, setFetchESPData, setESPData, setFetchLegalStatus, setClassifyData, setChatBoxData,
   setGooglePatentData, setReleventBiblioGoogleData, setRelatedBiblioGoogleData, setFullReportData, setReportRowData,
   
   // LIVE STATE EXPORT
   setLiveEpoRelevantData, setLiveEpoRelatedData, setLiveGoogleRelevantData, setLiveGoogleRelatedData, setRelevantApiTrue, setRelatedApiTrue,
+  setMultiRelated, setSingleProject, 
 } = patentSlice.actions;
 export default patentSlice.reducer;
 

@@ -9,7 +9,6 @@ const LensData = () => {
   const dispatch = useDispatch();
   const fetchedData = useSelector(state => state.patentSlice.lensOrgApiData);
 
-  console.log('fetchedData lensOrgApiData', fetchedData);
 
   const [patentNumber, setPatentNumber] = useState('');
   const [error, setError] = useState('');

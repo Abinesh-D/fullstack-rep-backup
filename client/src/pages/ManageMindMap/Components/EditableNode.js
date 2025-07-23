@@ -12,7 +12,6 @@ const buttonPositions = {
 };
 
 const EditableNode = ({ data, id }) => {
-  console.log('data :>> ', data);
 
   const textAreaRef = useRef(null);
   const storedLabel = localStorage.getItem(`node_${id}`) || data.label;

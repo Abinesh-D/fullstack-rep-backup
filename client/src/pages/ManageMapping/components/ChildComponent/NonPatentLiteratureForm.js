@@ -13,7 +13,7 @@ const NonPatentLiteratureForm = ({
 
     return (
         <>
-            <h4 className="mt-5 fw-bold mb-4">2. Non-Patent Literatures (NPL)</h4>
+            <h4 className="mt-5 fw-bold mb-4">Non-Patent Literatures (NPL)</h4>
             <Form onSubmit={handleNplSubmit}>
                 <Row>
                     <Col lg="4">

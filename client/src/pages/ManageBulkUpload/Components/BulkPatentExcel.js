@@ -9,8 +9,10 @@ import { FaFileExcel } from 'react-icons/fa';
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { downloadSampleExcel } from './sampleBulkPatentDownload';
-
-
+import {
+  extractAbstractText, inventionTitle, publicationDateFunction, applicationDateFunction, getPriorityDates, classifications,
+  normalizeText, computeFamId, mapRelatedData, mappedValue, 
+} from "./BulkResponseMap";
 
 
 const ExcelPatentUploader = ({ setRelatedFormData }) => {
@@ -33,6 +35,14 @@ const ExcelPatentUploader = ({ setRelatedFormData }) => {
 
 
 
+  useEffect(() => {
+    if (!Array.isArray(espData)) return;
+
+    const famIdResult = computeFamId(espData,);
+    setfamId(famIdResult);
+  }, [espData]);
+
+
 
   const bulkBiblioApiCall = async (patentNumbers) => {
     try {
@@ -48,7 +58,7 @@ const ExcelPatentUploader = ({ setRelatedFormData }) => {
     }
   };
 
-  const handleFileUpload = (event) => {
+  const handleFileUpload = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
@@ -68,8 +78,10 @@ const ExcelPatentUploader = ({ setRelatedFormData }) => {
         .map(row => row["Patent Number"])
         .filter(val => val)
         .map(val => String(val).trim());
+        console.log('extractedNumbers', extractedNumbers)
 
       const commaSeparated = extractedNumbers.join(", ");
+      console.log('commaSeparated', commaSeparated)
       setPatentNumbers(commaSeparated.split(',').map(val => val.trim()).filter(val => val !== '').length || 0);
       toast.success(`${file.name} uploaded successfully!`);
       bulkBiblioApiCall(commaSeparated);
@@ -91,16 +103,18 @@ const ExcelPatentUploader = ({ setRelatedFormData }) => {
   const handleSubmit = async () => {
     setSubmitLoading(true);
     try {
-      const relatedData = mappedValue.map(item => ({
-        publicationNumber: item.patentNumber || "",
-        relatedPublicationUrl: item.publicationUrl || "",
-        relatedTitle: item.invention || "",
-        relatedAssignee: item.applicantNames ? item.applicantNames.split(';').map(name => name.trim()) : [],
-        relatedInventor: item.inventorNames ? item.inventorNames.split(';').map(name => name.trim()) : [],
-        relatedFamilyMembers: item.familyMembersData.map(f => f.familyPatent),
-        relatedPublicationDate: item.publicationDate || "",
-        relatedPriorityDate: item.priorityDates || ""
-      }));
+      const relatedData = mapRelatedData(bulkmappedValue);
+
+      // mappedValue.map(item => ({
+      //   publicationNumber: item.patentNumber || "",
+      //   relatedPublicationUrl: item.publicationUrl || "",
+      //   relatedTitle: item.invention || "",
+      //   relatedAssignee: item.applicantNames ? item.applicantNames.split(';').map(name => name.trim()) : [],
+      //   relatedInventor: item.inventorNames ? item.inventorNames.split(';').map(name => name.trim()) : [],
+      //   relatedFamilyMembers: item.familyMembersData.map(f => f.familyPatent),
+      //   relatedPublicationDate: item.publicationDate || "",
+      //   relatedPriorityDate: item.priorityDates || ""
+      // }));
       const response = await saveExcelRelatedReferences(id, relatedData);
       setRelatedFormData(response);
       toast.success("✅ Biblio submitted successfully!");
@@ -121,263 +135,265 @@ const ExcelPatentUploader = ({ setRelatedFormData }) => {
 
 
 
-  const extractAbstractText = (abstractData) => {
-    if (!abstractData) return '';
-
-    if (Array.isArray(abstractData)) {
-      return abstractData
-        .map(item => item?.p)
-        .filter(Boolean)
-        .join(' ');
-    }
-    if (typeof abstractData === 'object' && abstractData?.p) {
-      return abstractData.p;
-    }
-    return '';
-  };
-
-
-  const inventionTitle = (biblioArray) => {
-    const titleData = biblioArray?.['invention-title'];
-
-    if (Array.isArray(titleData)) {
-      const enTitle = titleData.find(t => t?.$?.lang === 'en');
-      if (enTitle) {
-        return enTitle._ || '';
-      }
-      return titleData[0]._ || '';
-    }
-    else if (titleData?.$?.lang === 'en') {
-      return titleData._ || '';
-    }
-    return titleData?._ || '';
-  };
-
-  const publicationDateFunction = (biblioData) => {
-    const docIds = biblioData?.['publication-reference']?.['document-id'];
-
-    const epodocDate = Array.isArray(docIds)
-      ? docIds.find(doc => doc?.$?.['document-id-type'] === 'epodoc')?.date
-      : docIds?.$?.['document-id-type'] === 'epodoc'
-        ? docIds.date
-        : null;
-
-    const formatDate = (dateStr) =>
-      dateStr && /^\d{8}$/.test(dateStr)
-        ? `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6)}`
-        : '';
-
-    return formatDate(epodocDate);
-  }
-
-  const applicationDateFunction = (biblioData) => {
-    const docIds = biblioData?.['application-reference']?.['document-id'];
-
-    const epodocDate = Array.isArray(docIds)
-      ? docIds.find(doc => doc?.$?.['document-id-type'] === 'epodoc')?.date
-      : docIds?.$?.['document-id-type'] === 'epodoc'
-        ? docIds.date
-        : null;
-
-    const formatDate = (dateStr) =>
-      dateStr && /^\d{8}$/.test(dateStr)
-        ? `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6)}`
-        : '';
+  // const extractAbstractText = (abstractData) => {
+  //   if (!abstractData) return '';
+
+  //   if (Array.isArray(abstractData)) {
+  //     return abstractData
+  //       .map(item => item?.p)
+  //       .filter(Boolean)
+  //       .join(' ');
+  //   }
+  //   if (typeof abstractData === 'object' && abstractData?.p) {
+  //     return abstractData.p;
+  //   }
+  //   return '';
+  // };
+
+
+  // const inventionTitle = (biblioArray) => {
+  //   const titleData = biblioArray?.['invention-title'];
+
+  //   if (Array.isArray(titleData)) {
+  //     const enTitle = titleData.find(t => t?.$?.lang === 'en');
+  //     if (enTitle) {
+  //       return enTitle._ || '';
+  //     }
+  //     return titleData[0]._ || '';
+  //   }
+  //   else if (titleData?.$?.lang === 'en') {
+  //     return titleData._ || '';
+  //   }
+  //   return titleData?._ || '';
+  // };
+
+  // const publicationDateFunction = (biblioData) => {
+  //   const docIds = biblioData?.['publication-reference']?.['document-id'];
+
+  //   const epodocDate = Array.isArray(docIds)
+  //     ? docIds.find(doc => doc?.$?.['document-id-type'] === 'epodoc')?.date
+  //     : docIds?.$?.['document-id-type'] === 'epodoc'
+  //       ? docIds.date
+  //       : null;
+
+  //   const formatDate = (dateStr) =>
+  //     dateStr && /^\d{8}$/.test(dateStr)
+  //       ? `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6)}`
+  //       : '';
+
+  //   return formatDate(epodocDate);
+  // }
+
+  // const applicationDateFunction = (biblioData) => {
+  //   const docIds = biblioData?.['application-reference']?.['document-id'];
+
+  //   const epodocDate = Array.isArray(docIds)
+  //     ? docIds.find(doc => doc?.$?.['document-id-type'] === 'epodoc')?.date
+  //     : docIds?.$?.['document-id-type'] === 'epodoc'
+  //       ? docIds.date
+  //       : null;
+
+  //   const formatDate = (dateStr) =>
+  //     dateStr && /^\d{8}$/.test(dateStr)
+  //       ? `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6)}`
+  //       : '';
 
-    return formatDate(epodocDate);
-  }
+  //   return formatDate(epodocDate);
+  // }
 
-  const getPriorityDates = (biblioData) => {
-    let claims = biblioData?.['priority-claims']?.['priority-claim'];
-    if (!claims) return '';
+  // const getPriorityDates = (biblioData) => {
+  //   let claims = biblioData?.['priority-claims']?.['priority-claim'];
+  //   if (!claims) return '';
 
-    if (!Array.isArray(claims)) claims = [claims];
+  //   if (!Array.isArray(claims)) claims = [claims];
 
-    for (const claim of claims) {
-      let doc = claim?.['document-id'];
-      if (!doc) continue;
+  //   for (const claim of claims) {
+  //     let doc = claim?.['document-id'];
+  //     if (!doc) continue;
 
-      if (!Array.isArray(doc)) doc = [doc];
+  //     if (!Array.isArray(doc)) doc = [doc];
 
-      const epodoc = doc.find(d => d?.$?.['document-id-type'] === 'epodoc');
-      const rawDate = epodoc?.date?.trim();
+  //     const epodoc = doc.find(d => d?.$?.['document-id-type'] === 'epodoc');
+  //     const rawDate = epodoc?.date?.trim();
 
-      if (rawDate && /^\d{8}$/.test(rawDate)) {
-        return `${rawDate.slice(0, 4)}-${rawDate.slice(4, 6)}-${rawDate.slice(6, 8)}`;
-      }
-    }
-    return '';
-  };
+  //     if (rawDate && /^\d{8}$/.test(rawDate)) {
+  //       return `${rawDate.slice(0, 4)}-${rawDate.slice(4, 6)}-${rawDate.slice(6, 8)}`;
+  //     }
+  //   }
+  //   return '';
+  // };
 
-  const classifications = (biblioData) => {
-    const patentClassifications = biblioData?.['patent-classifications']?.['patent-classification'];
+  // const classifications = (biblioData) => {
+  //   const patentClassifications = biblioData?.['patent-classifications']?.['patent-classification'];
 
-    if (!Array.isArray(patentClassifications)) {
-      return { cpc: '', US_Classification: '' };
-    }
+  //   if (!Array.isArray(patentClassifications)) {
+  //     return { cpc: '', US_Classification: '' };
+  //   }
 
-    const cpcSet = new Set();
-    const usSet = new Set();
+  //   const cpcSet = new Set();
+  //   const usSet = new Set();
 
-    patentClassifications.forEach((item) => {
-      const { 'classification-scheme': scheme, section, class: classValue, subclass, 'main-group': mainGroup, subgroup } = item;
+  //   patentClassifications.forEach((item) => {
+  //     const { 'classification-scheme': scheme, section, class: classValue, subclass, 'main-group': mainGroup, subgroup } = item;
 
-      if (scheme?.$?.scheme === 'CPCI' && section && classValue && subclass && mainGroup && subgroup) {
-        const cpcCode = `${section}${classValue}${subclass}${mainGroup}/${subgroup}`;
-        cpcSet.add(cpcCode);
-      }
+  //     if (scheme?.$?.scheme === 'CPCI' && section && classValue && subclass && mainGroup && subgroup) {
+  //       const cpcCode = `${section}${classValue}${subclass}${mainGroup}/${subgroup}`;
+  //       cpcSet.add(cpcCode);
+  //     }
 
-      if (scheme?.$?.scheme === 'UC') {
-        const classificationSymbol = item['classification-symbol'];
-        if (classificationSymbol) {
-          usSet.add(classificationSymbol);
-        }
-      }
-    });
+  //     if (scheme?.$?.scheme === 'UC') {
+  //       const classificationSymbol = item['classification-symbol'];
+  //       if (classificationSymbol) {
+  //         usSet.add(classificationSymbol);
+  //       }
+  //     }
+  //   });
 
-    return {
-      cpc: cpcSet.size ? Array.from(cpcSet).join(', ') : '',
-      US_Classification: usSet.size ? Array.from(usSet).join(', ') : ''
-    };
-  };
+  //   return {
+  //     cpc: cpcSet.size ? Array.from(cpcSet).join(', ') : '',
+  //     US_Classification: usSet.size ? Array.from(usSet).join(', ') : ''
+  //   };
+  // };
 
-  const normalizeText = text => text?.replace(/\s+/g, '').trim();
+  // const normalizeText = text => text?.replace(/\s+/g, '').trim();
 
 
 
-  useEffect(() => {
-    if (!Array.isArray(espData)) return;
+  // useEffect(() => {
+  //   if (!Array.isArray(espData)) return;
 
-    const result = [];
+  //   const result = [];
 
-    for (const map of espData) {
-      if (!map?.patentNumber) continue;
+  //   for (const map of espData) {
+  //     if (!map?.patentNumber) continue;
 
-      const familyMember = map.family?.["world-patent-data"]?.["patent-family"]?.["family-member"];
-      const familyID = Array.isArray(familyMember)
-        ? familyMember[0]?.["$"]?.["family-id"]
-        : familyMember?.["$"]?.["family-id"];
+  //     const familyMember = map.family?.["world-patent-data"]?.["patent-family"]?.["family-member"];
+  //     const familyID = Array.isArray(familyMember)
+  //       ? familyMember[0]?.["$"]?.["family-id"]
+  //       : familyMember?.["$"]?.["family-id"];
 
-      if (familyID) {
-        result.push({
-          [map.patentNumber]: `https://worldwide.espacenet.com/patent/search/family/0${familyID}/publication/${map.patentNumber}?q=${map.patentNumber}`
-        });
-      }
-    }
+  //     if (familyID) {
+  //       result.push({
+  //         [map.patentNumber]: `https://worldwide.espacenet.com/patent/search/family/0${familyID}/publication/${map.patentNumber}?q=${map.patentNumber}`
+  //       });
+  //     }
+  //   }
 
-    setfamId(result);
-  }, [espData]);
+  //   setfamId(result);
+  // }, [espData]);
 
-  // Bulk Biblio
-  const mappedValue = espData.map((map) => {
+  // // Bulk Biblio
+   const bulkmappedValue = mappedValue(espData, famId);
 
-    const biblioArray = map?.biblio?.['world-patent-data']?.['exchange-documents']?.['exchange-document']?.['bibliographic-data'];
+  // const mappedValue = espData.map((map) => {
 
-    const ipcrRaw = biblioArray?.['classifications-ipcr']?.['classification-ipcr'];
+  //   const biblioArray = map?.biblio?.['world-patent-data']?.['exchange-documents']?.['exchange-document']?.['bibliographic-data'];
 
-    const ipcrText = Array.isArray(ipcrRaw) ? ipcrRaw.map(item => normalizeText(item?.text)).filter(Boolean).join('; ') : normalizeText(ipcrRaw?.text) || '';
+  //   const ipcrRaw = biblioArray?.['classifications-ipcr']?.['classification-ipcr'];
 
-    const abstractData = map?.biblio?.['world-patent-data']?.['exchange-documents']?.['exchange-document']?.abstract;
+  //   const ipcrText = Array.isArray(ipcrRaw) ? ipcrRaw.map(item => normalizeText(item?.text)).filter(Boolean).join('; ') : normalizeText(ipcrRaw?.text) || '';
 
-    const abstractText = extractAbstractText(abstractData);
+  //   const abstractData = map?.biblio?.['world-patent-data']?.['exchange-documents']?.['exchange-document']?.abstract;
 
-    const invention = inventionTitle(biblioArray);
+  //   const abstractText = extractAbstractText(abstractData);
 
-    const inventorsData = biblioArray?.parties?.inventors?.inventor;
+  //   const invention = inventionTitle(biblioArray);
 
-    const inventorNames = (() => {
-      if (!Array.isArray(inventorsData)) return '';
+  //   const inventorsData = biblioArray?.parties?.inventors?.inventor;
 
-      const epodocInventors = inventorsData
-        .filter(item => item?.$?.['data-format'] === 'epodoc')
-        .map(item => item?.['inventor-name']?.name?.trim())
-        .filter(Boolean);
+  //   const inventorNames = (() => {
+  //     if (!Array.isArray(inventorsData)) return '';
 
-      if (epodocInventors.length > 0) {
-        return epodocInventors.join('; ');
-      }
+  //     const epodocInventors = inventorsData
+  //       .filter(item => item?.$?.['data-format'] === 'epodoc')
+  //       .map(item => item?.['inventor-name']?.name?.trim())
+  //       .filter(Boolean);
 
-      const originalInventors = inventorsData
-        .filter(item => item?.$?.['data-format'] === 'original')
-        .map(item => item?.['inventor-name']?.name?.trim())
-        .filter(Boolean);
+  //     if (epodocInventors.length > 0) {
+  //       return epodocInventors.join('; ');
+  //     }
 
-      return originalInventors.join('; ');
-    })();
+  //     const originalInventors = inventorsData
+  //       .filter(item => item?.$?.['data-format'] === 'original')
+  //       .map(item => item?.['inventor-name']?.name?.trim())
+  //       .filter(Boolean);
 
-    const applicantsData = biblioArray?.parties?.applicants?.applicant;
+  //     return originalInventors.join('; ');
+  //   })();
 
-    const applicantNames = (() => {
-      if (!applicantsData) return '';
+  //   const applicantsData = biblioArray?.parties?.applicants?.applicant;
 
-      const applicantArray = Array.isArray(applicantsData) ? applicantsData : [applicantsData];
+  //   const applicantNames = (() => {
+  //     if (!applicantsData) return '';
 
-      const epodocApplicants = applicantArray
-        .filter(app => app?.$?.['data-format'] === 'epodoc')
-        .map(app => app?.['applicant-name']?.name?.trim())
-        .filter(Boolean);
+  //     const applicantArray = Array.isArray(applicantsData) ? applicantsData : [applicantsData];
 
-      if (epodocApplicants.length > 0) {
-        return epodocApplicants.join('; ');
-      }
+  //     const epodocApplicants = applicantArray
+  //       .filter(app => app?.$?.['data-format'] === 'epodoc')
+  //       .map(app => app?.['applicant-name']?.name?.trim())
+  //       .filter(Boolean);
 
-      const originalApplicants = applicantArray
-        .filter(app => app?.$?.['data-format'] === 'original')
-        .map(app => app?.['applicant-name']?.name?.trim())
-        .filter(Boolean);
+  //     if (epodocApplicants.length > 0) {
+  //       return epodocApplicants.join('; ');
+  //     }
 
-      return originalApplicants.join('; ');
-    })();
+  //     const originalApplicants = applicantArray
+  //       .filter(app => app?.$?.['data-format'] === 'original')
+  //       .map(app => app?.['applicant-name']?.name?.trim())
+  //       .filter(Boolean);
 
+  //     return originalApplicants.join('; ');
+  //   })();
 
-    const publicationDate = publicationDateFunction(biblioArray);
 
-    const applicationDate = applicationDateFunction(biblioArray);
+  //   const publicationDate = publicationDateFunction(biblioArray);
 
-    const priorityDates = getPriorityDates(biblioArray);
+  //   const applicationDate = applicationDateFunction(biblioArray);
 
-    const cpcClass = classifications(biblioArray);
+  //   const priorityDates = getPriorityDates(biblioArray);
 
-    const familyMembers = map.family?.["world-patent-data"]?.["patent-family"]?.["family-member"];
+  //   const cpcClass = classifications(biblioArray);
 
-    const familyMembersArray = Array.isArray(familyMembers) ? familyMembers : [familyMembers];
+  //   const familyMembers = map.family?.["world-patent-data"]?.["patent-family"]?.["family-member"];
 
-    const familyMembersData = familyMembersArray.map((familyMember) => {
-      const publications = familyMember?.["publication-reference"]?.["document-id"] || [];
+  //   const familyMembersArray = Array.isArray(familyMembers) ? familyMembers : [familyMembers];
 
-      const publicationInfo = (Array.isArray(publications) ? publications : [publications])
-        .filter((doc) => doc?.["$"]?.["document-id-type"] === "docdb")
-        .map((doc) => `${doc["country"]}${doc["doc-number"]}${doc["kind"]}`)
-        .join('');
+  //   const familyMembersData = familyMembersArray.map((familyMember) => {
+  //     const publications = familyMember?.["publication-reference"]?.["document-id"] || [];
 
-      return {
-        familyId: familyMember?.["$"]?.["family-id"],
-        familyPatent: publicationInfo,
-      };
-    });
+  //     const publicationInfo = (Array.isArray(publications) ? publications : [publications])
+  //       .filter((doc) => doc?.["$"]?.["document-id-type"] === "docdb")
+  //       .map((doc) => `${doc["country"]}${doc["doc-number"]}${doc["kind"]}`)
+  //       .join('');
 
-    return {
-      patentNumber: map.patentNumber,
-      publicationUrl: (() => {
-        const item = famId.find(obj => obj[map.patentNumber]);
-        return item ? item[map.patentNumber] : '';
-      })(),
+  //     return {
+  //       familyId: familyMember?.["$"]?.["family-id"],
+  //       familyPatent: publicationInfo,
+  //     };
+  //   });
 
-      familyMembersData: familyMembersData,
-      abstractText: abstractText,
-      ipcrText: ipcrText,
-      cpcClass: cpcClass,
-      invention: invention,
-      inventorNames: inventorNames,
-      applicantNames: applicantNames,
-      publicationDate: publicationDate,
-      applicationDate: applicationDate,
-      priorityDates: priorityDates,
+  //   return {
+  //     patentNumber: map.patentNumber,
+  //     publicationUrl: (() => {
+  //       const item = famId.find(obj => obj[map.patentNumber]);
+  //       return item ? item[map.patentNumber] : '';
+  //     })(),
 
-    };
-  });
+  //     familyMembersData: familyMembersData,
+  //     abstractText: abstractText,
+  //     ipcrText: ipcrText,
+  //     cpcClass: cpcClass,
+  //     invention: invention,
+  //     inventorNames: inventorNames,
+  //     applicantNames: applicantNames,
+  //     publicationDate: publicationDate,
+  //     applicationDate: applicationDate,
+  //     priorityDates: priorityDates,
 
-  console.log('mappedValue', mappedValue)
+  //   };
+  // });
+
+  // console.log('mappedValue', mappedValue)
 
 
 

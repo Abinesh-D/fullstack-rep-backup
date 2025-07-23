@@ -9,6 +9,7 @@ import Breadcrumbs from "../../../components/Common/Breadcrumb";
 import {
     GOOGLE_API_DATA, EPO_API_DATA, fetchProjects, fetchPublicationDetails, fetchProjectById, setRelevantApiTrue, setRelatedApiTrue,
     fetchRelatedReferences,
+    setSingleProject,
 } from "../../ManageEmployees/ManageBibliography/BibliographySLice/BibliographySlice";
 import { mapFamilyMemberData } from "../../ManagePriorFormat/ReusableComp/Functions";
 import { FaFileWord } from "react-icons/fa";
@@ -30,6 +31,7 @@ const MappingProjectCreation = () => {
     const id = sessionStorage.getItem("_id");
     const reportData = JSON.parse(sessionStorage.getItem("reportData"));
 
+
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
@@ -42,7 +44,6 @@ const MappingProjectCreation = () => {
 
     const releventBiblioGoogleData = useSelector(state => state.patentSlice.liveGoogleRelevantData);
     const relatedBiblioGoogleData = useSelector(state => state.patentSlice.liveGoogleRelatedData);
-    console.log('releventBiblioGoogleData', releventBiblioGoogleData)
 
     const [activeTab, setactiveTab] = useState(1);
     const [passedSteps, setPassedSteps] = useState([1]);
@@ -253,8 +254,6 @@ const MappingProjectCreation = () => {
                 { headers: { "Content-Type": "application/json" } }
             );
 
-            console.log('response.data', response.data)
-
             const updatedBaseSearchTerms = response.data.stages.appendix1[0]?.baseSearchTerms || [];
             setRelevantWordsList(updatedBaseSearchTerms);
             setBaseSearchTerm("");
@@ -366,6 +365,7 @@ const MappingProjectCreation = () => {
             try {
                 const singleProject = await fetchProjectById(id);
                 if (singleProject) {
+                    dispatch(setSingleProject(singleProject));
                     setProjectFormData({
                         projectTitle: singleProject.stages.introduction?.[0]?.projectTitle || "",
                         projectSubTitle: singleProject.stages.introduction?.[0]?.projectSubTitle || "",
@@ -439,7 +439,6 @@ const MappingProjectCreation = () => {
 
     const handleRelevantWordsDelete = async () => {
         try {
-            console.log('selectedRow, id', selectedRow, id)
             const response = await axios.delete(
                 `http://localhost:8080/live/projectname/delete-keywordslist-term/${id}/${selectedRow._id}`
             );
@@ -779,8 +778,6 @@ const MappingProjectCreation = () => {
 
     const { title, publicationUrl, abstractData, aplDate, pubDate, priorityDates, inventorNames, applicantNames, classificationsSymbol,
         classData, familyMemData, formattedDescriptions, } = usePatentData(data, "relevant");
-
-        console.log('first', inventorNames)
 
     // function getEnglishAbstract(biblio) {
     //     const abstractArray = biblio?.['world-patent-data']?.['exchange-documents']?.['exchange-document']?.abstract;
@@ -1166,8 +1163,6 @@ const MappingProjectCreation = () => {
     // const memoPubDate = useMemo(() => relatedPublicationDate(), [relatedBiblioData]);
 
     const relatedApiData = usePatentData(relatedData, "related");
-
-console.log('relatedApiData', relatedApiData)
 
     useEffect(() => {
         const isAnyMissing = [

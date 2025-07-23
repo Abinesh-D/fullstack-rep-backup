@@ -31,7 +31,6 @@ const AddnewUser = (props) => {
 
 
   useEffect(() => {
-    console.log('Triggered')
     // const initialize = async () => {
     //   const userId = sessionStorage.getItem("userId");
     //   document.title = userId ? "Edit User | MCAdmin" : "Create User | MCAdmin";

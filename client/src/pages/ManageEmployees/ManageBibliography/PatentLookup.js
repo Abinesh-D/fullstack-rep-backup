@@ -10,7 +10,6 @@ import { useSelector } from 'react-redux';
 const PatentLookup = () => {
 
   const googleSLiceData = useSelector(state => state.patentSlice.googleApiData);
-  console.log('googleSLiceData :>> ', googleSLiceData);
 
   const [patentNumber, setPatentNumber] = useState('');
   const [data, setData] = useState(null);

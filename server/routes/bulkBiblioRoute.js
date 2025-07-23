@@ -112,12 +112,13 @@ router.get("/:patentNumber", async (req, res) => {
             const biblioData = await parser.parseStringPromise(biblioResponse.data);
             const familyData = await parser.parseStringPromise(familyResponse.data);
 
-            return {
+            return Promise.resolve({
                 patentNumber: pn,
                 success: true,
                 biblio: biblioData,
                 family: familyData,
-            };
+            });
+
 
         } catch (error) {
             console.error(`Error fetching for ${pn}`, error?.response?.status || error.message);
