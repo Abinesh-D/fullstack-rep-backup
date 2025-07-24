@@ -123,7 +123,7 @@ const MappingProjectCreation = () => {
         projectTitle: '',
         projectSubTitle: '',
         searchFeatures: '',
-        projectImageUrl: [],
+        // projectImageUrl: [],
     });
 
     const [nplPatentFormData, setNplPatentFormData] = useState({
@@ -370,7 +370,7 @@ const MappingProjectCreation = () => {
                         projectTitle: singleProject.stages.introduction?.[0]?.projectTitle || "",
                         projectSubTitle: singleProject.stages.introduction?.[0]?.projectSubTitle || "",
                         searchFeatures: singleProject.stages.introduction?.[0]?.searchFeatures || "",
-                        projectImageUrl: singleProject.stages.introduction?.[0]?.projectImageUrl || [],
+                        // projectImageUrl: singleProject.stages.introduction?.[0]?.projectImageUrl || [],
                     });
 
                     setrelevantFormData(singleProject.stages.relevantReferences?.publicationDetails || []);
@@ -1475,16 +1475,19 @@ const MappingProjectCreation = () => {
     const handleReportDownload = async () => {
         try {
             const getProjectValue = await fetchProjectById(id);
+            console.log('getProjectValue', getProjectValue)
             handleWordReportDownload({
                 projectTitle: getProjectValue.stages.introduction[0]?.projectTitle || "ProjectTitle",
                 projectSubTitle: getProjectValue.stages.introduction[0]?.projectSubTitle || "projectSubTitle",
                 searchFeatures: getProjectValue.stages.introduction[0]?.searchFeatures || "searchFeatures",
                 relevantReferences: getProjectValue.stages.relevantReferences.publicationDetails || [],
+                nonPatentLiteratures: getProjectValue.stages.relevantReferences.nonPatentLiteratures || [],
                 relatedReferences: getProjectValue.stages.relatedReferences || "relatedReferences",
                 appendix1: getProjectValue.stages.appendix1[0] || "Appendix 1",
                 appendix2: getProjectValue.stages.appendix2[0] || "Appendix 2",
-                projectImageUrl: getProjectValue.stages.introduction[0]?.projectImageUrl || ["Image"],
+                // projectImageUrl: getProjectValue.stages.introduction[0]?.projectImageUrl || ["Image"],
                 overallSummary: getProjectValue.stages.relevantReferences.overallSummary || "overallSummary",
+                getProjectValue: getProjectValue,
             });
         } catch (error) {
             console.error("❌ Error in handleReportDownload:", error);

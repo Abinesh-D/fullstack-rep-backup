@@ -3,6 +3,7 @@ import React, { useMemo, useState } from "react";
 import { Row, Col, Button, Label, Input, Spinner } from "reactstrap";
 import TableContainer from "../../ReusableComponents/TableContainer";
 import { Link } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 
 const Appendix1 = ({
@@ -44,6 +45,8 @@ const Appendix1 = ({
     onDataAvailabilityDelete,
 
 }) => {
+
+    const singleProject = useSelector(state => state.patentSlice.singleProject);
 
     const baseSearchTermsColumns = useMemo(() => [
         {
@@ -230,8 +233,6 @@ const Appendix1 = ({
     ], [dataAvailabilityValue]);
 
 
-
-
     return (
         <>
             <h4 className="fw-bold mb-3">Appendix 1</h4>
@@ -241,117 +242,131 @@ const Appendix1 = ({
 
             <h5 className="fw-semibold">1. Base Search Terms</h5>
 
-            <Row>
-                <Col lg="4">
-                    <div className="mb-3">
-                        <Label for="base-search-terms">Key Word</Label>
-                        <Input
-                            type="text"
-                            id="base-search-terms"
-                            className="form-control"
-                            placeholder="Enter Key Word"
-                            value={baseSearchTerm}
-                            onChange={e => setBaseSearchTerm(e.target.value)}
-                        />
-                    </div>
-
-                    <div className="mb-3 d-flex gap-2">
-                        <Button
-                            color="success"
-                            type="button"
-                            onClick={handleFindRelevantWord}
-                            className="flex-fill"
-                        >
-                            {findLoading ? (
-                                <>
-                                    <Spinner size="sm" /> Loading...
-                                </>
-                            ) : (
-                                "Find"
-                            )}
-                        </Button>
-
-                        <Button
-                            color="primary"
-                            type="button"
-                            onClick={handleAddSearchTerms}
-                            className="flex-fill"
-                        >
-                            + Add Search Terms
-                        </Button>
-                    </div>
-                </Col>
-
-                <Col lg="8">
-                    <div className="mb-3">
-                        <Label for="relevantapiword">Relevant Words</Label>
-                        <textarea
-                            id="relevantapiword"
-                            className="form-control"
-                            rows="4"
-                            placeholder="Relevant Words."
-                            value={relevantWords}
-                            onChange={(e) => setRelevantWords(e.target.value)}
-                        />
-                    </div>
-                </Col>
-            </Row>
-
             {
-                !isEmptyArray(relevantWordsList) && (
-                    <TableContainer
-                        columns={baseSearchTermsColumns}
-                        data={relevantWordsList || []}
-                        isPagination={true}
-                        isCustomPageSize={true}
-                        tableClass="align-middle table-nowrap table-hover dt-responsive nowrap w-100 dataTable no-footer dtr-inline"
-                        theadClass="table-light"
-                        paginationWrapper="dataTables_paginate paging_simple_numbers pagination-rounded"
-                        pagination="pagination"
-                    />
-                )
+                singleProject.projectTypeId
+                // === "0001"
+                 &&
+                <>
+                    <Row>
+                        <Col lg="4">
+                            <div className="mb-3">
+                                <Label for="base-search-terms">Key Word</Label>
+                                <Input
+                                    type="text"
+                                    id="base-search-terms"
+                                    className="form-control"
+                                    placeholder="Enter Key Word"
+                                    value={baseSearchTerm}
+                                    onChange={e => setBaseSearchTerm(e.target.value)}
+                                />
+                            </div>
+
+                            <div className="mb-3 d-flex gap-2">
+                                <Button
+                                    color="success"
+                                    type="button"
+                                    onClick={handleFindRelevantWord}
+                                    className="flex-fill"
+                                >
+                                    {findLoading ? (
+                                        <>
+                                            <Spinner size="sm" /> Loading...
+                                        </>
+                                    ) : (
+                                        "Find"
+                                    )}
+                                </Button>
+
+                                <Button
+                                    color="primary"
+                                    type="button"
+                                    onClick={handleAddSearchTerms}
+                                    className="flex-fill"
+                                >
+                                    + Add Search Terms
+                                </Button>
+                            </div>
+                        </Col>
+
+                        <Col lg="8">
+                            <div className="mb-3">
+                                <Label for="relevantapiword">Relevant Words</Label>
+                                <textarea
+                                    id="relevantapiword"
+                                    className="form-control"
+                                    rows="4"
+                                    placeholder="Relevant Words."
+                                    value={relevantWords}
+                                    onChange={(e) => setRelevantWords(e.target.value)}
+                                />
+                            </div>
+                        </Col>
+                    </Row>
+
+                    {
+                        !isEmptyArray(relevantWordsList) && (
+                            <TableContainer
+                                columns={baseSearchTermsColumns}
+                                data={relevantWordsList || []}
+                                isPagination={true}
+                                isCustomPageSize={true}
+                                tableClass="align-middle table-nowrap table-hover dt-responsive nowrap w-100 dataTable no-footer dtr-inline"
+                                theadClass="table-light"
+                                paginationWrapper="dataTables_paginate paging_simple_numbers pagination-rounded"
+                                pagination="pagination"
+                            />
+                        )
+                    }
+                </>
             }
 
+            {/* {
+                singleProject.projectTypeId === "0002" &&
+                <>
+                    <Row>
+                        <Col lg="12">
+                            <div className="mb-3">
+                                <Label for="base-search-terms">Enter Terms</Label>
+                                <textarea
+                                    id="base-search-terms"
+                                    className="form-control"
+                                    rows="3"
+                                    placeholder="Enter search terms"
+                                    value={baseSearchTerm}
+                                    onChange={(e) => setBaseSearchTerm(e.target.value)}
+                                />
+                            </div>
+                        </Col>
+                    </Row>
+                    <Col lg={2}>
+                        <div className="mb-3">
+                            <Button color="info" className="w-100" onClick={handleSaveBaseSearchTerm}>
+                                + Base Search Terms
+                            </Button>
+                        </div>
+                    </Col>
 
-
-            {/* <Row>
-                <Col lg="12">
-                    <div className="mb-3">
-                        <Label for="base-search-terms">Enter Terms</Label>
-                        <textarea
-                            id="base-search-terms"
-                            className="form-control"
-                            rows="3"
-                            placeholder="Enter search terms"
-                            value={baseSearchTerm}
-                            onChange={(e) => setBaseSearchTerm(e.target.value)}
-                        />
-                    </div>
-                </Col>
-            </Row>
-            <Col lg={2}>
-                <div className="mb-3">
-                    <Button color="info" className="w-100" onClick={handleSaveBaseSearchTerm}>
-                        + Base Search Terms
-                    </Button>
-                </div>
-            </Col>
-
-            {
-                !isEmptyArray(baseSearchTermsList) && (
-                    <TableContainer
-                        columns={baseSearchColumns}
-                        data={baseSearchTermsList || []}
-                         isPagination={true}
-                        isCustomPageSize={true}
-                        SearchPlaceholder="Search..."
-                        tableClass="align-middle table-nowrap table-hover dt-responsive nowrap w-100 dataTable no-footer dtr-inline"
-                        theadClass="table-light"
-                        paginationWrapper="dataTables_paginate paging_simple_numbers pagination-rounded"
-                        pagination="pagination"
-                    />
-                )
+                    {
+                        !isEmptyArray(baseSearchTermsList) && (
+                            <TableContainer
+                                columns={baseSearchColumns}
+                                data={baseSearchTermsList || []}
+                                isPagination={true}
+                                isCustomPageSize={true}
+                                SearchPlaceholder="Search..."
+                                tableClass="align-middle table-nowrap table-hover dt-responsive nowrap w-100 dataTable no-footer dtr-inline"
+                                theadClass="table-light"
+                                paginationWrapper="dataTables_paginate paging_simple_numbers pagination-rounded"
+                                pagination="pagination"
+                            />
+                        )
+                    }
+                </>
             } */}
+
+
+
+           
 
             <h5 className="fw-semibold mt-5">2. Search Strings</h5>
             <Row>

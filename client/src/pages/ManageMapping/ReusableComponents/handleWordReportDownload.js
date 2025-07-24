@@ -22,6 +22,13 @@ const commonBorders = {
     right: { style: BorderStyle.SINGLE, size: 1, color: "D3D3D3" },
 };
 
+const blackBorders = {
+    top: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+    bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+    left: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+    right: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+};
+
 const borderNone = {
     top: { style: BorderStyle.SINGLE, size: 1, color: "FFFFFF" },
     bottom: { style: BorderStyle.SINGLE, size: 1, color: "FFFFFF" },
@@ -78,11 +85,11 @@ function cleanListWithEtc(input) {
     return result;
 }
 
-async function getImageArrayBufferFromUrl(url) {
-    const response = await fetch(url);
-    const blob = await response.blob();
-    return blob.arrayBuffer();
-}
+// async function getImageArrayBufferFromUrl(url) {
+//     const response = await fetch(url);
+//     const blob = await response.blob();
+//     return blob.arrayBuffer();
+// }
 
 const borderColor = {
     top: { style: BorderStyle.SINGLE, size: 20, color: "000000" },
@@ -98,12 +105,28 @@ export const handleWordReportDownload = async ({
     projectSubTitle,
     searchFeatures,
     relevantReferences,
+    nonPatentLiteratures,
     relatedReferences,
     appendix1,
     appendix2,
-    projectImageUrl,
+    // projectImageUrl,
     overallSummary,
+    getProjectValue,
 }) => {
+
+
+    console.log(getProjectValue.projectTypeId, "getProjectValue.projectTypeId")
+
+    const typeId1 = getProjectValue.projectTypeId === "0001";
+    const typeId2 = getProjectValue.projectTypeId === "0002";
+    const typeId3 = getProjectValue.projectTypeId === "0003";
+    const typeId4 = getProjectValue.projectTypeId === "0004";
+
+    
+    const nplMap = nonPatentLiteratures.map(npl => npl.nplTitle);
+    const patentMap = relevantReferences.map(ptn => ptn.patentNumber);
+
+    const combinedUniqueArray = [...new Set([...nplMap, ...patentMap])];
 
     const createPageProperties = (margin = 920, orientation = "portrait") => ({
         page: {
@@ -126,25 +149,6 @@ export const handleWordReportDownload = async ({
         new TextRun({ text, ...style, ...overrides });
 
 
-    // const createSingleColumnTableRows = (rows) =>
-    //     rows.map(({ label, value }) =>
-    //         new TableRow({
-    //             children: [
-    //                 new TableCell({
-    //                     verticalAlign: AlignmentType.CENTER,
-    //                     children: [new Paragraph({ text: `${label}:`, bold: true })],
-    //                     borders: borderNone,
-    //                 }),
-    //                 new TableCell({
-    //                     verticalAlign: AlignmentType.CENTER,
-    //                     children: [new Paragraph(value)],
-    //                     borders: borderNone,
-    //                 }),
-    //             ],
-    //         })
-    //     );
-
-
     const createSingleColumnTableRows = (rows) =>
     rows.map(({ label, value, isParagraphChildren }) =>
         new TableRow({
@@ -153,8 +157,12 @@ export const handleWordReportDownload = async ({
                     verticalAlign: AlignmentType.CENTER,
                     children: [
                         new Paragraph({
-                            text: `${label}:`,
-                            bold: true,
+                            children: [
+                                new TextRun({
+                                    text: `${label}:`,
+                                    bold: true,
+                                }),
+                            ],
                         }),
                     ],
                     borders: borderNone,
@@ -164,13 +172,47 @@ export const handleWordReportDownload = async ({
                     children: [
                         isParagraphChildren
                             ? new Paragraph({ children: value })
-                            : new Paragraph({ text: value })
+                            : new Paragraph({
+                                children: [
+                                    new TextRun({ text: value })
+                                ]
+                            }),
                     ],
                     borders: borderNone,
                 }),
             ],
         })
     );
+
+
+
+
+    // const createSingleColumnTableRows = (rows) =>
+    //     rows.map(({ label, value, isParagraphChildren }) =>
+    //         new TableRow({
+    //             children: [
+    //                 new TableCell({
+    //                     verticalAlign: AlignmentType.CENTER,
+    //                     children: [
+    //                         new Paragraph({
+    //                             text: `${label}:`,
+    //                             bold: true,
+    //                         }),
+    //                     ],
+    //                     borders: borderNone,
+    //                 }),
+    //                 new TableCell({
+    //                     verticalAlign: AlignmentType.CENTER,
+    //                     children: [
+    //                         isParagraphChildren
+    //                             ? new Paragraph({ children: value })
+    //                             : new Paragraph({ text: value })
+    //                     ],
+    //                     borders: borderNone,
+    //                 }),
+    //             ],
+    //         })
+    //     );
 
 
 
@@ -219,65 +261,61 @@ export const handleWordReportDownload = async ({
         ],
     });
 
-    const cloudinaryUrls = (projectImageUrl || []).map(buf => buf?.base64Url).filter(Boolean);
+    // const cloudinaryUrls = (projectImageUrl || []).map(buf => buf?.base64Url).filter(Boolean);
 
+    // const imageBuffers = await Promise.all(
+    //     cloudinaryUrls.map(async (url) => await getImageArrayBufferFromUrl(url))
+    // );
+    // const IMAGES_PER_ROW = 4;
 
-    const imageBuffers = await Promise.all(
-        cloudinaryUrls.map(async (url) => await getImageArrayBufferFromUrl(url))
-    );
+    // const imageTableRows = [];
+    // for (let i = 0; i < imageBuffers.length; i += IMAGES_PER_ROW) {
+    //     const rowImages = imageBuffers.slice(i, i + IMAGES_PER_ROW);
 
+    //     const row = new TableRow({
+    //         children: rowImages.map((buffer) =>
+    //             new TableCell({
+    //                 children: [
+    //                     new Paragraph({
+    //                         alignment: AlignmentType.CENTER,
+    //                         children: [
+    //                             new ImageRun({
+    //                                 data: buffer,
+    //                                 transformation: {
+    //                                     width: 120,
+    //                                     height: 90,
+    //                                 },
+    //                             }),
+    //                         ],
+    //                     }),
+    //                 ],
+    //                 borders: {
+    //                     top: { style: "none" },
+    //                     bottom: { style: "none" },
+    //                     left: { style: "none" },
+    //                     right: { style: "none" },
+    //                 },
+    //             })
+    //         ),
+    //     });
 
-    const IMAGES_PER_ROW = 4;
-
-    const imageTableRows = [];
-    for (let i = 0; i < imageBuffers.length; i += IMAGES_PER_ROW) {
-        const rowImages = imageBuffers.slice(i, i + IMAGES_PER_ROW);
-
-        const row = new TableRow({
-            children: rowImages.map((buffer) =>
-                new TableCell({
-                    children: [
-                        new Paragraph({
-                            alignment: AlignmentType.CENTER,
-                            children: [
-                                new ImageRun({
-                                    data: buffer,
-                                    transformation: {
-                                        width: 120,
-                                        height: 90,
-                                    },
-                                }),
-                            ],
-                        }),
-                    ],
-                    borders: {
-                        top: { style: "none" },
-                        bottom: { style: "none" },
-                        left: { style: "none" },
-                        right: { style: "none" },
-                    },
-                })
-            ),
-        });
-
-        imageTableRows.push(row);
-    }
-
-    const imageGridTable = new Table({
-        rows: imageTableRows,
-        width: {
-            size: 100,
-            type: "pct",
-        },
-        borders: {
-            top: { style: "none" },
-            bottom: { style: "none" },
-            left: { style: "none" },
-            right: { style: "none" },
-            insideHorizontal: { style: "none" },
-            insideVertical: { style: "none" },
-        },
-    });
+    //     imageTableRows.push(row);
+    // }
+    // const imageGridTable = new Table({
+    //     rows: imageTableRows,
+    //     width: {
+    //         size: 100,
+    //         type: "pct",
+    //     },
+    //     borders: {
+    //         top: { style: "none" },
+    //         bottom: { style: "none" },
+    //         left: { style: "none" },
+    //         right: { style: "none" },
+    //         insideHorizontal: { style: "none" },
+    //         insideVertical: { style: "none" },
+    //     },
+    // });
 
     function getFamilyMembersParagraphChildren(data, textStyle) {
         const familyMembers = data.FamilyMembers || [];
@@ -335,6 +373,30 @@ export const handleWordReportDownload = async ({
         { label: "Disclaimer", anchor: "disclaimer", isBold: true },
     ];
 
+      const tocConfigSummary = [
+        { label: "1.   Search Features", anchor: "search-features", isBold: true },
+        { label: "2.   Executive Summary", anchor: "executive-summary", isBold: true },
+        { label: "3.   Potentially Relevant References", anchor: "potentially-relevant-references-2", isBold: true },
+
+          ...nonPatentLiteratures.map((npl, index) => ({
+              label: `${index + 1}.    ${npl.nplTitle}`,
+              anchor: `nplNumber-${index + 1}`,
+              indent: 360,
+          })),
+
+          ...relevantReferences.map((ref, index) => ({
+              label: `${nonPatentLiteratures.length + index + 1}.    ${ref.patentNumber}`,
+              anchor: `patentNumberCount-${nonPatentLiteratures.length + index + 1}`,
+              indent: 360,
+          })),
+        { label: "4.   Related References", anchor: "related-references", isBold: true },
+        { label: "Appendix 1", anchor: "appendix-link-1", isBold: true },
+        { label: "Search Terms & Search Strings", anchor: "search-terms", indent: 720, font13: true },
+        { label: "Data Availability", anchor: "data-availability", indent: 720, font13: true },
+        { label: "Appendix 2", anchor: "appendix-link-2", isBold: true },
+        { label: "Databases", anchor: "databases", indent: 720, font13: true },
+        { label: "Disclaimer", anchor: "disclaimer", isBold: true },
+    ];
 
     const relatedReferencesTable = new Table({
         width: { size: 100, type: WidthType.PERCENTAGE },
@@ -489,7 +551,7 @@ export const handleWordReportDownload = async ({
                                 new Paragraph({
                                     alignment: AlignmentType.LEFT,
                                     spacing: { before: 20, after: 0 },
-                                    children: getFamilyMembersParagraphChildren({ FamilyMembers: pub.relatedFamilyMembers, hyperLink: pub.relatedPublicationUrl }, 
+                                    children: getFamilyMembersParagraphChildren({ FamilyMembers: pub.relatedFamilyMembers, hyperLink: pub.relatedPublicationUrl },
                                         textStyle),
                                 }),
                             ],
@@ -520,6 +582,152 @@ export const handleWordReportDownload = async ({
             ),
         ],
     });
+
+
+
+
+
+    console.log('combinedUniqueArray', combinedUniqueArray)
+
+    // Table Header Row
+    const headerRow = new TableRow({
+        children: [
+            "S. No",
+            "Patents Literatures",
+            "Heading 1",
+            "Heading 2",
+            "Heading 3",
+            "Heading 4",
+            "Heading 5",
+        ].map((header, index) =>
+            new TableCell({
+                verticalAlign: VerticalAlign.CENTER,
+                shading: {
+                    fill: index < 2 ? "C2D38B" : "A7C7E7",
+                    type: ShadingType.CLEAR,
+                    color: "auto",
+                },
+                children: [
+                    new Paragraph({
+                        alignment: AlignmentType.CENTER,
+                        spacing: { before: 20, after: 0 },
+                        children: [
+                            createTextRun(header, textStyle.arial10, { bold: true }),
+                        ],
+                    }),
+                ],
+                borders: blackBorders,
+            })
+        ),
+    });
+
+    // Table Data Rows
+
+
+    const dataRows = combinedUniqueArray.map((value, index) => {
+        const isNPL = nplMap.includes(value);
+        const url = isNPL
+            ? nonPatentLiteratures.find(npl => npl.nplTitle === value)?.url
+            : relevantReferences.find(ref => ref.patentNumber === value)?.publicationUrl;
+
+        return new TableRow({
+            children: [`${index + 1}`, value, "", "", "", "", "",].map((cellText, cellIndex) =>
+                new TableCell({
+                    verticalAlign: VerticalAlign.CENTER,
+                    children: [
+                        new Paragraph({
+                            alignment: AlignmentType.CENTER,
+                            spacing: { before: 10, after: 10 },
+                            children: cellIndex === 1 && url
+                                ? [
+                                    new ExternalHyperlink({
+                                        children: [
+                                            createTextRun(cellText, textStyle.arial10, {
+                                                color: "0000FF",
+                                                underline: {},
+                                            }),
+                                        ],
+                                        link: url,
+                                    }),
+                                ]
+                                : [
+                                    createTextRun(cellText, textStyle.arial10),
+                                ],
+                        }),
+                    ],
+                    borders: commonBorders,
+                })
+            ),
+        });
+    });
+
+    // const dataRows = combinedUniqueArray.map((value, index) => {
+    //     const isNPL = nplMap.includes(value);
+    //     const url = isNPL
+    //         ? nonPatentLiteratures.find(npl => npl.nplTitle === value)?.url
+    //         : relevantReferences.find(ref => ref.patentNumber === value)?.publicationUrl;
+
+    //     return new TableRow({
+    //         children: [`${index + 1}`, value, "", "", "", "", "",].map((cellText, cellIndex) =>
+    //             new TableCell({
+    //                 verticalAlign: VerticalAlign.CENTER,
+    //                 children: [
+    //                     new Paragraph({
+    //                         alignment: AlignmentType.CENTER,
+    //                         spacing: { before: 10, after: 10 },
+    //                         children: cellIndex === 1 && url
+    //                             ? [
+    //                                 new ExternalHyperlink({
+    //                                     children: [
+    //                                         createTextRun(cellText, textStyle.arial10, {
+    //                                             color: "0000FF",
+    //                                             underline: {},
+    //                                         }),
+    //                                     ],
+    //                                     link: url,
+    //                                 }),
+    //                             ]
+    //                             : [
+    //                                 createTextRun(cellText, textStyle.arial10),
+    //                             ],
+    //                     }),
+    //                 ],
+    //                 borders: blackBorders,
+    //             })
+    //         ),
+    //     });
+    // });
+
+    // Executive Summary Table
+    const ExecutiveSummaryTable = new Table({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        rows: [headerRow, ...dataRows],
+    });
+
+    // Summary Paragraphs
+    const summaryParagraphs = [
+        new Paragraph({
+            alignment: AlignmentType.LEFT,
+            spacing: { before: 100, after: 100 },
+            children: [
+                createTextRun("The patent literatures identified through quick search disclose the features defined in the objective as summarized in the above table."),
+            ],
+        }),
+        new Paragraph({
+            alignment: AlignmentType.LEFT,
+            spacing: { before: 100, after: 100 },
+            children: [
+                createTextRun("The shortlisted prior arts disclose a volatile composition dispenser/air freshener housing has a removable bottom portion with protrusion and replaceable cartridge."),
+            ],
+        }),
+        new Paragraph({
+            alignment: AlignmentType.LEFT,
+            spacing: { before: 100, after: 100 },
+            children: [
+                createTextRun("The shortlisted prior arts does not specifically disclose 5mm of protrusion on the exterior wall of the cartridges."),
+            ],
+        }),
+    ];
 
 
     const relevantReferencesTable = new Table({
@@ -648,7 +856,7 @@ export const handleWordReportDownload = async ({
             type: WidthType.DXA,
         },
         alignment: AlignmentType.CENTER,
-        rows: tocConfig.map(item =>
+        rows: ((typeId2 && tocConfigSummary) || (typeId1 && tocConfig)).map(item =>
             new TableRow({
                 children: [
                     new TableCell({
@@ -827,44 +1035,214 @@ export const handleWordReportDownload = async ({
                 footers: { default: footer },
                 children: getSearchMethodology(projectTitle),
             },
-            // Potentially Relevant references
+
+            // Executive Summary
+            // {
+            //     properties: createPageProperties(),
+            //     headers: { default: header },
+            //     footers: { default: footer },
+            //     children: [
+
+            //         typeId2 ? 
+            //           new Paragraph({
+            //             indent: { left: 630 },
+            //             spacing: { after: 50 },
+            //             heading: HeadingLevel.HEADING_1,
+            //             children: [
+            //                 new Bookmark({
+            //                     id: "related-references",
+            //                     children: [
+            //                         createTextRun("Executive Summary", textStyle.arial14, { bold: true, color: "000000" }),
+            //                     ],
+            //                 }),
+            //             ],
+            //         }),
+            //         new Paragraph({
+            //             indent: { left: 630 },
+            //             spacing: { after: 50 },
+            //             children: [
+            //                 createTextRun("Feature- Mapping Summary of Potential Relevant References", textStyle.arial10, {
+            //                     italics: true,
+            //                 }),
+            //             ],
+            //         }),
+            //         ExecutiveSummaryTable,
+            //         ...summaryParagraphs, 
+            //         :
+            //         new Paragraph({
+            //             indent: { left: 880 },
+            //             children: [
+            //                 new Bookmark({
+            //                     id: "potentially-relevant-references",
+            //                     children: [
+            //                         createTextRun("3. Potentially Relevant References", textStyle.arial14, { bold: true, color: "000000" }),
+            //                     ]
+            //                 })
+            //             ],
+            //             heading: HeadingLevel.HEADING_1,
+            //             spacing: { after: 400, before: 500 },
+            //         }),
+
+            //         relevantReferencesTable,
+
+            //         new Paragraph({
+            //             indent: { left: 520 },
+            //             children: [
+            //                 createTextRun("Overall Summary of Search and Prior Arts:", textStyle.arial10, { bold: true, color: "000000" }),
+            //             ],
+            //             spacing: { after: 200, before: 200 },
+            //         }),
+            //         new Paragraph({
+            //             indent: { left: 520 },
+            //             children: [
+            //                 createTextRun(overallSummary, textStyle.arial10),
+            //             ],
+            //             spacing: { after: 200 },
+            //         }),
+            //     ],
+            // },
+
+
+            // Executive Summary or Relevent Reference Box
             {
                 properties: createPageProperties(),
                 headers: { default: header },
                 footers: { default: footer },
                 children: [
-                    new Paragraph({
-                        indent: { left: 880 },
-                        children: [
-                            new Bookmark({
-                                id: "potentially-relevant-references",
+                    ...(typeId2
+                        ? [
+                            new Paragraph({
+                                indent: { left: 630 },
+                                spacing: { after: 50 },
+                                heading: HeadingLevel.HEADING_1,
                                 children: [
-                                    createTextRun("3. Potentially Relevant References", textStyle.arial14, { bold: true, color: "000000" }),
-                                ]
-                            })
-                        ],
-                        heading: HeadingLevel.HEADING_1,
-                        spacing: { after: 400, before: 500 },
-                    }),
-
-                    relevantReferencesTable,
-
-                    new Paragraph({
-                        indent: { left: 520 },
-                        children: [
-                            createTextRun("Overall Summary of Search and Prior Arts:", textStyle.arial10, { bold: true, color: "000000" }),
-                        ],
-                        spacing: { after: 200, before: 200 },
-                    }),
-                    new Paragraph({
-                        indent: { left: 520 },
-                        children: [
-                            createTextRun(overallSummary, textStyle.arial10),
-                        ],
-                        spacing: { after: 200 },
-                    }),
+                                    new Bookmark({
+                                        id: "related-references",
+                                        children: [
+                                            createTextRun("Executive Summary", textStyle.arial14, { bold: true, color: "000000" }),
+                                        ],
+                                    }),
+                                ],
+                            }),
+                            new Paragraph({
+                                indent: { left: 630 },
+                                spacing: { after: 50 },
+                                children: [
+                                    createTextRun("Feature- Mapping Summary of Potential Relevant References", textStyle.arial10, {
+                                        italics: true,
+                                    }),
+                                ],
+                            }),
+                            ExecutiveSummaryTable,
+                            ...summaryParagraphs,
+                        ]
+                        : typeId1 && [
+                            new Paragraph({
+                                indent: { left: 880 },
+                                children: [
+                                    new Bookmark({
+                                        id: "potentially-relevant-references",
+                                        children: [
+                                            createTextRun("3. Potentially Relevant References", textStyle.arial14, { bold: true, color: "000000" }),
+                                        ]
+                                    })
+                                ],
+                                heading: HeadingLevel.HEADING_1,
+                                spacing: { after: 400, before: 500 },
+                            }),
+                            relevantReferencesTable,
+                            new Paragraph({
+                                indent: { left: 520 },
+                                children: [
+                                    createTextRun("Overall Summary of Search and Prior Arts:", textStyle.arial10, { bold: true, color: "000000" }),
+                                ],
+                                spacing: { after: 200, before: 200 },
+                            }),
+                            new Paragraph({
+                                indent: { left: 520 },
+                                children: [
+                                    createTextRun(overallSummary, textStyle.arial10),
+                                ],
+                                spacing: { after: 200 },
+                            }),
+                        ]
+                    ),
                 ],
             },
+
+
+            // new Paragraph({
+            //     indent: { left: 630 },
+            //     spacing: { after: 50 },
+            //     heading: HeadingLevel.HEADING_1,
+            //     children: [
+            //         new Bookmark({
+            //             id: "related-references",
+            //             children: [
+            //                 createTextRun("Executive Summary", textStyle.arial14, { bold: true, color: "000000" }),
+            //             ],
+            //         }),
+            //     ],
+            // }),
+            // new Paragraph({
+            //     indent: { left: 630 },
+            //     spacing: { after: 50 },
+            //     children: [
+            //         createTextRun("Feature- Mapping Summary of Potential Relevant References", textStyle.arial10, {
+            //             italics: true,
+            //         }),
+            //     ],
+            // }),
+            // ExecutiveSummaryTable,
+            // ...summaryParagraphs,
+
+
+
+
+
+
+            // Potentially Relevant references
+            // {
+            //     properties: createPageProperties(),
+            //     headers: { default: header },
+            //     footers: { default: footer },
+            //     children: [
+
+            //         new Paragraph({
+            //             indent: { left: 880 },
+            //             children: [
+            //                 new Bookmark({
+            //                     id: "potentially-relevant-references",
+            //                     children: [
+            //                         createTextRun("3. Potentially Relevant References", textStyle.arial14, { bold: true, color: "000000" }),
+            //                     ]
+            //                 })
+            //             ],
+            //             heading: HeadingLevel.HEADING_1,
+            //             spacing: { after: 400, before: 500 },
+            //         }),
+
+            //         relevantReferencesTable,
+
+            //         new Paragraph({
+            //             indent: { left: 520 },
+            //             children: [
+            //                 createTextRun("Overall Summary of Search and Prior Arts:", textStyle.arial10, { bold: true, color: "000000" }),
+            //             ],
+            //             spacing: { after: 200, before: 200 },
+            //         }),
+            //         new Paragraph({
+            //             indent: { left: 520 },
+            //             children: [
+            //                 createTextRun(overallSummary, textStyle.arial10),
+            //             ],
+            //             spacing: { after: 200 },
+            //         }),
+            //     ],
+            // },
+
+
+
             // Relevant
             {
                 properties: createPageProperties(),
@@ -885,62 +1263,30 @@ export const handleWordReportDownload = async ({
                         spacing: { after: 50 },
                     }),
 
-                    ...(Array.isArray(relevantReferences)
-                        ? relevantReferences.flatMap((pub, pubIndex) => {
-                            const leftTableRows = [
-                                { label: "Publication No", value: pub.patentNumber.toUpperCase() },
-                                { label: "Title", value: sanitizeText(pub.title) },
-                                { label: "Inventor", value: sanitizeText((pub.inventors || []).join(", ")) },
-                                { label: "Assignee", value: (pub.assignee || []).join(", ") },
-                            ];
-
-                            const rightTableRows = [
-                                { label: "Grant/Publication Date", value: sanitizeText(pub.grantDate) },
-                                { label: "Filing/Application Date", value: sanitizeText(pub.filingDate) },
-                                { label: "Priority Date", value: sanitizeText(pub.priorityDate) },
-                                // { label: "IPC/CPC Classifications", value: sanitizeText((pub.classifications || []).join(", ")) },
-                                // { label: "Family Member", value: sanitizeText((pub.familyMembers || []).join(", ")) },
-                                {
-                                    label: "IPC/CPC Classifications",
-                                    value: getFamilyMembersParagraphChildren({ FamilyMembers: pub.classifications, hyperLink: pub.publicationUrl },
-                                        textStyle
-                                    ),
-                                    isParagraphChildren: true
-                                },
-                                {
-                                    label: "Family Member",
-                                    value: getFamilyMembersParagraphChildren({ FamilyMembers: pub.familyMembers, hyperLink: pub.publicationUrl },
-                                        textStyle),
-                                    isParagraphChildren: true
-                                },
-
-                            ];
-
-                            const ptnNumber = new Paragraph({
+                    ...(Array.isArray(nonPatentLiteratures) && typeId2
+                        ? nonPatentLiteratures.flatMap((nplItem, index) => [
+                            new Paragraph({
                                 alignment: AlignmentType.START,
                                 indent: { left: 1250 },
                                 children: [
-                                    new Bookmark({
-                                        id: `patent-${pub.patentNumber}`,
-                                        children: [
-                                            createTextRun(`${pubIndex + 1}.       ${pub.patentNumber}`, textStyle.arial11, { bold: true, color: "000000" })
-                                        ],
+                                    createTextRun(`${index + 1}.       ${sanitizeText(nplItem.nplTitle)}`, textStyle.arial11, {
+                                        bold: true,
+                                        color: "000000",
                                     }),
                                 ],
-
                                 heading: HeadingLevel.HEADING_2,
                                 spacing: { after: 20 },
-                            });
+                            }),
 
-                            const table = new Table({
+                            new Table({
                                 width: { size: 100, type: WidthType.PERCENTAGE },
                                 rows: [
+                                    // Header row (top row)
                                     new TableRow({
                                         children: [
                                             new TableCell({
                                                 columnSpan: 2,
                                                 shading: {
-                                                    // fill: "A7C7E7",
                                                     fill: "A7C7E7",
                                                     type: ShadingType.CLEAR,
                                                     color: "auto",
@@ -951,56 +1297,93 @@ export const handleWordReportDownload = async ({
                                                         alignment: AlignmentType.CENTER,
                                                         spacing: { before: 0, after: 0 },
                                                         children: [
-                                                            createTextRun("Bibliographic Details", textStyle.arial10, { bold: true }),
+                                                            createTextRun("Bibliographic Details", textStyle.arial10, {
+                                                                bold: true,
+                                                            }),
                                                         ],
                                                     }),
                                                 ],
-                                                borders: commonBorders,
+                                                borders: {
+                                                    top: { style: BorderStyle.SINGLE, size: 1, color: "D3D3D3" },
+                                                    bottom: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+                                                    left: { style: BorderStyle.SINGLE, size: 1, color: "D3D3D3" },
+                                                    right: { style: BorderStyle.SINGLE, size: 1, color: "D3D3D3" },
+                                                },
                                                 margins: marginsStyle.margins,
                                             }),
                                         ],
                                     }),
+
+                                    // Title row
                                     new TableRow({
-                                        margins: marginsStyle.margins,
                                         children: [
                                             new TableCell({
-                                                width: { size: 50, type: WidthType.PERCENTAGE },
-                                                borders: commonBorders,
-                                                margins: marginsStyle.margins,
                                                 children: [
-                                                    new Table({
-                                                        width: { size: 100, type: WidthType.PERCENTAGE },
-                                                        rows: createSingleColumnTableRows(leftTableRows),
+                                                    new Paragraph({
+                                                        children: [
+                                                            createTextRun("Title: ", textStyle.arial10, { bold: true }),
+                                                            new ExternalHyperlink({
+                                                                link: nplItem.url,
+                                                                children: [
+                                                                    createTextRun(nplItem.nplTitle, textStyle.arial10, { color: "0000FF" }),
+                                                                ],
+                                                            }),
+                                                        ],
                                                     }),
                                                 ],
+                                                borders: {
+                                                    top: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+                                                    bottom: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+                                                    left: { style: BorderStyle.SINGLE, size: 1, color: "D3D3D3" },
+                                                    right: { style: BorderStyle.SINGLE, size: 1, color: "D3D3D3" },
+                                                },
+                                                margins: marginsStyle.margins,
                                             }),
+                                        ],
+                                    }),
+
+                                    // Source row (bottom)
+                                    new TableRow({
+                                        children: [
                                             new TableCell({
-                                                width: { size: 50, type: WidthType.PERCENTAGE },
-                                                borders: commonBorders,
-                                                margins: marginsStyle.margins,
                                                 children: [
-                                                    new Table({
-                                                        width: { size: 100, type: WidthType.PERCENTAGE },
-                                                        rows: createSingleColumnTableRows(rightTableRows),
+                                                    new Paragraph({
+                                                        children: [
+                                                            createTextRun("Source: ", textStyle.arial10, { bold: true }),
+                                                            new ExternalHyperlink({
+                                                                link: nplItem.url,
+                                                                children: [
+                                                                    createTextRun(nplItem.url, textStyle.arial10),
+                                                                ],
+                                                            }),
+                                                        ],
                                                     }),
                                                 ],
+                                                borders: {
+                                                    top: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+                                                    bottom: { style: BorderStyle.SINGLE, size: 1, color: "D3D3D3" },
+                                                    left: { style: BorderStyle.SINGLE, size: 1, color: "D3D3D3" },
+                                                    right: { style: BorderStyle.SINGLE, size: 1, color: "D3D3D3" },
+                                                },
+                                                margins: marginsStyle.margins,
                                             }),
                                         ],
                                     }),
                                 ],
-                            });
+                            }),
 
-                            const analystComment = pub.analystComments
-                                ? new Paragraph({
-                                    spacing: { before: 300, after: 300 },
-                                    children: [
-                                        createTextRun("Analyst Comments – ", textStyle.arial10, { bold: true }),
-                                        createTextRun(sanitizeText(pub.analystComments), textStyle.arial10),
-                                    ],
-                                })
-                                : null;
-
-                            const relevantExcerpts = [
+                            ...(nplItem.comments
+                                ? [
+                                    new Paragraph({
+                                        spacing: { before: 300, after: 300 },
+                                        children: [
+                                            createTextRun("Analyst Comments – ", textStyle.arial10, { bold: true }),
+                                            createTextRun(sanitizeText(nplItem.comments), textStyle.arial10),
+                                        ],
+                                    }),
+                                ]
+                                : []),
+                            ...[
                                 new Table({
                                     width: { size: 100, type: WidthType.PERCENTAGE },
                                     rows: [
@@ -1030,28 +1413,492 @@ export const handleWordReportDownload = async ({
                                         }),
                                     ],
                                 }),
-
+                            ],
+                            ...[
                                 new Paragraph({
-                                    spacing: { before: 200, after: 400 },
+                                    alignment: AlignmentType.CENTER,
+                                    spacing: { after: 400 },
                                     children: [
-                                        (pub.abstract || pub.relevantExcerpts) ?
-                                            // createTextRun(sanitizeText(pub.abstract || pub.relevantExcerpts), textStyle.arial10)
-                                            createTextRun(sanitizeText(pub.relevantExcerpts), textStyle.arial10)
-                                            :
-                                            createTextRun(
-                                                '*Abstract is not available, please fill it yourself',
-                                                { ...textStyle.arial10, color: 'FF0000' }
-                                            ),
+                                        createTextRun("Relevant Excerpts add here....!", textStyle.arial13, {
+                                            bold: true,
+                                            color: "FF0000",
+                                        }),
                                     ],
-                                    alignment: AlignmentType.LEFT,
                                 }),
-                            ].filter(Boolean);
-                            return [ptnNumber, table, ...(analystComment ? [analystComment] : []), ...relevantExcerpts];
+                            ],
+
+                            ...[
+                                new Paragraph({
+                                    children: [],
+                                    spacing: { after: 400 },
+                                }),
+                            ]
+
+                        ])
+                        : []),
+
+                    ...(Array.isArray(relevantReferences) && (typeId1 || typeId2)
+                        ? relevantReferences.flatMap((pub, pubIndex) => {
+
+                            // const leftTableRows = [
+                            //     { label: "Publication No", value: pub.patentNumber?.toUpperCase() },
+                            //     { label: "Title", value: sanitizeText(pub.title) },
+                            //     { label: "Inventor", value: sanitizeText((pub.inventors || []).join(", ")) },
+                            //     { label: "Assignee", value: (pub.assignee || []).join(", ") },
+                            // ];
+
+                            const leftTableRows = [
+                                {
+                                    label: "Publication No",
+                                    value: [
+                                        new ExternalHyperlink({
+                                            children: [
+                                                new TextRun({
+                                                    text: pub.patentNumber?.toUpperCase() || "N/A",
+                                                    style: "Hyperlink",
+                                                    color: "0000FF",
+                                                    underline: {
+                                                        type: UnderlineType.SINGLE,
+                                                    },
+                                                }),
+                                            ],
+                                            link: pub.nplUrl || "",
+                                        }),
+                                    ],
+                                    isParagraphChildren: true,
+                                },
+                                {
+                                    label: "Title",
+                                    value: sanitizeText(pub.title),
+                                },
+                                {
+                                    label: "Inventor",
+                                    value: sanitizeText((pub.inventors || []).join(", ")),
+                                },
+                                {
+                                    label: "Assignee",
+                                    value: (pub.assignee || []).join(", "),
+                                },
+                            ];
+
+
+
+                            const rightTableRows = [
+                                { label: "Grant/Publication Date", value: sanitizeText(pub.grantDate) },
+                                { label: "Filing/Application Date", value: sanitizeText(pub.filingDate) },
+                                { label: "Priority Date", value: sanitizeText(pub.priorityDate) },
+                                {
+                                    label: "IPC/CPC Classifications",
+                                    value: getFamilyMembersParagraphChildren(
+                                        {
+                                            FamilyMembers: pub.classifications,
+                                            hyperLink: pub.publicationUrl,
+                                        },
+                                        textStyle
+                                    ),
+                                    isParagraphChildren: true,
+                                },
+                                {
+                                    label: "Family Member",
+                                    value: getFamilyMembersParagraphChildren(
+                                        {
+                                            FamilyMembers: pub.familyMembers,
+                                            hyperLink: pub.publicationUrl,
+                                        },
+                                        textStyle
+                                    ),
+                                    isParagraphChildren: true,
+                                },
+                            ];
+
+                            return [
+                                new Paragraph({
+                                    alignment: AlignmentType.START,
+                                    indent: { left: 1250 },
+                                    children: [
+                                        new Bookmark({
+                                            id: `patent-${pub.patentNumber}`,
+                                            children: [
+                                                createTextRun(
+                                                    `${nonPatentLiteratures.length + pubIndex + 1}.       ${pub.patentNumber}`,
+                                                    textStyle.arial11,
+                                                    { bold: true, color: "000000" }
+                                                ),
+                                            ],
+                                        }),
+                                    ],
+                                    heading: HeadingLevel.HEADING_2,
+                                    spacing: { after: 20 },
+                                }),
+                                new Table({
+                                    width: { size: 100, type: WidthType.PERCENTAGE },
+                                    rows: [
+                                        new TableRow({
+                                            children: [
+                                                new TableCell({
+                                                    columnSpan: 2,
+                                                    shading: {
+                                                        fill: "A7C7E7",
+                                                        type: ShadingType.CLEAR,
+                                                        color: "auto",
+                                                    },
+                                                    verticalAlign: VerticalAlign.CENTER,
+                                                    children: [
+                                                        new Paragraph({
+                                                            alignment: AlignmentType.CENTER,
+                                                            spacing: { before: 0, after: 0 },
+                                                            children: [
+                                                                createTextRun("Bibliographic Details", textStyle.arial10, {
+                                                                    bold: true,
+                                                                }),
+                                                            ],
+                                                        }),
+                                                    ],
+                                                    borders: commonBorders,
+                                                    margins: marginsStyle.margins,
+                                                }),
+                                            ],
+                                        }),
+                                        new TableRow({
+                                            children: [
+                                                new TableCell({
+                                                    width: { size: 50, type: WidthType.PERCENTAGE },
+                                                    borders: commonBorders,
+                                                    margins: marginsStyle.margins,
+                                                    children: [
+                                                        new Table({
+                                                            width: { size: 100, type: WidthType.PERCENTAGE },
+                                                            rows: createSingleColumnTableRows(leftTableRows),
+                                                        }),
+                                                    ],
+                                                }),
+                                                new TableCell({
+                                                    width: { size: 50, type: WidthType.PERCENTAGE },
+                                                    borders: commonBorders,
+                                                    margins: marginsStyle.margins,
+                                                    children: [
+                                                        new Table({
+                                                            width: { size: 100, type: WidthType.PERCENTAGE },
+                                                            rows: createSingleColumnTableRows(rightTableRows),
+                                                        }),
+                                                    ],
+                                                }),
+                                            ],
+                                        }),
+                                    ],
+                                }),
+                                ...(pub.analystComments
+                                    ? [
+                                        new Paragraph({
+                                            spacing: { before: 300, after: 300 },
+                                            children: [
+                                                createTextRun("Analyst Comments – ", textStyle.arial10, {
+                                                    bold: true,
+                                                }),
+                                                createTextRun(sanitizeText(pub.analystComments), textStyle.arial10),
+                                            ],
+                                        }),
+                                    ]
+                                    : []),
+
+
+                                ...[
+                                    new Table({
+                                        width: { size: 100, type: WidthType.PERCENTAGE },
+                                        rows: [
+                                            new TableRow({
+                                                children: [
+                                                    new TableCell({
+                                                        columnSpan: 2,
+                                                        shading: {
+                                                            fill: "A7C7E7",
+                                                            type: ShadingType.CLEAR,
+                                                            color: "auto",
+                                                        },
+                                                        verticalAlign: VerticalAlign.CENTER,
+                                                        children: [
+                                                            new Paragraph({
+                                                                alignment: AlignmentType.CENTER,
+                                                                spacing: { before: 0, after: 0 },
+                                                                children: [
+                                                                    createTextRun("Relevant Excerpts", textStyle.arial10, { bold: true }),
+                                                                ],
+                                                            }),
+                                                        ],
+                                                        borders: commonBorders,
+                                                        margins: marginsStyle.margins,
+                                                    }),
+                                                ],
+                                            }),
+                                        ],
+                                    }),
+
+                                    new Paragraph({
+                                        spacing: { before: 200, after: 400 },
+                                        children: [
+                                            pub.relevantExcerpts
+                                                ? createTextRun(sanitizeText(pub.relevantExcerpts), textStyle.arial10)
+                                                : createTextRun(
+                                                    '*Abstract is not available, please fill it yourself',
+                                                    { ...textStyle.arial10, color: 'FF0000' }
+                                                ),
+                                        ],
+                                        alignment: AlignmentType.LEFT,
+                                    }),
+                                ],
+
+
+                            ];
                         })
-                        : []
-                    ),
+                        : []),
+
+
+
+
+                    //   ...(Array.isArray(nonPatentLiteratures) && typeId2
+                    //     ? nonPatentLiteratures.flatMap((nplItem, index) => [
+                    //         new Paragraph({
+                    //           alignment: AlignmentType.START,
+                    //           indent: { left: 1250 },
+                    //           children: [
+                    //             createTextRun(`${relevantReferences.length + index + 1}.       ${sanitizeText(nplItem.title)}`, textStyle.arial11, {
+                    //               bold: true,
+                    //               color: "000000",
+                    //             }),
+                    //           ],
+                    //           heading: HeadingLevel.HEADING_2,
+                    //           spacing: { after: 20 },
+                    //         }),
+                    //         new Table({
+                    //           width: { size: 100, type: WidthType.PERCENTAGE },
+                    //           rows: [
+                    //             new TableRow({
+                    //               children: [
+                    //                 new TableCell({
+                    //                   columnSpan: 2,
+                    //                   shading: {
+                    //                     fill: "A7C7E7",
+                    //                     type: ShadingType.CLEAR,
+                    //                     color: "auto",
+                    //                   },
+                    //                   verticalAlign: VerticalAlign.CENTER,
+                    //                   children: [
+                    //                     new Paragraph({
+                    //                       alignment: AlignmentType.CENTER,
+                    //                       spacing: { before: 0, after: 0 },
+                    //                       children: [
+                    //                         createTextRun("NPL Details", textStyle.arial10, {
+                    //                           bold: true,
+                    //                         }),
+                    //                       ],
+                    //                     }),
+                    //                   ],
+                    //                   borders: commonBorders,
+                    //                   margins: marginsStyle.margins,
+                    //                 }),
+                    //               ],
+                    //             }),
+                    //             new TableRow({
+                    //               children: [
+                    //                 new TableCell({
+                    //                   borders: commonBorders,
+                    //                   margins: marginsStyle.margins,
+                    //                   children: [
+                    //                     new Paragraph({
+                    //                       children: [createTextRun("Source URL: ", textStyle.arial10, { bold: true })],
+                    //                     }),
+                    //                     new Paragraph({
+                    //                       children: [
+                    //                         new ExternalHyperlink({
+                    //                           link: nplItem.url,
+                    //                           children: [createTextRun(nplItem.url, textStyle.arial10)],
+                    //                         }),
+                    //                       ],
+                    //                     }),
+                    //                   ],
+                    //                 }),
+                    //               ],
+                    //             }),
+                    //           ],
+                    //         }),
+                    //         ...(nplItem.comments
+                    //           ? [
+                    //               new Paragraph({
+                    //                 spacing: { before: 300, after: 300 },
+                    //                 children: [
+                    //                   createTextRun("Analyst Comments – ", textStyle.arial10, { bold: true }),
+                    //                   createTextRun(sanitizeText(nplItem.comments), textStyle.arial10),
+                    //                 ],
+                    //               }),
+                    //             ]
+                    //           : []),
+                    //       ])
+                    //     : []),
+
+                    // ...(Array.isArray(relevantReferences)
+                    //     ? relevantReferences.flatMap((pub, pubIndex) => {
+                    //         const leftTableRows = [
+                    //             { label: "Publication No", value: pub.patentNumber.toUpperCase() },
+                    //             { label: "Title", value: sanitizeText(pub.title) },
+                    //             { label: "Inventor", value: sanitizeText((pub.inventors || []).join(", ")) },
+                    //             { label: "Assignee", value: (pub.assignee || []).join(", ") },
+                    //         ];
+                    //         const rightTableRows = [
+                    //             { label: "Grant/Publication Date", value: sanitizeText(pub.grantDate) },
+                    //             { label: "Filing/Application Date", value: sanitizeText(pub.filingDate) },
+                    //             { label: "Priority Date", value: sanitizeText(pub.priorityDate) },
+                    //             // { label: "IPC/CPC Classifications", value: sanitizeText((pub.classifications || []).join(", ")) },
+                    //             // { label: "Family Member", value: sanitizeText((pub.familyMembers || []).join(", ")) },
+                    //             {
+                    //                 label: "IPC/CPC Classifications",
+                    //                 value: getFamilyMembersParagraphChildren({ FamilyMembers: pub.classifications, hyperLink: pub.publicationUrl },
+                    //                     textStyle
+                    //                 ),
+                    //                 isParagraphChildren: true
+                    //             },
+                    //             {
+                    //                 label: "Family Member",
+                    //                 value: getFamilyMembersParagraphChildren({ FamilyMembers: pub.familyMembers, hyperLink: pub.publicationUrl },
+                    //                     textStyle),
+                    //                 isParagraphChildren: true
+                    //             },
+
+                    //         ];
+                    //         const ptnNumber = new Paragraph({
+                    //             alignment: AlignmentType.START,
+                    //             indent: { left: 1250 },
+                    //             children: [
+                    //                 new Bookmark({
+                    //                     id: `patent-${pub.patentNumber}`,
+                    //                     children: [
+                    //                         createTextRun(`${pubIndex + 1}.       ${pub.patentNumber}`, textStyle.arial11, { bold: true, color: "000000" })
+                    //                     ],
+                    //                 }),
+                    //             ],
+                    //             heading: HeadingLevel.HEADING_2,
+                    //             spacing: { after: 20 },
+                    //         });
+                    //         const table = new Table({
+                    //             width: { size: 100, type: WidthType.PERCENTAGE },
+                    //             rows: [
+                    //                 new TableRow({
+                    //                     children: [
+                    //                         new TableCell({
+                    //                             columnSpan: 2,
+                    //                             shading: {
+                    //                                 // fill: "A7C7E7",
+                    //                                 fill: "A7C7E7",
+                    //                                 type: ShadingType.CLEAR,
+                    //                                 color: "auto",
+                    //                             },
+                    //                             verticalAlign: VerticalAlign.CENTER,
+                    //                             children: [
+                    //                                 new Paragraph({
+                    //                                     alignment: AlignmentType.CENTER,
+                    //                                     spacing: { before: 0, after: 0 },
+                    //                                     children: [
+                    //                                         createTextRun("Bibliographic Details", textStyle.arial10, { bold: true }),
+                    //                                     ],
+                    //                                 }),
+                    //                             ],
+                    //                             borders: commonBorders,
+                    //                             margins: marginsStyle.margins,
+                    //                         }),
+                    //                     ],
+                    //                 }),
+                    //                 new TableRow({
+                    //                     margins: marginsStyle.margins,
+                    //                     children: [
+                    //                         new TableCell({
+                    //                             width: { size: 50, type: WidthType.PERCENTAGE },
+                    //                             borders: commonBorders,
+                    //                             margins: marginsStyle.margins,
+                    //                             children: [
+                    //                                 new Table({
+                    //                                     width: { size: 100, type: WidthType.PERCENTAGE },
+                    //                                     rows: createSingleColumnTableRows(leftTableRows),
+                    //                                 }),
+                    //                             ],
+                    //                         }),
+                    //                         new TableCell({
+                    //                             width: { size: 50, type: WidthType.PERCENTAGE },
+                    //                             borders: commonBorders,
+                    //                             margins: marginsStyle.margins,
+                    //                             children: [
+                    //                                 new Table({
+                    //                                     width: { size: 100, type: WidthType.PERCENTAGE },
+                    //                                     rows: createSingleColumnTableRows(rightTableRows),
+                    //                                 }),
+                    //                             ],
+                    //                         }),
+                    //                     ],
+                    //                 }),
+                    //             ],
+                    //         });
+                    //         const analystComment = pub.analystComments
+                    //             ? new Paragraph({
+                    //                 spacing: { before: 300, after: 300 },
+                    //                 children: [
+                    //                     createTextRun("Analyst Comments – ", textStyle.arial10, { bold: true }),
+                    //                     createTextRun(sanitizeText(pub.analystComments), textStyle.arial10),
+                    //                 ],
+                    //             })
+                    //             : null;
+                    //         const relevantExcerpts = [
+                    //             new Table({
+                    //                 width: { size: 100, type: WidthType.PERCENTAGE },
+                    //                 rows: [
+                    //                     new TableRow({
+                    //                         children: [
+                    //                             new TableCell({
+                    //                                 columnSpan: 2,
+                    //                                 shading: {
+                    //                                     fill: "A7C7E7",
+                    //                                     type: ShadingType.CLEAR,
+                    //                                     color: "auto",
+                    //                                 },
+                    //                                 verticalAlign: VerticalAlign.CENTER,
+                    //                                 children: [
+                    //                                     new Paragraph({
+                    //                                         alignment: AlignmentType.CENTER,
+                    //                                         spacing: { before: 0, after: 0 },
+                    //                                         children: [
+                    //                                             createTextRun("Relevant Excerpts", textStyle.arial10, { bold: true }),
+                    //                                         ],
+                    //                                     }),
+                    //                                 ],
+                    //                                 borders: commonBorders,
+                    //                                 margins: marginsStyle.margins,
+                    //                             }),
+                    //                         ],
+                    //                     }),
+                    //                 ],
+                    //             }),
+
+                    //             new Paragraph({
+                    //                 spacing: { before: 200, after: 400 },
+                    //                 children: [
+                    //                     (pub.abstract || pub.relevantExcerpts) ?
+                    //                         // createTextRun(sanitizeText(pub.abstract || pub.relevantExcerpts), textStyle.arial10)
+                    //                         createTextRun(sanitizeText(pub.relevantExcerpts), textStyle.arial10)
+                    //                         :
+                    //                         createTextRun(
+                    //                             '*Abstract is not available, please fill it yourself',
+                    //                             { ...textStyle.arial10, color: 'FF0000' }
+                    //                         ),
+                    //                 ],
+                    //                 alignment: AlignmentType.LEFT,
+                    //             }),
+                    //         ].filter(Boolean);
+                    //         return [ptnNumber, table, ...(analystComment ? [analystComment] : []), ...relevantExcerpts];
+                    //     })
+                    //     : []
+                    // ),
                 ],
             },
+
+
+
             // Related
             {
                 properties: createPageProperties(),
@@ -1085,6 +1932,36 @@ export const handleWordReportDownload = async ({
                     relatedReferencesTable
                 ],
             },
+
+            // {
+            //     properties: createPageProperties(),
+            //     headers: { default: header },
+            //     footers: { default: footer },
+            //     children: [
+            //         new Paragraph({
+            //             indent: { left: 630 },
+            //             children: [
+            //                 new Bookmark({
+            //                     id: "related-references",
+            //                     children: [
+            //                         createTextRun("Executive Summary", textStyle.arial14, { bold: true, color: "000000" }),
+            //                     ]
+            //                 })
+            //             ],
+            //             spacing: { after: 50 },
+            //             heading: HeadingLevel.HEADING_1,
+            //         }),
+            //         new Paragraph({
+            //             indent: { left: 630 },
+            //             children: [
+            //                 createTextRun("Feature- Mapping Summary of Potential Relevant References", textStyle.arial10, { italics: true }),
+            //             ],
+            //             spacing: { after: 50 },
+            //         }),
+            //         ExecutiveSummaryTable,
+            //         ...summaryParagraphs,
+            //     ],
+            // },
             // Appendix 1
             {
                 properties: createPageProperties(),

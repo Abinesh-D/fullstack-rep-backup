@@ -159,7 +159,7 @@ const IntroductionTab = ({
                 </Col>
             </Row>
 
-            <Row>
+            {/* <Row>
                 <Col lg="12">
                     <div className="mb-3">
                         <Label className="fw-bold">Upload Project Images</Label>
@@ -171,7 +171,7 @@ const IntroductionTab = ({
                         />
                     </div>
                 </Col>
-            </Row>
+            </Row> */}
 
             <Row
                 style={{
@@ -204,7 +204,8 @@ const IntroductionTab = ({
                             alignItems: "center",
                         }}
                     >
-                        💾 Don’t forget to save! Make sure all fields are filled and an image is uploaded before saving. Otherwise, your changes won’t be stored.
+                        💾 Don’t forget to save! Make sure all fields are filled 
+                        before saving. Otherwise, your changes won’t be stored.
                     </p>
                 </Col>
             </Row>

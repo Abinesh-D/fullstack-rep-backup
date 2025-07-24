@@ -31,7 +31,8 @@ const NonPatentLiteratureForm = ({
 
                     <Col lg="4">
                         <div className="mb-3">
-                            <Label for="npl-url">URL</Label>
+                            <Label for="npl-url">Source</Label>
+                            {/* <Label for="npl-url">URL</Label> */}
                             <Input
                                 type="text"
                                 id="npl-url"
@@ -57,7 +58,7 @@ const NonPatentLiteratureForm = ({
                 </Row>
 
                 <Row>
-                    <Col lg="6">
+                    <Col lg="12">
                         <div className="mb-3">
                             <Label for="npl-comments">Analyst Comments</Label>
                             <textarea
@@ -71,7 +72,7 @@ const NonPatentLiteratureForm = ({
                         </div>
                     </Col>
 
-                    <Col lg="6">
+                    {/* <Col lg="6">
                         <div className="mb-3">
                             <Label for="npl-excerpts">Relevant Excerpts</Label>
                             <textarea
@@ -83,7 +84,7 @@ const NonPatentLiteratureForm = ({
                                 onChange={handleNplChange}
                             />
                         </div>
-                    </Col>
+                    </Col> */}
                 </Row>
 
                 <Col lg="2">
