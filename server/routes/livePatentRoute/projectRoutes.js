@@ -768,27 +768,50 @@ router.delete("/delete-data-availability/:id/:availabilityID", async (req, res) 
 
 
 
-// Save Appendix 2 - Patents
+// // Save Appendix 2 - Patents
+// router.post("/update-appendix2-patents/:id", async (req, res) => {
+//   const { id } = req.params;
+//   const { patents } = req.body;
+
+//   try {
+//     const updatedProject = await cln_prior_report_schema.findByIdAndUpdate(id,
+//       { "stages.appendix2.patents": patents },
+//       { new: true, runValidators: true }
+//     );
+
+//     if (!updatedProject) {
+//       return res.status(404).json({ message: " Project not found" });
+//     }
+
+//     res.status(200).json(updatedProject);
+//   } catch (error) {
+//     console.error(" Error updating Appendix 2 - Patents:", error);
+//     res.status(500).json({ message: "Server error", error: error.message });
+//   }
+// });
+
 router.post("/update-appendix2-patents/:id", async (req, res) => {
   const { id } = req.params;
   const { patents } = req.body;
 
   try {
-    const updatedProject = await cln_prior_report_schema.findByIdAndUpdate(id,
-      { "stages.appendix2.patents": patents },
+    const updatedProject = await cln_prior_report_schema.findByIdAndUpdate(
+      id,
+      { "stages.appendix2.0.patents": patents },
       { new: true, runValidators: true }
     );
 
     if (!updatedProject) {
-      return res.status(404).json({ message: " Project not found" });
+      return res.status(404).json({ message: "Project not found" });
     }
 
     res.status(200).json(updatedProject);
   } catch (error) {
-    console.error(" Error updating Appendix 2 - Patents:", error);
+    console.error("❌ Error updating Appendix 2 - Patents:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 });
+
 
 // Save Appendix 2 - Non-Patent Literature
 router.post("/update-appendix2-npl/:id", async (req, res) => {
@@ -798,7 +821,7 @@ router.post("/update-appendix2-npl/:id", async (req, res) => {
   try {
     const updatedProject = await cln_prior_report_schema.findByIdAndUpdate(
       id,
-      { "stages.appendix2.nonPatentLiterature": nonPatentLiterature },
+      { "stages.appendix2.0.nonPatentLiterature": nonPatentLiterature },
       { new: true, runValidators: true }
     );
 

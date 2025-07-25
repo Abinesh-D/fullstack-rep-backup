@@ -1,16 +1,4 @@
-
 import { Paragraph, HeadingLevel, TextRun, UnderlineType, InternalHyperlink, Bookmark } from "docx";
-
-// const makeIndentedParagraphs = (texts, left = 720) =>
-//     texts.map(
-//         (text) =>
-//             new Paragraph({
-//                 text,
-//                 spacing: { before: 100, after: 100 },
-//                 indent: { left },
-//             })
-//     );
-
 
 const makeIndentedParagraphs = (texts, left = 880) =>
     texts.map((text) => {
@@ -53,23 +41,47 @@ const makeIndentedParagraphs = (texts, left = 880) =>
                 }
             }),
         });
-    });
-
+    }); 
 
 
 export const getSearchMethodology = (projectTitle) => [
-    new Paragraph({
-        heading: HeadingLevel.HEADING_1,
-        spacing: { after: 50 },
-        children: [
-            new Bookmark({
-                id: "search-methodology",
-                children: [new TextRun({ text: "2. Search Methodology", font: "Arial", size: 28, color: "000000", bold: true, }),
-                ]
-            })
-        ],
-        indent: { left: 880 }
-    }),
+
+    projectTitle === true &&
+      new Paragraph({
+            heading: HeadingLevel.HEADING_1,
+            spacing: { after: 50 },
+            children: [
+                new Bookmark({
+                    id: "search-methodology",
+                    children: [
+                        new TextRun({ text: "Appendix 1", font: "Arial", size: 28, color: "000000", bold: true, }),
+                    ]
+                }),
+            ],
+            indent: { left: 880 }
+        }),
+
+    projectTitle === true ?
+        new Paragraph({
+            spacing: { after: 50 },
+            children: [
+                        new TextRun({ text: "Search Methodology", font: "Arial", size: 24, color: "000000", bold: true, }),
+            ],
+            indent: { left: 520 }
+        })
+        :
+        new Paragraph({
+            heading: HeadingLevel.HEADING_1,
+            spacing: { after: 50 },
+            children: [
+                new Bookmark({
+                    id: "search-methodology",
+                    children: [new TextRun({ text: "2. Search Methodology", font: "Arial", size: 28, color: "000000", bold: true, }),
+                    ]
+                })
+            ],
+            indent: { left: 880 }
+        }),
 
 
 
@@ -85,18 +97,32 @@ export const getSearchMethodology = (projectTitle) => [
         ]
     }),
 
-    new Paragraph({
-        children: [
-            new TextRun("●    In-depth understanding “"),
-            new TextRun({
-                text: projectTitle,
-                bold: true,
-            }),
-            new TextRun("” analyzed in terms of project requirements."),
-        ],
-        indent: { left: 880 },
-        spacing: { before: 20, after: 50 },
-    }),
+    projectTitle === true ?
+        new Paragraph({
+            children: [
+                new TextRun("●    In-depth understanding of domain was analyzed in terms of project requirements"),
+                // new TextRun({
+                //     text: projectTitle === true ? "" : projectTitle,
+                //     bold: true,
+                // }),
+                // new TextRun("” analyzed in terms of project requirements."),
+            ],
+            indent: { left: 880 },
+            spacing: { before: 20, after: 50 },
+        })
+        :
+        new Paragraph({
+            children: [
+                new TextRun("●    In-depth understanding “"),
+                new TextRun({
+                    text: projectTitle,
+                    bold: true,
+                }),
+                new TextRun("” analyzed in terms of project requirements."),
+            ],
+            indent: { left: 880 },
+            spacing: { before: 20, after: 50 },
+        }),
 
 
     ...makeIndentedParagraphs([
@@ -118,8 +144,8 @@ export const getSearchMethodology = (projectTitle) => [
     }),
     ...makeIndentedParagraphs([
         "●    A broad to narrow search strategy (or narrow to broad) was employed using various search strings on few commercial/free databases to identify patent/applications.",
-        "●    The key strings were formulated based on the identified keywords. For key string, refer to Appendix 1.",
-        "●    The searches were carried on various paid and free databases. For list of databases, refer to Appendix 2.",
+        `●    The key strings were formulated based on the identified keywords.${projectTitle === true ? "" : " For key string, refer to Appendix 1."}`,
+        `●    The searches were carried on various paid and free databases.${projectTitle === true ? "" : " For list of databases, refer to Appendix 2."}`,
         "●    The extracted documents were analyzed in detail to identify potentially relevant documents which can be further segregated as relevant and related depending on number of features matching with the technical features of the study.",
         "●    For Patent literature only one member per family was considered for analysis.",
         "●    For Non-English documents, the analysis was carried out based on machine translated text available from free/commercial sources.",
