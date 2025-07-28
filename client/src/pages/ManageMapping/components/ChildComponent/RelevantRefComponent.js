@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { Row, Col, Button, Label, Input, Form, Spinner } from "reactstrap";
 import TableContainer from "../../ReusableComponents/TableContainer";
 import { Link } from "react-router-dom";
@@ -7,7 +7,9 @@ import { useSelector, useDispatch } from "react-redux";
 import { setRelevantApiTrue } from "../../../ManageEmployees/ManageBibliography/BibliographySLice/BibliographySlice";
 import FeedbackModal from "../../ReusableComponents/FeedbackModal";
 import NonPatentLiteratureForm from "./NonPatentLiteratureForm";
-
+import DraggableTable from "../../../../components/Common/commonReport/DraggableTable";
+import RelevantReferenceOffCanvas from '../../../../components/Common/commonReport/RelevantReferenceOffCanvas';
+import axios from "axios";
 
 const RelevantRefComponent = ({
     loading,
@@ -29,13 +31,68 @@ const RelevantRefComponent = ({
     onDeleteClick,
     handleRelevatFormInputChange,
     resetRelevantForm,
+    setrelevantFormData,
 }) => {
+
+
+    const nonPatentModified = nonPatentFormData.map((item, index) => ({
+        patentNumber: item.nplTitle,
+        publicationUrl: item.url,
+        analystComments: item.comments,
+        filingDate: item.nplPublicationDate,
+        _id: item._id,
+        nplId: true,
+    }));
+
+    const combinedDataValue = useMemo(() => {
+        return [...relevantFormData, ...nonPatentModified];
+    }, [relevantFormData, nonPatentModified]);
 
 
     const patentSlice = useSelector(state => state.patentSlice);
     const dispatch = useDispatch();
 
     const [feedbackOpen, setFeedbackOpen] = useState(false);
+
+    const [tableData, setTableData] = useState([]);
+    const [relevantAndNplUpdatedData, setRelevantAndNplUpdatedData] = useState([]);
+    console.log('relevantAndNplUpdatedData', relevantAndNplUpdatedData)
+
+    const [isCanvasOpen, setIsCanvasOpen] = useState(false);
+
+    const toggleCanvas = () => setIsCanvasOpen(!isCanvasOpen);
+
+
+    const handleRelevantAndNplCombinedSubmit = async (e) => {
+        e.preventDefault();
+        console.log('tableData', tableData)
+        try {
+            const response = await axios.post(
+                `http://localhost:8080/live/projectname/add-relevantandnpl-data/${patentSlice.singleProject._id}`, { tableData },
+                { headers: { "Content-Type": "application/json" } }
+            );
+            if (response.status === 200) {
+                const updatedDetails = response.data.stages.relevantReferences.relevantAndNplCombined;
+                console.log('updatedDetails', updatedDetails)
+                setRelevantAndNplUpdatedData(updatedDetails);
+            }
+
+        } catch (error) {
+            console.error("❌ Error saving publication detail:", error);
+        }
+    };
+
+
+
+    useEffect(() => {
+        setTableData(combinedDataValue || []);
+    }, [relevantFormData]);
+
+    // useEffect(() => {
+    //     setTableData(relevantAndNplUpdatedData || combinedDataValue)
+    // }, [])
+
+
 
     const columns = useMemo(() => [
         {
@@ -89,7 +146,6 @@ const RelevantRefComponent = ({
             },
         },
     ], [relevantFormData]);
-
 
 
     const nplColumns = useMemo(() => [
@@ -152,12 +208,16 @@ const RelevantRefComponent = ({
                     </Button>
                 </Col>
             </Row>
+
             {
                 <FeedbackModal
                     isOpen={feedbackOpen}
                     toggle={() => setFeedbackOpen(!feedbackOpen)}
                 />
             }
+
+
+
             {loading ? (
                 <div className="blur-loading-overlay text-center mt-4">
                     <Spinner color="primary" />
@@ -388,17 +448,25 @@ const RelevantRefComponent = ({
                 <TableContainer
                     columns={columns}
                     data={relevantFormData || []}
-                     isPagination={true}
-                        isCustomPageSize={true}
-                        SearchPlaceholder="Search..."
-                        tableClass="align-middle table-nowrap table-hover dt-responsive nowrap w-100 dataTable no-footer dtr-inline"
-                        theadClass="table-light"
-                        paginationWrapper="dataTables_paginate paging_simple_numbers pagination-rounded"
-                        pagination="pagination"
+                    isPagination={true}
+                    isCustomPageSize={true}
+                    SearchPlaceholder="Search..."
+                    tableClass="align-middle table-nowrap table-hover dt-responsive nowrap w-100 dataTable no-footer dtr-inline"
+                    theadClass="table-light"
+                    paginationWrapper="dataTables_paginate paging_simple_numbers pagination-rounded"
+                    pagination="pagination"
                 />
+
+
+                // <DraggableTable
+                //     data={tableData}
+                //     setData={setTableData}
+                //     columns={columns}
+                // />
             )}
 
-            { patentSlice.singleProject.projectTypeId === "0002" && (
+
+            {patentSlice.singleProject.projectTypeId === "0002" && (
                 <NonPatentLiteratureForm
                     nplPatentFormData={nplPatentFormData}
                     handleNplChange={handleNplChange}
@@ -407,6 +475,25 @@ const RelevantRefComponent = ({
                     nplColumns={nplColumns}
                 />)
             }
+
+            <div style={{
+                borderTop: '1px solid #343a40',
+                borderBottom: '1px solid #343a40',
+                padding: '10px',
+            }}>
+                <Button color="primary" onClick={toggleCanvas}>
+                    View Relevant & Npl References
+                </Button>
+
+                <RelevantReferenceOffCanvas
+                    isOpen={isCanvasOpen}
+                    toggle={toggleCanvas}
+                    data={tableData}
+                    setTableData={setTableData}
+                    columns={columns}
+                    handleUpdate={handleRelevantAndNplCombinedSubmit}
+                />
+            </div>
 
             {/* <h4 className="mt-5 fw-bold mb-4">2. Non-Patent Literatures(NPL)</h4>
             <Form onSubmit={handleNplSubmit}>

@@ -20,6 +20,26 @@ const publicationDetailsSchema = new Schema({
   relevantExcerpts: { type: String, default: "" },
 });
 
+const relevantAndNplCombined = new Schema({
+  _id: { type: String, default: uuidv4 },
+  nplIdL: { type: String, default: false },
+  patentNumber: { type: String, default: "" },
+  publicationUrl: { type: String, default: "" },
+  title: { type: String, default: "" },
+  abstract: { type: String, default: "" },
+  filingDate: { type: String, default: "" },
+  priorityDate: { type: String, default: "" },
+  grantDate: { type: String, default: "" },
+  assignee: { type: [String], default: [] },
+  inventors: { type: [String], default: [] },
+  classifications: { type: [String], default: [] },
+  usClassification: { type: [String], default: [] },
+  familyMembers: { type: [String], default: [] },
+  analystComments: { type: String, default: "" },
+  relevantExcerpts: { type: String, default: "" },
+});
+
+
 
 const nonPatentLiteratureSchema = new Schema({
   _id: { type: String, default: uuidv4 },
@@ -130,6 +150,7 @@ const fullProjectSchema = new Schema({
     relevantReferences: {
       publicationDetails: { type: [publicationDetailsSchema], default: [] },
       nonPatentLiteratures: { type: [nonPatentLiteratureSchema], default: [] },
+      relevantAndNplCombined: {type: [relevantAndNplCombined], default: [] },
       overallSummary: String
     },
     relatedReferences: { type: [relatedReferenceSchema], default: [] },

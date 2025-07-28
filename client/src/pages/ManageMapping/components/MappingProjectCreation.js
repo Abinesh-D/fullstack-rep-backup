@@ -64,6 +64,7 @@ const MappingProjectCreation = () => {
         analystComments: '',
         relevantExcerpts: ''
     });
+    
 
     const resetRelevantForm = () => {
         setRelevantForm({
@@ -100,6 +101,7 @@ const MappingProjectCreation = () => {
     const [relevantWordsList, setRelevantWordsList] = useState([]);
     const [findLoading, setFindLoading] = useState(false);
 
+    // const [relevantAndNplUpdatedData, setRelevantAndNplUpdatedData] = useState([]);
 
 
     const [keyString, setKeyString] = useState("");
@@ -357,9 +359,6 @@ const MappingProjectCreation = () => {
 
 
 
-
-
-
     useEffect(() => {
         const getProject = async () => {
             try {
@@ -372,6 +371,7 @@ const MappingProjectCreation = () => {
                         searchFeatures: singleProject.stages.introduction?.[0]?.searchFeatures || "",
                         // projectImageUrl: singleProject.stages.introduction?.[0]?.projectImageUrl || [],
                     });
+                    // setRelevantAndNplUpdatedData(singleProject.stages.relevantReferences?.[0]?.relevantAndNplCombined);
 
                     setrelevantFormData(singleProject.stages.relevantReferences?.publicationDetails || []);
                     setNonPatentFormData(singleProject.stages.relevantReferences?.nonPatentLiteratures || []);
@@ -1336,6 +1336,28 @@ const MappingProjectCreation = () => {
         }
     };
 
+    // const handleRelevantAndNplCombinedSubmit = async (e) => {
+    //     e.preventDefault();
+
+    //     console.log('relevantAndNplUpdatedData', relevantAndNplUpdatedData)
+
+    //     try {
+    //         const response = await axios.post(
+    //             `http://localhost:8080/live/projectname/add-relevantandnpl-data/${id}`, relevantAndNplUpdatedData,
+    //             { headers: { "Content-Type": "application/json" } }
+    //         );
+    //         if (response.status === 200) {
+    //             const updatedDetails = response.data.stages.relevantReferences.relevantAndNplCombined;
+    //             setRelevantAndNplUpdatedData(updatedDetails);
+
+    //         }
+
+    //     } catch (error) {
+    //         console.error("❌ Error saving publication detail:", error);
+    //     } finally {
+    //         // dispatch(setRelevantApiTrue(false));
+    //     }
+    // };
 
     const handleNplSubmit = async (e) => {
         e.preventDefault();
@@ -1666,6 +1688,9 @@ const MappingProjectCreation = () => {
                                                         handleOverAllSummarySave={handleOverAllSummarySave}
                                                         handleRelevatFormInputChange={handleRelevatFormInputChange}
                                                         resetRelevantForm={resetRelevantForm}
+                                                        setrelevantFormData={setrelevantFormData}
+                                                        // setRelevantAndNplUpdatedData={handleRelevantAndNplCombinedSubmit}
+                                                        // relevantAndNplUpdatedData={relevantAndNplUpdatedData}
 
                                                     />
 

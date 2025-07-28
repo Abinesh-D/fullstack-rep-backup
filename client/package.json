@@ -45,6 +45,7 @@
     "pdfjs-dist": "^3.11.174",
     "pizzip": "^3.2.0",
     "react": "^19.0.0",
+    "react-beautiful-dnd": "^13.1.1",
     "react-color": "^2.19.3",
     "react-countdown": "^2.3.6",
     "react-datepicker": "^8.2.1",
@@ -84,13 +85,12 @@
     "xlsx": "^0.18.5",
     "yup": "^1.6.1"
   },
-"scripts": {
-  "start": "react-scripts start",
-  "build": "cross-env NODE_OPTIONS=--max-old-space-size=4096 react-scripts build",
-  "test": "react-scripts test",
-  "eject": "react-scripts eject"
-}
-,
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "cross-env NODE_OPTIONS=--max-old-space-size=4096 react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
   "eslintConfig": {
     "extends": [
       "react-app",

@@ -538,6 +538,27 @@ export const saveExcelRelatedReferences = async (id, relatedData) => {
 
 
 
+// export const handleRelevantAndNplCombinedSubmit = async (e) => {
+//     e.preventDefault();
+
+//     try {
+//       const response = await axios.post(
+//         `http://localhost:8080/live/projectname/add-relevantandnpl-data/${id}`, relevantForm,
+//         { headers: { "Content-Type": "application/json" } }
+//       );
+//       if (response.status === 200) {
+//         resetRelevantForm();
+//         const updatedDetails = response.data.stages.relevantReferences.publicationDetails;
+//         setrelevantFormData(updatedDetails);
+
+//       }
+
+//     } catch (error) {
+//       console.error("❌ Error saving publication detail:", error);
+//     } finally {
+//       dispatch(setRelevantApiTrue(false));
+//     }
+//   };
 
 
 

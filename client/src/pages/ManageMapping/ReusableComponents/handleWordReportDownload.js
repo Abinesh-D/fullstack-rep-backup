@@ -1029,48 +1029,75 @@ console.log('appendix1', appendix1)
                     type: WidthType.PERCENTAGE,
                 },
                 rows: [
+                    // Header Row
                     new TableRow({
-                        // tableHeader: true,
                         children: [
                             new TableCell({
+                                width: { size: 5, type: WidthType.PERCENTAGE },
                                 verticalAlign: VerticalAlign.CENTER,
+                                shading: { fill: "353839" },
                                 children: [
                                     new Paragraph({
-                                        spacing: { before: 0, after: 0 },
+                                        spacing: { before: 30, after: 30 },
                                         alignment: AlignmentType.CENTER,
                                         children: [
                                             createTextRun("S. No.", textStyle.arial10, { bold: true, color: "FFFFFF" }),
                                         ],
                                     }),
                                 ],
-                                shading: {
-                                    fill: "353839",
-                                },
                             }),
                             new TableCell({
+                                width: { size:80, type: WidthType.PERCENTAGE },
                                 verticalAlign: VerticalAlign.CENTER,
+                                shading: { fill: "353839" },
                                 children: [
                                     new Paragraph({
                                         alignment: AlignmentType.CENTER,
-                                        spacing: { before: 0, after: 0 },
+                                        spacing: { before: 30, after: 30 },
                                         children: [
-                                            createTextRun("Key strings (Patents/Patent Applications)", textStyle.arial10, { bold: true, color: "FFFFFF" }),
+                                            createTextRun("Key Strings (Orbit, Google Patents, Google Scholar, etc.)", textStyle.arial10, { bold: true, color: "FFFFFF" }),
                                         ],
                                     }),
                                 ],
-                                shading: {
-                                    fill: "353839",
-                                },
+                            }),
+                            new TableCell({
+                                width: { size: 10, type: WidthType.PERCENTAGE },
+                                verticalAlign: VerticalAlign.CENTER,
+                                shading: { fill: "353839" },
+                                children: [
+                                    new Paragraph({
+                                        alignment: AlignmentType.CENTER,
+                                        spacing: { before: 30, after: 30 },
+                                        children: [
+                                            createTextRun("Database", textStyle.arial10, { bold: true, color: "FFFFFF" }),
+                                        ],
+                                    }),
+                                ],
+                            }),
+                            new TableCell({
+                                width: { size: 5, type: WidthType.PERCENTAGE },
+                                verticalAlign: VerticalAlign.CENTER,
+                                shading: { fill: "353839" },
+                                children: [
+                                    new Paragraph({
+                                        alignment: AlignmentType.CENTER,
+                                        spacing: { before: 30, after: 30 },
+                                        children: [
+                                            createTextRun("Hits", textStyle.arial10, { bold: true, color: "FFFFFF" }),
+                                        ],
+                                    }),
+                                ],
                             }),
                         ],
                     }),
 
+                    // Data Rows
                     ...appendix1?.keyStrings?.map((keyStr, index) =>
                         new TableRow({
                             children: [
                                 new TableCell({
-                                    verticalAlign: AlignmentType.CENTER,
                                     width: { size: 5, type: WidthType.PERCENTAGE },
+                                    verticalAlign: VerticalAlign.CENTER,
                                     children: [
                                         new Paragraph({
                                             alignment: AlignmentType.CENTER,
@@ -1081,7 +1108,8 @@ console.log('appendix1', appendix1)
                                     ],
                                 }),
                                 new TableCell({
-                                    verticalAlign: AlignmentType.CENTER,
+                                    width: { size: 80, type: WidthType.PERCENTAGE },
+                                    verticalAlign: VerticalAlign.CENTER,
                                     children: [
                                         new Paragraph({
                                             alignment: AlignmentType.LEFT,
@@ -1089,6 +1117,30 @@ console.log('appendix1', appendix1)
                                             indent: { left: 80 },
                                             children: [
                                                 createTextRun(keyStr.keyStringsText, textStyle.arial10),
+                                            ],
+                                        }),
+                                    ],
+                                }),
+                                new TableCell({
+                                    width: { size: 10, type: WidthType.PERCENTAGE },
+                                    verticalAlign: VerticalAlign.CENTER,
+                                    children: [
+                                        new Paragraph({
+                                            alignment: AlignmentType.CENTER,
+                                            children: [
+                                                createTextRun("", textStyle.arial10), // Database
+                                            ],
+                                        }),
+                                    ],
+                                }),
+                                new TableCell({
+                                    width: { size: 5, type: WidthType.PERCENTAGE },
+                                    verticalAlign: VerticalAlign.CENTER,
+                                    children: [
+                                        new Paragraph({
+                                            alignment: AlignmentType.CENTER,
+                                            children: [
+                                                createTextRun("", textStyle.arial10), // Hits
                                             ],
                                         }),
                                     ],
@@ -1106,6 +1158,7 @@ console.log('appendix1', appendix1)
                     insideVertical: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
                 },
             }),
+
 
             new Paragraph({
                 alignment: AlignmentType.RIGHT,

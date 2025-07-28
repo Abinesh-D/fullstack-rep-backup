@@ -203,6 +203,30 @@ router.post("/add-relevant-data/:id", async (req, res) => {
 });
 
 
+
+// Save Relevant and Npl Combined
+router.post("/add-relevantandnpl-data/:id", async (req, res) => {
+  const { id } = req.params;
+  const { tableData } = req.body;
+
+  try {
+    const updatedProject = await cln_prior_report_schema.findByIdAndUpdate(
+      id,
+      { "stages.relevantReferences.relevantAndNplCombined": tableData },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedProject) {
+      return res.status(404).json({ message: " Project not found" });
+    }
+    res.status(200).json(updatedProject);
+  } catch (error) {
+    console.error(" Error updating tableData:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
+
 // GET Publication Details for a Project
 router.get("/publication-details/:id", async (req, res) => {
   const { id } = req.params;
