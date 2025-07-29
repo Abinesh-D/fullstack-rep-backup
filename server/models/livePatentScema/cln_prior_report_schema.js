@@ -22,7 +22,7 @@ const publicationDetailsSchema = new Schema({
 
 const relevantAndNplCombined = new Schema({
   _id: { type: String, default: uuidv4 },
-  nplIdL: { type: String, default: false },
+  nplId: { type: Boolean, default: false },
   patentNumber: { type: String, default: "" },
   publicationUrl: { type: String, default: "" },
   title: { type: String, default: "" },

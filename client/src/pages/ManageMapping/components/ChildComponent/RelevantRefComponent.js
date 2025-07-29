@@ -32,10 +32,21 @@ const RelevantRefComponent = ({
     handleRelevatFormInputChange,
     resetRelevantForm,
     setrelevantFormData,
+    relevantAndNplUpdatedData
 }) => {
+    console.log('relevantAndNplUpdatedData', relevantAndNplUpdatedData)
 
 
-    const nonPatentModified = nonPatentFormData.map((item, index) => ({
+    const patentSlice = useSelector(state => state.patentSlice);
+    const dispatch = useDispatch();
+
+    const [feedbackOpen, setFeedbackOpen] = useState(false);
+    const [tableData, setTableData] = useState([]);
+    const [isCanvasOpen, setIsCanvasOpen] = useState(false);
+
+    const toggleCanvas = () => setIsCanvasOpen(!isCanvasOpen);
+
+    const nonPatentModified = nonPatentFormData.map((item) => ({
         patentNumber: item.nplTitle,
         publicationUrl: item.url,
         analystComments: item.comments,
@@ -44,23 +55,29 @@ const RelevantRefComponent = ({
         nplId: true,
     }));
 
+    console.log('nonPatentModified', nonPatentModified)
+
     const combinedDataValue = useMemo(() => {
-        return [...relevantFormData, ...nonPatentModified];
-    }, [relevantFormData, nonPatentModified]);
+        if (relevantAndNplUpdatedData?.length > 0) {
+            return [...relevantAndNplUpdatedData];
+        } else {
+            return [...relevantFormData, ...nonPatentModified];
+        }
+    }, [relevantFormData, nonPatentFormData]);
+
+// , relevantFormData[relevantFormData.length - 1], nonPatentModified[nonPatentModified.length - 1]
+
+    useEffect(() => {
+        setTableData(combinedDataValue);
+    }, [relevantFormData, nonPatentFormData])
 
 
-    const patentSlice = useSelector(state => state.patentSlice);
-    const dispatch = useDispatch();
+    // useEffect(() => {
+    //     if (relevantAndNplUpdatedData?.length > 0) {
+    //         setTableData(relevantAndNplUpdatedData);
+    //     }
+    // }, [relevantAndNplUpdatedData]);
 
-    const [feedbackOpen, setFeedbackOpen] = useState(false);
-
-    const [tableData, setTableData] = useState([]);
-    const [relevantAndNplUpdatedData, setRelevantAndNplUpdatedData] = useState([]);
-    console.log('relevantAndNplUpdatedData', relevantAndNplUpdatedData)
-
-    const [isCanvasOpen, setIsCanvasOpen] = useState(false);
-
-    const toggleCanvas = () => setIsCanvasOpen(!isCanvasOpen);
 
 
     const handleRelevantAndNplCombinedSubmit = async (e) => {
@@ -71,10 +88,11 @@ const RelevantRefComponent = ({
                 `http://localhost:8080/live/projectname/add-relevantandnpl-data/${patentSlice.singleProject._id}`, { tableData },
                 { headers: { "Content-Type": "application/json" } }
             );
+            console.log('response', response)
             if (response.status === 200) {
                 const updatedDetails = response.data.stages.relevantReferences.relevantAndNplCombined;
                 console.log('updatedDetails', updatedDetails)
-                setRelevantAndNplUpdatedData(updatedDetails);
+                setTableData(updatedDetails);
             }
 
         } catch (error) {
@@ -82,15 +100,58 @@ const RelevantRefComponent = ({
         }
     };
 
-
-
-    useEffect(() => {
-        setTableData(combinedDataValue || []);
-    }, [relevantFormData]);
-
-    // useEffect(() => {
-    //     setTableData(relevantAndNplUpdatedData || combinedDataValue)
-    // }, [])
+    const relevantAndNplColumns = useMemo(() => [
+        {
+            header: "S. No.",
+            accessorKey: "serial_number",
+            cell: ({ row }) => <span>{row.index + 1}</span>,
+            enableColumnFilter: false,
+            enableSorting: false,
+        },
+        {
+            header: "Publication Number / Title",
+            accessorKey: "patentNumber",
+            enableColumnFilter: false,
+            enableSorting: true,
+        },
+        {
+            header: "Publication Date",
+            accessorKey: "filingDate",
+            enableColumnFilter: false,
+            enableSorting: true,
+        },
+        {
+            header: "Grant Date",
+            accessorKey: "grantDate",
+            enableColumnFilter: false,
+            enableSorting: true,
+        },
+        {
+            header: "Priority Date",
+            accessorKey: "priorityDate",
+            enableColumnFilter: false,
+            enableSorting: true,
+        },
+        {
+            header: "Actions",
+            cell: ({ row }) => {
+                const rowData = row.original;
+                return (
+                    <div className="d-flex justify-content-center align-items-center gap-3">
+                        <Link
+                            to="#"
+                            data-bs-toggle="tooltip"
+                            data-bs-placement="top"
+                            title="Delete Publication"
+                            onClick={() => onDeleteClick(rowData)}
+                        >
+                            <i className="mdi mdi-delete text-danger font-size-18"></i>
+                        </Link>
+                    </div>
+                );
+            },
+        },
+    ], [relevantAndNplUpdatedData]);
 
 
 
@@ -476,24 +537,23 @@ const RelevantRefComponent = ({
                 />)
             }
 
-            <div style={{
-                borderTop: '1px solid #343a40',
-                borderBottom: '1px solid #343a40',
-                padding: '10px',
-            }}>
-                <Button color="primary" onClick={toggleCanvas}>
-                    View Relevant & Npl References
-                </Button>
+            {(relevantFormData.length > 0 && nonPatentFormData.length > 0) && (
+                <div style={{ borderTop: '1px solid #343a40', borderBottom: '1px solid #343a40', padding: '10px', }}>
+                    <Button color="primary" onClick={toggleCanvas}>
+                        View Relevant & Npl References
+                    </Button>
 
-                <RelevantReferenceOffCanvas
-                    isOpen={isCanvasOpen}
-                    toggle={toggleCanvas}
-                    data={tableData}
-                    setTableData={setTableData}
-                    columns={columns}
-                    handleUpdate={handleRelevantAndNplCombinedSubmit}
-                />
-            </div>
+                    <RelevantReferenceOffCanvas
+                        isOpen={isCanvasOpen}
+                        toggle={toggleCanvas}
+                        data={tableData}
+                        setTableData={setTableData}
+                        columns={relevantAndNplColumns}
+                        handleUpdate={handleRelevantAndNplCombinedSubmit}
+                    />
+                </div>
+            )
+            }
 
             {/* <h4 className="mt-5 fw-bold mb-4">2. Non-Patent Literatures(NPL)</h4>
             <Form onSubmit={handleNplSubmit}>

@@ -101,7 +101,7 @@ const MappingProjectCreation = () => {
     const [relevantWordsList, setRelevantWordsList] = useState([]);
     const [findLoading, setFindLoading] = useState(false);
 
-    // const [relevantAndNplUpdatedData, setRelevantAndNplUpdatedData] = useState([]);
+    const [relevantAndNplUpdatedData, setRelevantAndNplUpdatedData] = useState([]);
 
 
     const [keyString, setKeyString] = useState("");
@@ -160,6 +160,7 @@ const MappingProjectCreation = () => {
         relatedFamilyMembers: "",
         relatedPriorityDate: ""
     })
+
 
     const resetRelatedForm = () => {
         setRelatedForm({
@@ -371,7 +372,7 @@ const MappingProjectCreation = () => {
                         searchFeatures: singleProject.stages.introduction?.[0]?.searchFeatures || "",
                         // projectImageUrl: singleProject.stages.introduction?.[0]?.projectImageUrl || [],
                     });
-                    // setRelevantAndNplUpdatedData(singleProject.stages.relevantReferences?.[0]?.relevantAndNplCombined);
+                    setRelevantAndNplUpdatedData(singleProject.stages.relevantReferences?.relevantAndNplCombined);
 
                     setrelevantFormData(singleProject.stages.relevantReferences?.publicationDetails || []);
                     setNonPatentFormData(singleProject.stages.relevantReferences?.nonPatentLiteratures || []);
@@ -1231,10 +1232,18 @@ const MappingProjectCreation = () => {
     ]);
 
 
-
-
     useEffect(() => {
-        if (data?.patentNumber || releventBiblioGoogleData?.patentNumber) {
+        const allFieldsExceptPatentEmpty = Object.entries(relevantForm).every(
+            ([key, value]) => key === "patentNumber" || value === ""
+        );
+
+        if (
+            (data?.patentNumber || releventBiblioGoogleData?.patentNumber) &&
+            relevantForm.patentNumber &&
+            allFieldsExceptPatentEmpty
+        ) {
+            console.log('✅ Populating relevantForm from bibliographic sources...');
+
             const combinedForm = {
                 patentNumber: relevantForm.patentNumber.trim(),
 
@@ -1247,9 +1256,11 @@ const MappingProjectCreation = () => {
                     title ||
                     releventBiblioGoogleData?.title?.trim() ||
                     "",
-                abstract: (abstractData?.trim() ||
+
+                abstract:
+                    abstractData?.trim() ||
                     releventBiblioGoogleData?.abstract?.trim() ||
-                    ""),
+                    "",
 
                 filingDate:
                     aplDate ||
@@ -1268,34 +1279,28 @@ const MappingProjectCreation = () => {
 
                 assignee: (applicantNames ||
                     releventBiblioGoogleData?.assignees ||
-                    ""
-                )
+                    "")
                     .split(",")
                     .map(a => a.trim())
                     .filter(Boolean),
 
-                // inventors: (inventorNames || releventBiblioGoogleData?.inventors || "")
-                //     .split(";")
-                //     .map(i => i.trim())
-                //     .filter(Boolean),
-
-                inventors: typeof (inventorNames || releventBiblioGoogleData?.inventors) === "string" ?
-                    (inventorNames || releventBiblioGoogleData?.inventors).split(";").map(i => i.trim()).filter(Boolean)
+                inventors: typeof (inventorNames || releventBiblioGoogleData?.inventors) === "string"
+                    ? (inventorNames || releventBiblioGoogleData?.inventors)
+                        .split(";")
+                        .map(i => i.trim())
+                        .filter(Boolean)
                     : [],
-
 
                 classifications: (classificationsSymbol ||
                     googleClassCPC ||
-                    ""
-                )
+                    "")
                     .split(",")
                     .map(c => c.trim())
                     .filter(Boolean),
 
-                usClassification: (classData.US_Classification ||
+                usClassification: (classData?.US_Classification ||
                     releventBiblioGoogleData?.usClassification ||
-                    ""
-                )
+                    "")
                     .split(",")
                     .map(u => u.trim())
                     .filter(Boolean),
@@ -1312,6 +1317,7 @@ const MappingProjectCreation = () => {
             setRelevantForm(combinedForm);
         }
     }, [data, releventBiblioGoogleData]);
+
 
 
     const handleRelevantSubmit = async (e) => {
@@ -1417,9 +1423,15 @@ const MappingProjectCreation = () => {
         }));
     };
 
-
     useEffect(() => {
-        if (relatedData?.patentNumber || relatedBiblioGoogleData?.patentNumber) {
+        const allFieldsExceptPatentEmpty = Object.entries(relatedForm).every(
+            ([key, value]) => key === "publicationNumber" || value === ""
+        );
+
+        if (
+            (relatedData?.patentNumber || releventBiblioGoogleData?.patentNumber) &&
+            relatedForm.publicationNumber && allFieldsExceptPatentEmpty
+        ) {
             const combinedForm = {
                 publicationNumber: relatedData.patentNumber.trim(),
 
@@ -1510,6 +1522,7 @@ const MappingProjectCreation = () => {
                 // projectImageUrl: getProjectValue.stages.introduction[0]?.projectImageUrl || ["Image"],
                 overallSummary: getProjectValue.stages.relevantReferences.overallSummary || "overallSummary",
                 getProjectValue: getProjectValue,
+                relevantAndNplCombined: getProjectValue.stages.relevantReferences.relevantAndNplCombined || [],
             });
         } catch (error) {
             console.error("❌ Error in handleReportDownload:", error);
@@ -1690,7 +1703,7 @@ const MappingProjectCreation = () => {
                                                         resetRelevantForm={resetRelevantForm}
                                                         setrelevantFormData={setrelevantFormData}
                                                         // setRelevantAndNplUpdatedData={handleRelevantAndNplCombinedSubmit}
-                                                        // relevantAndNplUpdatedData={relevantAndNplUpdatedData}
+                                                        relevantAndNplUpdatedData={relevantAndNplUpdatedData}
 
                                                     />
 

@@ -45,8 +45,6 @@ const RelevantReferenceOffCanvas = ({ isOpen, toggle, data, columns, setTableDat
           </div>
         </div>
 
-
-
         <div className="overflow-auto mb-4" style={{ maxHeight: 'calc(100vh - 200px)' }}>
           {data && data.length > 0 ? (
             <DraggableTable
