@@ -12,6 +12,7 @@ const IntroductionTab = ({
     // handleUploadImage,
     // handleProjectImageDelete,
 }) => {
+    console.log('projectFormData', projectFormData)
     const [saveLoading, setSaveLoading] = useState(false);
 
     const [toast, setToast] = useState({ visible: false, type: "", message: "" });
@@ -24,40 +25,77 @@ const IntroductionTab = ({
 
     const handleIntroSave = async () => {
         setSaveLoading(true);
-        const formData = new FormData();
-        formData.append("projectTitle", projectFormData.projectTitle || "");
-        formData.append("projectSubTitle", projectFormData.projectSubTitle || "");
-        formData.append("searchFeatures", projectFormData.searchFeatures || "");
 
-        projectFormData.projectImageUrl.forEach((img) => {
-            if (img.file) {
-                formData.append("images", img.file);
-            }
-        });
+        const formData = {
+            projectTitle: projectFormData.projectTitle || "",
+            projectSubTitle: projectFormData.projectSubTitle || "",
+            searchFeatures: projectFormData.searchFeatures || "",
+        };
 
         try {
             const response = await axios.post(
                 `http://localhost:8080/live/projectname/update-introduction/${id}`,
                 formData,
-                { headers: { "Content-Type": "multipart/form-data" } }
+                { headers: { "Content-Type": "application/json" } }
             );
 
             if (response.status === 200) {
                 setProjectFormData((prev) => ({
                     ...prev,
-                    ...response.data.data.stages.introduction[0],
+                    ...(response.data.data.stages.introduction?.[0] || {}),
                 }));
-            }            
-
-            showToast("success", "✅ Saved successfully!");
+                showToast("success", "✅ Saved successfully!");
+            }
         } catch (error) {
             console.error("❌ Error saving introduction:", error);
             showToast("danger", "❌ Save failed. Try again.");
         } finally {
             setSaveLoading(false);
-
         }
     };
+
+
+
+
+    // const handleIntroSave = async () => {
+    //     setSaveLoading(true);
+    //     const formData = {
+    //         projectTitl: projectFormData.projectTitle || "",
+    //         projectSubTitle: projectFormData.projectSubTitle || "",
+    //         searchFeatures: projectFormData.searchFeatures || "",
+    //     }
+
+
+    //     // projectFormData.projectImageUrl?.forEach((img) => {
+    //     //     if (img.file) {
+    //     //         formData.append("images", img.file);
+    //     //     }
+    //     // });
+
+    //     try {
+    //         console.log('formData', formData)
+    //         const response = await axios.post(`http://localhost:8080/live/projectname/update-introduction/${id}`,
+    //             formData,
+    //             { headers: { "Content-Type": "application/json" } }
+    //         );
+
+    //         console.log('response.data.introduction', response.data)
+    //         if (response.status === 200) {
+                // setProjectFormData((prev) => ({
+                //     ...prev,
+                //     ...response.data.data.stages.introduction[0],
+                // }));
+    //         }            
+
+    //         showToast("success", "✅ Saved successfully!");
+    //     } catch (error) {
+    //         console.error("❌ Error saving introduction:", error);
+    //         showToast("danger", "❌ Save failed. Try again.");
+    //     } finally {
+    //         setSaveLoading(false);
+
+    //     }
+    // };
 
 
 
@@ -145,6 +183,7 @@ const IntroductionTab = ({
                 <Col lg="12">
                     <div className="mb-3">
                         <Label for="search-features">Search Features</Label>
+                        {console.log('projectFormData.searchFeatures', projectFormData.searchFeatures)}
                         <Input
                             type="textarea"
                             rows="10"

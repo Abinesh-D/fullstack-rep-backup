@@ -104,7 +104,7 @@ const memoziedLEnsData = useMemo(() => fetchedData, [fetchedData]);
     //     >
     //       {alertType === 'success'
     //         ? '✅ Bibliography details Successfully fetched...'
-    //         : '❌ Failed to fetch. Please check the patent number and try again!...'}
+    //         : 'Failed to fetch. Please check the patent number and try again!...'}
     //     </div>
     //   )}
 

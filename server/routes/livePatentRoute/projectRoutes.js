@@ -119,49 +119,26 @@ router.get("/get-introduction/:id", async (req, res) => {
 
 
 // Update IntroData
-router.post("/update-introduction/:id", upload.array("images"), async (req, res) => {
+
+router.post("/update-introduction/:id", async (req, res) => {
   const { id } = req.params;
   const { projectTitle, projectSubTitle, searchFeatures } = req.body;
 
   try {
-    let uploadedImages = [];
-
-    if (req.files && req.files.length > 0) {
-      for (const file of req.files) {
-        const result = await new Promise((resolve, reject) => {
-          const stream = cloudinary.uploader.upload_stream(
-            { folder: "project_images" },
-            (error, result) => {
-              if (result) resolve(result);
-              else reject(error);
-            }
-          );
-          streamifier.createReadStream(file.buffer).pipe(stream);
-        });
-
-        uploadedImages.push({
-          _id: uuidv4(),
-          name: file.originalname,
-          size: file.size,
-          formattedSize: `${(file.size / 1024).toFixed(2)} KB`,
-          type: file.mimetype,
-          base64Url: result.secure_url,
-          public_id: result.public_id,
-          uploadedAt: new Date(),
-        });
-      }
-    }
-
     const updatedProject = await cln_prior_report_schema.findByIdAndUpdate(
       id,
       {
-        $push: { "stages.introduction.0.projectImageUrl": { $each: uploadedImages } },
-        "stages.introduction.0.projectTitle": projectTitle,
-        "stages.introduction.0.projectSubTitle": projectSubTitle,
-        "stages.introduction.0.searchFeatures": searchFeatures,
+        $set: {
+          "stages.introduction": [{
+            projectTitle,
+            projectSubTitle,
+            searchFeatures,
+          }],
+        },
       },
-      { new: true }
+      { new: true, runValidators: true }
     );
+
 
     if (!updatedProject) {
       return res.status(404).json({ message: " Project not found" });
@@ -176,6 +153,68 @@ router.post("/update-introduction/:id", upload.array("images"), async (req, res)
     res.status(500).json({ message: "Server error", error: err.message });
   }
 });
+
+
+
+// router.post("/update-introduction/:id", upload.array("images"), async (req, res) => {
+//   const { id } = req.params;
+//   const { projectTitle, projectSubTitle, searchFeatures } = req.body;
+
+//   try {
+//     let uploadedImages = [];
+
+//     if (req.files && req.files.length > 0) {
+//       for (const file of req.files) {
+//         const result = await new Promise((resolve, reject) => {
+//           const stream = cloudinary.uploader.upload_stream(
+//             { folder: "project_images" },
+//             (error, result) => {
+//               if (result) resolve(result);
+//               else reject(error);
+//             }
+//           );
+//           streamifier.createReadStream(file.buffer).pipe(stream);
+//         });
+
+//         uploadedImages.push({
+//           _id: uuidv4(),
+//           name: file.originalname,
+//           size: file.size,
+//           formattedSize: `${(file.size / 1024).toFixed(2)} KB`,
+//           type: file.mimetype,
+//           base64Url: result.secure_url,
+//           public_id: result.public_id,
+//           uploadedAt: new Date(),
+//         });
+//       }
+//     }
+
+//     const updatedProject = await cln_prior_report_schema.findByIdAndUpdate(
+//       id,
+//       {
+//         $push: {
+//           //  "stages.introduction.0.projectImageUrl": { $each: uploadedImages },
+        // "stages.introduction.0.projectTitle": projectTitle,
+        // "stages.introduction.0.projectSubTitle": projectSubTitle,
+        // "stages.introduction.0.searchFeatures": searchFeatures,
+//         }
+//       },
+//       { new: true }
+//     );
+
+//     if (!updatedProject) {
+//       return res.status(404).json({ message: " Project not found" });
+//     }
+
+//     res.status(200).json({
+//       message: "Introduction updated successfully",
+//       data: updatedProject,
+//     });
+//   } catch (err) {
+//     console.error(" Error updating introduction:", err);
+//     res.status(500).json({ message: "Server error", error: err.message });
+//   }
+// });
 
 
 
@@ -861,84 +900,84 @@ router.post("/update-appendix2-npl/:id", async (req, res) => {
 });
 
 
-router.delete("/delete-image/:projectId/:imageId", async (req, res) => {
-  const { projectId, imageId } = req.params;
+// router.delete("/delete-image/:projectId/:imageId", async (req, res) => {
+//   const { projectId, imageId } = req.params;
 
-  try {
-    const project = await cln_prior_report_schema.findById(projectId);
-    if (!project) {
-      return res.status(404).json({ message: " Project not found" });
-    }
+//   try {
+//     const project = await cln_prior_report_schema.findById(projectId);
+//     if (!project) {
+//       return res.status(404).json({ message: " Project not found" });
+//     }
 
-    const imageToDelete = project.stages.introduction[0].projectImageUrl.find(
-      (img) => img._id === imageId
-    );
+//     const imageToDelete = project.stages.introduction[0].projectImageUrl.find(
+//       (img) => img._id === imageId
+//     );
 
-    if (!imageToDelete) {
-      return res.status(404).json({ message: " Image not found" });
-    }
+//     if (!imageToDelete) {
+//       return res.status(404).json({ message: " Image not found" });
+//     }
 
-    const cloudinaryResult = await cloudinary.uploader.destroy(imageToDelete.public_id);
+//     const cloudinaryResult = await cloudinary.uploader.destroy(imageToDelete.public_id);
 
-    if (cloudinaryResult.result !== "ok") {
-      return res.status(500).json({ message: " Failed to delete image from Cloudinary" });
-    }
+//     if (cloudinaryResult.result !== "ok") {
+//       return res.status(500).json({ message: " Failed to delete image from Cloudinary" });
+//     }
 
-    const updatedProject = await cln_prior_report_schema.findOneAndUpdate(
-      { _id: projectId },
-      { $pull: { "stages.introduction.0.projectImageUrl": { _id: imageId } } },
-      { new: true }
-    );
+//     const updatedProject = await cln_prior_report_schema.findOneAndUpdate(
+//       { _id: projectId },
+//       { $pull: { "stages.introduction.0.projectImageUrl": { _id: imageId } } },
+//       { new: true }
+//     );
 
-    res.status(200).json({
-      message: "Image deleted successfully",
-      updatedProject,
-    });
-  } catch (err) {
-    console.error(" Error deleting image:", err);
-    res.status(500).json({ message: "Server error", error: err.message });
-  }
-});
+//     res.status(200).json({
+//       message: "Image deleted successfully",
+//       updatedProject,
+//     });
+//   } catch (err) {
+//     console.error(" Error deleting image:", err);
+//     res.status(500).json({ message: "Server error", error: err.message });
+//   }
+// });
 
 
 
-// Cloud img upload API
-router.post("/images/upload", upload.single("image"), async (req, res) => {
-  try {
-    const streamUpload = (req) => {
-      return new Promise((resolve, reject) => {
-        const stream = cloudinary.uploader.upload_stream(
-          { folder: "project_images" },
-          (error, result) => {
-            if (result) resolve(result);
-            else reject(error);
-          }
-        );
-        streamifier.createReadStream(req.file.buffer).pipe(stream);
-      });
-    };
+// // Cloud img upload API
+// router.post("/images/upload", upload.single("image"), async (req, res) => {
+//   try {
+//     const streamUpload = (req) => {
+//       return new Promise((resolve, reject) => {
+//         const stream = cloudinary.uploader.upload_stream(
+//           { folder: "project_images" },
+//           (error, result) => {
+//             if (result) resolve(result);
+//             else reject(error);
+//           }
+//         );
+//         streamifier.createReadStream(req.file.buffer).pipe(stream);
+//       });
+//     };
 
-    const result = await streamUpload(req);
+//     const result = await streamUpload(req);
 
-    const imageObject = {
-      _id: uuidv4(),
-      name: req.file.originalname,
-      size: req.file.size,
-      formattedSize: `${(req.file.size / 1024).toFixed(2)} KB`,
-      type: req.file.mimetype,
-      base64Url: result.secure_url,
-      public_id: result.public_id,
-      uploadedAt: new Date(),
-    };
+//     const imageObject = {
+//       _id: uuidv4(),
+//       name: req.file.originalname,
+//       size: req.file.size,
+//       formattedSize: `${(req.file.size / 1024).toFixed(2)} KB`,
+//       type: req.file.mimetype,
+//       base64Url: result.secure_url,
+//       public_id: result.public_id,
+//       uploadedAt: new Date(),
+//     };
 
-    res.status(200).json({
-      image: imageObject,
-    });
-  } catch (error) {
-    console.error(" Upload Error:", error);
-    res.status(500).json({ message: "Image upload failed", error: error.message });
-  }
-});
+//     res.status(200).json({
+//       image: imageObject,
+//     });
+//   } catch (error) {
+//     console.error(" Upload Error:", error);
+//     res.status(500).json({ message: "Image upload failed", error: error.message });
+//   }
+// });
 
 
 

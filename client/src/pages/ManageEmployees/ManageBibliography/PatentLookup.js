@@ -115,7 +115,7 @@ const PatentLookup = () => {
     //     >
     //       {alertType === 'success'
     //         ? '✅ Bibliography details Successfully fetched...'
-    //         : '❌ Failed to fetch. Please check the patent number and try again!...'}
+    //         : 'Failed to fetch. Please check the patent number and try again!...'}
     //     </div>
     //   )}
 
@@ -268,7 +268,7 @@ export default PatentLookup;
 //         >
 //           {alertType === 'success'
 //             ? '✅ Bibliography details Successfully fetched...'
-//             : '❌ Failed to fetch. Please check the patent number and try again!...'}
+//             : 'Failed to fetch. Please check the patent number and try again!...'}
 //         </div>
 //       )}
 

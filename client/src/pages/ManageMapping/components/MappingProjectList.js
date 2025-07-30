@@ -53,15 +53,21 @@ const MappingProjectList = () => {
 
 
     const toggle = (mode, editRow) => {
+        console.log('editRow', editRow)
         if (mode === '0') {
             setMode(null);
             setProjectName("");
             setProjectType("");
+            setProjectTypeId(null);
+            setSelectedProjectId(null);
         }
         if (mode === "1") {
+            console.log('toggleeditRow', editRow)
             setMode(mode);
             setProjectName(editRow.projectName);
             setProjectType(editRow.projectType);
+            setProjectTypeId(editRow.projectTypeId);
+            setSelectedProjectId(editRow._id)
         }
         setModal(!modal);
     }
@@ -95,9 +101,9 @@ const MappingProjectList = () => {
     const handleProjectEdit = (editRow) => {
         setProjectName(editRow.projectName);
         setProjectType(editRow.projectType);
-        setSelectedProjectId(editRow._id);
+        setProjectTypeId(editRow.projectTypeId);
         setMode("1");
-        toggle();
+        toggle("1", editRow);
     };
 
 
@@ -109,6 +115,7 @@ const MappingProjectList = () => {
             projectType,
             projectTypeId
         };
+        console.log('payload', payload)
 
         if (mode === "1") {
             try {
@@ -275,7 +282,7 @@ const MappingProjectList = () => {
                                         </CardBody>
                                     </Card>
                                 </Col>
-                                : <>Else</>
+                                : <>Create Project</>
 
                         }
 

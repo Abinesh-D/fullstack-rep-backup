@@ -124,9 +124,11 @@ const MappingProjectCreation = () => {
     const [projectFormData, setProjectFormData] = useState({
         projectTitle: '',
         projectSubTitle: '',
-        searchFeatures: '',
+        searchFeatures: "",
         // projectImageUrl: [],
     });
+
+    console.log('projectFormData', projectFormData);
 
     const [nplPatentFormData, setNplPatentFormData] = useState({
         nplTitle: "",
@@ -234,7 +236,7 @@ const MappingProjectCreation = () => {
                 setRelatedFormData(updatedRelatedRef);
             }
         } catch (error) {
-            console.error("❌ Error deleting related reference:", error);
+            console.error("Error deleting related reference:", error);
         } finally {
             setActiveModal(null);
             setSelectedRow(null);
@@ -262,7 +264,7 @@ const MappingProjectCreation = () => {
             setBaseSearchTerm("");
             setRelevantWords("");
         } catch (err) {
-            console.error("❌ Error saving Base Search Term:", err);
+            console.error("Error saving Base Search Term:", err);
         }
     };
 
@@ -308,7 +310,7 @@ const MappingProjectCreation = () => {
                 setNonPatentFormData(updatedNPLs);
             }
         } catch (error) {
-            console.error("❌ Error deleting NPL:", error);
+            console.error("Error deleting NPL:", error);
         } finally {
             setActiveModal(null);
             setSelectedRow(null);
@@ -333,7 +335,7 @@ const MappingProjectCreation = () => {
                 );
             }
         } catch (error) {
-            console.error("❌ Error deleting publication detail:", error);
+            console.error("Error deleting publication detail:", error);
         } finally {
             setActiveModal(null);
             setSelectedRow(null);
@@ -366,10 +368,11 @@ const MappingProjectCreation = () => {
                 const singleProject = await fetchProjectById(id);
                 if (singleProject) {
                     dispatch(setSingleProject(singleProject));
+                    console.log('singleProject.stages.introduction', singleProject)
                     setProjectFormData({
                         projectTitle: singleProject.stages.introduction?.[0]?.projectTitle || "",
                         projectSubTitle: singleProject.stages.introduction?.[0]?.projectSubTitle || "",
-                        searchFeatures: singleProject.stages.introduction?.[0]?.searchFeatures || "",
+                        searchFeatures: singleProject.stages.introduction?.[0]?.searchFeatures || [],
                         // projectImageUrl: singleProject.stages.introduction?.[0]?.projectImageUrl || [],
                     });
                     setRelevantAndNplUpdatedData(singleProject.stages.relevantReferences?.relevantAndNplCombined);
@@ -387,7 +390,7 @@ const MappingProjectCreation = () => {
                     setAppendix2NPL(singleProject.stages.appendix2?.[0]?.nonPatentLiterature || []);
                 }
             } catch (error) {
-                console.error("❌ Error fetching project data:", error);
+                console.error("Error fetching project data:", error);
             }
         };
 
@@ -425,7 +428,7 @@ const MappingProjectCreation = () => {
             setBaseSearchTermsList(updatedBaseSearchTerms);
             setBaseSearchTerm("");
         } catch (err) {
-            console.error("❌ Error saving Base Search Term:", err);
+            console.error("Error saving Base Search Term:", err);
 
             if (err.response) {
                 console.error("Server responded with:", err.response.data);
@@ -448,7 +451,7 @@ const MappingProjectCreation = () => {
                 setRelevantWordsList(response.data.stages.appendix1[0].baseSearchTerms);
             }
         } catch (err) {
-            console.error("❌ Error deleting Base Search Term:", err);
+            console.error("Error deleting Base Search Term:", err);
         } finally {
             setActiveModal(null);
             setSelectedRow(null);
@@ -467,7 +470,7 @@ const MappingProjectCreation = () => {
                 setBaseSearchTermsList(response.data.stages.appendix1[0].baseSearchTerms);
             }
         } catch (err) {
-            console.error("❌ Error deleting Base Search Term:", err);
+            console.error("Error deleting Base Search Term:", err);
         } finally {
             setActiveModal(null);
             setSelectedRow(null);
@@ -488,7 +491,7 @@ const MappingProjectCreation = () => {
             setKeyStringsList(appendixData);
             setKeyString("");
         } catch (err) {
-            console.error("❌ Error saving Key String:", err);
+            console.error("Error saving Key String:", err);
         }
     };
 
@@ -503,7 +506,7 @@ const MappingProjectCreation = () => {
 
             }
         } catch (err) {
-            console.error("❌ Error deleting Key String:", err);
+            console.error("Error deleting Key String:", err);
         } finally {
             setActiveModal(null);
             setSelectedRow(null);
@@ -524,7 +527,7 @@ const MappingProjectCreation = () => {
             setKeyStringsNplList(appendixData);
             setKeyStringNpl("");
         } catch (err) {
-            console.error("❌ Error saving Key String:", err);
+            console.error("Error saving Key String:", err);
         }
     };
 
@@ -539,7 +542,7 @@ const MappingProjectCreation = () => {
 
             }
         } catch (err) {
-            console.error("❌ Error deleting Key String Npl:", err);
+            console.error("Error deleting Key String Npl:", err);
         } finally {
             setActiveModal(null);
             setSelectedRow(null);
@@ -561,7 +564,7 @@ const MappingProjectCreation = () => {
             setKeyStringsAdditionalList(appendixData);
             setKeyStringAdditional("");
         } catch (err) {
-            console.error("❌ Error saving Additional:", err);
+            console.error("Error saving Additional:", err);
         }
     };
 
@@ -576,7 +579,7 @@ const MappingProjectCreation = () => {
 
             }
         } catch (err) {
-            console.error("❌ Error deleting Additional Key String:", err);
+            console.error("Error deleting Additional Key String:", err);
         } finally {
             setActiveModal(null);
             setSelectedRow(null);
@@ -598,7 +601,7 @@ const MappingProjectCreation = () => {
             setDataAvailabilityValue(appendixData);
             setDataAvailability("");
         } catch (err) {
-            console.error("❌ Error saving dataAvailability:", err);
+            console.error("Error saving dataAvailability:", err);
         }
     };
 
@@ -614,7 +617,7 @@ const MappingProjectCreation = () => {
 
             }
         } catch (err) {
-            console.error("❌ Error deleting dataAvailability:", err);
+            console.error("Error deleting dataAvailability:", err);
         } finally {
             setActiveModal(null);
             setSelectedRow(null);
@@ -659,7 +662,7 @@ const MappingProjectCreation = () => {
                 setAppendix2Patents(response.data.stages.appendix2[0].patents)
             }
         } catch (err) {
-            console.error("❌ Error saving Appendix 2 - Patents:", err);
+            console.error("Error saving Appendix 2 - Patents:", err);
         }
     };
 
@@ -677,7 +680,7 @@ const MappingProjectCreation = () => {
                 setAppendix2NPL(response.data.stages.appendix2[0].nonPatentLiterature)
             }
         } catch (err) {
-            console.error("❌ Error saving Appendix 2 - NPL:", err);
+            console.error("Error saving Appendix 2 - NPL:", err);
         }
     };
 
@@ -767,7 +770,7 @@ const MappingProjectCreation = () => {
                 await GOOGLE_API_DATA(trimmedNumber, dispatch, 'relevant');
             } catch (googleError) {
                 setErrorValidation(true);
-                console.error("❌ Google fallback failed:", googleError);
+                console.error("Google fallback failed:", googleError);
             }
 
             console.error("Espacenet fetch error:", error);
@@ -1014,7 +1017,7 @@ const MappingProjectCreation = () => {
                     await GOOGLE_API_DATA(relevantForm.patentNumber.trim(), dispatch, 'relevant');
                 } catch (googleError) {
                     setErrorValidation(true);
-                    console.error('❌ Google fallback failed:', googleError);
+                    console.error('Google fallback failed:', googleError);
                 }
             })();
         }
@@ -1052,7 +1055,7 @@ const MappingProjectCreation = () => {
                 await GOOGLE_API_DATA(trimmedNumber, dispatch, 'related');
             } catch (googleError) {
                 setRelatedErrorValidation(true);
-                console.error("❌ Google fallback related failed:", googleError);
+                console.error("Google fallback related failed:", googleError);
             }
 
             console.error("Espacenet fetch error:", error);
@@ -1201,7 +1204,7 @@ const MappingProjectCreation = () => {
                     await GOOGLE_API_DATA(relevantForm.patentNumber.trim(), dispatch, 'related');
                 } catch (googleError) {
                     setRelatedErrorValidation(true);
-                    console.error('❌ Google fallback failed:', googleError);
+                    console.error('Google fallback failed:', googleError);
                 }
             })();
         }
@@ -1336,7 +1339,7 @@ const MappingProjectCreation = () => {
             }
 
         } catch (error) {
-            console.error("❌ Error saving publication detail:", error);
+            console.error("Error saving publication detail:", error);
         } finally {
             dispatch(setRelevantApiTrue(false));
         }
@@ -1359,7 +1362,7 @@ const MappingProjectCreation = () => {
     //         }
 
     //     } catch (error) {
-    //         console.error("❌ Error saving publication detail:", error);
+    //         console.error("Error saving publication detail:", error);
     //     } finally {
     //         // dispatch(setRelevantApiTrue(false));
     //     }
@@ -1382,7 +1385,7 @@ const MappingProjectCreation = () => {
 
             }
         } catch (error) {
-            console.error("❌ Error saving NPL:", error);
+            console.error("Error saving NPL:", error);
         }
     };
 
@@ -1403,7 +1406,7 @@ const MappingProjectCreation = () => {
             );
 
         } catch (error) {
-            console.error("❌ Error saving Overall Summary:", error);
+            console.error("Error saving Overall Summary:", error);
             if (error.response) {
                 console.error("Server responded with:", error.response.data);
             } else if (error.request) {
@@ -1494,7 +1497,7 @@ const MappingProjectCreation = () => {
 
             }
         } catch (error) {
-            console.error("❌ Error saving related reference:", error);
+            console.error("Error saving related reference:", error);
 
             if (error.response) {
                 console.error("Server responded with:", error.response.data);
@@ -1525,7 +1528,7 @@ const MappingProjectCreation = () => {
                 relevantAndNplCombined: getProjectValue.stages.relevantReferences.relevantAndNplCombined || [],
             });
         } catch (error) {
-            console.error("❌ Error in handleReportDownload:", error);
+            console.error("Error in handleReportDownload:", error);
         }
     };
 

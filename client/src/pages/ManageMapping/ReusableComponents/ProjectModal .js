@@ -21,7 +21,7 @@ const ProjectModal = ({
     setProjectType,
     onCreate,
     projectTypeOptions,
-    setProjectTypeId
+    setProjectTypeId,
 }) => {
     const [errors, setErrors] = useState({ name: "", type: "" });
     const [hasSubmitted, setHasSubmitted] = useState(false);
@@ -111,7 +111,7 @@ const ProjectModal = ({
                 </Button>
                 <Button
                     color="success"
-                    onClick={handleCreate}
+                    onClick={() => handleCreate() }
                 >
                     { mode? "Update" : "Create"}
                 </Button>

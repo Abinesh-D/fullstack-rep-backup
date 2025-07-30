@@ -243,9 +243,7 @@ const Appendix1 = ({
             <h5 className="fw-semibold">1. Base Search Terms</h5>
 
             {
-                singleProject.projectTypeId
-                // === "0001"
-                 &&
+            
                 <>
                     <Row>
                         <Col lg="4">
@@ -409,84 +407,90 @@ const Appendix1 = ({
                 )
             }
 
-            <Row className="mt-4">
-                <Col lg="12">
-                    <div className="mb-3">
-                        <Label for="key-strings-npl">Key Strings (Non-Patent Literatures)</Label>
-                        <textarea
-                            id="key-strings-npl"
-                            className="form-control"
-                            rows="3"
-                            placeholder="Enter key strings for (Npl)"
-                            value={keyStringNpl}
-                            onChange={(e) => setKeyStringNpl(e.target.value)}
-                        />
-                    </div>
-                </Col>
-            </Row>
-            <Col lg={2}>
-                <div className="mb-3">
-                    <Button color="info" className="w-100" onClick={handleSaveKeyStringNpl}>
-                        + Strings(NPL)
-                    </Button>
-                </div>
-            </Col>
+            {console.log('singleProject.projectTypeId', singleProject.projectTypeId)}
+            {singleProject.projectTypeId === "0001" &&
+                <>
+                    <Row className="mt-4">
+                        <Col lg="12">
+                            <div className="mb-3">
+                                <Label for="key-strings-npl">Key Strings (Non-Patent Literatures)</Label>
+                                <textarea
+                                    id="key-strings-npl"
+                                    className="form-control"
+                                    rows="3"
+                                    placeholder="Enter key strings for (Npl)"
+                                    value={keyStringNpl}
+                                    onChange={(e) => setKeyStringNpl(e.target.value)}
+                                />
+                            </div>
+                        </Col>
+                    </Row>
+                    <Col lg={2}>
+                        <div className="mb-3">
+                            <Button color="info" className="w-100" onClick={handleSaveKeyStringNpl}>
+                                + Strings(NPL)
+                            </Button>
+                        </div>
+                    </Col>
 
-            {
-                !isEmptyArray(keyStringsNplList) && (
-                    <TableContainer
-                        columns={keyStringsNplColumns}
-                        data={keyStringsNplList || []}
-                         isPagination={true}
-                        isCustomPageSize={true}
-                        SearchPlaceholder="Search..."
-                        tableClass="align-middle table-nowrap table-hover dt-responsive nowrap w-100 dataTable no-footer dtr-inline"
-                        theadClass="table-light"
-                        paginationWrapper="dataTables_paginate paging_simple_numbers pagination-rounded"
-                        pagination="pagination"
-                    />
-                )
+                    {
+                        !isEmptyArray(keyStringsNplList) && (
+                            <TableContainer
+                                columns={keyStringsNplColumns}
+                                data={keyStringsNplList || []}
+                                isPagination={true}
+                                isCustomPageSize={true}
+                                SearchPlaceholder="Search..."
+                                tableClass="align-middle table-nowrap table-hover dt-responsive nowrap w-100 dataTable no-footer dtr-inline"
+                                theadClass="table-light"
+                                paginationWrapper="dataTables_paginate paging_simple_numbers pagination-rounded"
+                                pagination="pagination"
+                            />
+                        )
+                    }
+
+                    <Row className="mt-4">
+                        <Col lg="12">
+                            <div className="mb-3">
+                                <Label for="additional-key-strings">Additional Search</Label>
+                                <textarea
+                                    id="additional-key-strings"
+                                    className="form-control"
+                                    rows="3"
+                                    placeholder="Enter Additional Search"
+                                    value={keyStringAdditional}
+                                    onChange={(e) => setKeyStringAdditional(e.target.value)}
+                                />
+                            </div>
+                        </Col>
+                    </Row>
+                    <Col lg={2}>
+                        <div className="mb-3">
+                            <Button color="info" className="w-100 d-flex justify-content-center align-items-center" onClick={handleSaveKeyStringAdditional}>
+                                + Additional <i style={{ margin: "auto" }} className="bx bx-search-alt-2"></i>
+                            </Button>
+                        </div>
+                    </Col>
+
+                    {
+                        !isEmptyArray(keyStringsAdditionalList) && (
+                            <TableContainer
+                                columns={keyStringsAdditionalColumns}
+                                data={keyStringsAdditionalList || []}
+                                isPagination={true}
+                                isCustomPageSize={true}
+                                SearchPlaceholder="Search..."
+                                tableClass="align-middle table-nowrap table-hover dt-responsive nowrap w-100 dataTable no-footer dtr-inline"
+                                theadClass="table-light"
+                                paginationWrapper="dataTables_paginate paging_simple_numbers pagination-rounded"
+                                pagination="pagination"
+                            />
+                        )
+                    }
+                </>
             }
 
-            <Row className="mt-4">
-                <Col lg="12">
-                    <div className="mb-3">
-                        <Label for="additional-key-strings">Additional Search</Label>
-                        <textarea
-                            id="additional-key-strings"
-                            className="form-control"
-                            rows="3"
-                            placeholder="Enter Additional Search"
-                            value={keyStringAdditional}
-                            onChange={(e) => setKeyStringAdditional(e.target.value)}
-                        />
-                    </div>
-                </Col>
-            </Row>
-            <Col lg={2}>
-                <div className="mb-3">
-                    <Button color="info" className="w-100 d-flex justify-content-center align-items-center" onClick={handleSaveKeyStringAdditional}>
-                        + Additional <i style={{ margin: "auto" }} className="bx bx-search-alt-2"></i>
-                    </Button>
-                </div>
-            </Col>
-
-            {
-                !isEmptyArray(keyStringsAdditionalList) && (
-                    <TableContainer
-                        columns={keyStringsAdditionalColumns}
-                        data={keyStringsAdditionalList || []}
-                        isPagination={true}
-                        isCustomPageSize={true}
-                        SearchPlaceholder="Search..."
-                        tableClass="align-middle table-nowrap table-hover dt-responsive nowrap w-100 dataTable no-footer dtr-inline"
-                        theadClass="table-light"
-                        paginationWrapper="dataTables_paginate paging_simple_numbers pagination-rounded"
-                        pagination="pagination"
-                    />
-                )
-            }
-
+            
 
 
             <h5 className="fw-semibold mt-5">3. Data Availability</h5>

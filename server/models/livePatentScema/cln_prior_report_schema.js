@@ -115,14 +115,15 @@ const ImageSchema = new mongoose.Schema({
 
 
 const introductionSchema = new Schema({
-  _id: { type: String, default: uuidv4 },
+  // _id: { type: String, default: uuidv4 },
   projectTitle: String,
   projectSubTitle: String,
   searchFeatures: [String],
-  projectImageUrl: [ImageSchema],
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now },
+  // projectImageUrl: [ImageSchema],
+  // createdAt: { type: Date, default: Date.now },
+  // updatedAt: { type: Date, default: Date.now },
 }, { _id: false });
+
 
 const appendix2 = new Schema({
   _id: { type: String, default: uuidv4 },

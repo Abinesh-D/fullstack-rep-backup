@@ -537,7 +537,7 @@ const RelevantRefComponent = ({
                 />)
             }
 
-            {(relevantFormData.length > 0 && nonPatentFormData.length > 0) && (
+            {(relevantFormData.length > 0 && nonPatentFormData.length > 0 && patentSlice.singleProject.projectTypeId === "0002") && (
                 <div style={{ borderTop: '1px solid #343a40', borderBottom: '1px solid #343a40', padding: '10px', }}>
                     <Button color="primary" onClick={toggleCanvas}>
                         View Relevant & Npl References
@@ -654,31 +654,37 @@ const RelevantRefComponent = ({
                 />
             )} */}
 
+            { patentSlice.singleProject.projectTypeId === "0001" &&
+                <>
+                    <h4 className="fw-bold mb-4 mt-4">Overall Summary of Search and Prior Arts</h4>
+                    <Row>
+                        <Col lg="12">
+                            <div className="mb-3">
+                                <Label for="overall-summary">Overall Summary</Label>
+                                <textarea
+                                    id="overall-summary"
+                                    className="form-control"
+                                    rows="3"
+                                    placeholder="Enter Overall Summary"
+                                    value={overallSummary}
+                                    onChange={(e) => setOverallSummary(e.target.value)}
+                                />
+                            </div>
+                        </Col>
+                    </Row>
+                    <Col lg="2">
+                        <div className="mb-3">
+                            <Button onClick={handleOverAllSummarySave} color="warning" className="w-100">
+                                Save Summary
+                            </Button>
+                        </div>
+                    </Col>
+                </>
+            }
+
+            
 
 
-            <h4 className="fw-bold mb-4 mt-4">Overall Summary of Search and Prior Arts</h4>
-            <Row>
-                <Col lg="12">
-                    <div className="mb-3">
-                        <Label for="overall-summary">Overall Summary</Label>
-                        <textarea
-                            id="overall-summary"
-                            className="form-control"
-                            rows="3"
-                            placeholder="Enter Overall Summary"
-                            value={overallSummary}
-                            onChange={(e) => setOverallSummary(e.target.value)}
-                        />
-                    </div>
-                </Col>
-            </Row>
-            <Col lg="2">
-                <div className="mb-3">
-                    <Button onClick={handleOverAllSummarySave} color="warning" className="w-100">
-                        Save Summary
-                    </Button>
-                </div>
-            </Col>
         </>
     );
 };
