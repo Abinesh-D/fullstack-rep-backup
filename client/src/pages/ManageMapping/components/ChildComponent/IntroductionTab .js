@@ -12,7 +12,6 @@ const IntroductionTab = ({
     // handleUploadImage,
     // handleProjectImageDelete,
 }) => {
-    console.log('projectFormData', projectFormData)
     const [saveLoading, setSaveLoading] = useState(false);
 
     const [toast, setToast] = useState({ visible: false, type: "", message: "" });
@@ -183,7 +182,6 @@ const IntroductionTab = ({
                 <Col lg="12">
                     <div className="mb-3">
                         <Label for="search-features">Search Features</Label>
-                        {console.log('projectFormData.searchFeatures', projectFormData.searchFeatures)}
                         <Input
                             type="textarea"
                             rows="10"

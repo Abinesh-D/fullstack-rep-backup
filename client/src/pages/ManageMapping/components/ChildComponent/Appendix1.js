@@ -407,7 +407,6 @@ const Appendix1 = ({
                 )
             }
 
-            {console.log('singleProject.projectTypeId', singleProject.projectTypeId)}
             {singleProject.projectTypeId === "0001" &&
                 <>
                     <Row className="mt-4">

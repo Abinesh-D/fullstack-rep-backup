@@ -10,10 +10,12 @@ import NonPatentLiteratureForm from "./NonPatentLiteratureForm";
 import DraggableTable from "../../../../components/Common/commonReport/DraggableTable";
 import RelevantReferenceOffCanvas from '../../../../components/Common/commonReport/RelevantReferenceOffCanvas';
 import axios from "axios";
+import SavedSuccess from "../../../../components/Common/SavedSuccess";
 
 const RelevantRefComponent = ({
     loading,
     relevantForm,
+    relevantRefSaved,
     errorValidation,
     setErrorValidation,
     handleFetchPatentData,
@@ -24,6 +26,7 @@ const RelevantRefComponent = ({
     onNplDeleteClick,
     nonPatentFormData,
     overallSummary,
+    summarySaved,
     overallSummarrySavedData,
     setOverallSummary,
     handleOverAllSummarySave,
@@ -34,8 +37,6 @@ const RelevantRefComponent = ({
     setrelevantFormData,
     relevantAndNplUpdatedData
 }) => {
-    console.log('relevantAndNplUpdatedData', relevantAndNplUpdatedData)
-
 
     const patentSlice = useSelector(state => state.patentSlice);
     const dispatch = useDispatch();
@@ -55,8 +56,6 @@ const RelevantRefComponent = ({
         nplId: true,
     }));
 
-    console.log('nonPatentModified', nonPatentModified)
-
     const combinedDataValue = useMemo(() => {
         if (relevantAndNplUpdatedData?.length > 0) {
             return [...relevantAndNplUpdatedData];
@@ -65,7 +64,7 @@ const RelevantRefComponent = ({
         }
     }, [relevantFormData, nonPatentFormData]);
 
-// , relevantFormData[relevantFormData.length - 1], nonPatentModified[nonPatentModified.length - 1]
+    // , relevantFormData[relevantFormData.length - 1], nonPatentModified[nonPatentModified.length - 1]
 
     useEffect(() => {
         setTableData(combinedDataValue);
@@ -82,16 +81,13 @@ const RelevantRefComponent = ({
 
     const handleRelevantAndNplCombinedSubmit = async (e) => {
         e.preventDefault();
-        console.log('tableData', tableData)
         try {
             const response = await axios.post(
                 `http://localhost:8080/live/projectname/add-relevantandnpl-data/${patentSlice.singleProject._id}`, { tableData },
                 { headers: { "Content-Type": "application/json" } }
             );
-            console.log('response', response)
             if (response.status === 200) {
                 const updatedDetails = response.data.stages.relevantReferences.relevantAndNplCombined;
-                console.log('updatedDetails', updatedDetails)
                 setTableData(updatedDetails);
             }
 
@@ -502,6 +498,9 @@ const RelevantRefComponent = ({
                                 <Button color="info" type="submit" className="w-100">+ Add Relevant</Button>
                             </div>
                         </Col>
+                        <Col>
+                            <SavedSuccess show={relevantRefSaved} message="Relevant Reference Saved!" />
+                        </Col>
                     </Row>
                 </Form>
             )}
@@ -654,7 +653,7 @@ const RelevantRefComponent = ({
                 />
             )} */}
 
-            { patentSlice.singleProject.projectTypeId === "0001" &&
+            {patentSlice.singleProject.projectTypeId === "0001" &&
                 <>
                     <h4 className="fw-bold mb-4 mt-4">Overall Summary of Search and Prior Arts</h4>
                     <Row>
@@ -672,19 +671,20 @@ const RelevantRefComponent = ({
                             </div>
                         </Col>
                     </Row>
-                    <Col lg="2">
-                        <div className="mb-3">
-                            <Button onClick={handleOverAllSummarySave} color="warning" className="w-100">
-                                Save Summary
-                            </Button>
-                        </div>
-                    </Col>
+                    <Row>
+                        <Col lg="2">
+                            <div className="mb-3">
+                                <Button onClick={handleOverAllSummarySave} color="warning" className="w-100">
+                                    Save Summary
+                                </Button>
+                            </div>
+                        </Col>
+                        <Col className="">
+                            <SavedSuccess show={summarySaved} message="Summary Saved!" />
+                        </Col>
+                    </Row>
                 </>
             }
-
-            
-
-
         </>
     );
 };

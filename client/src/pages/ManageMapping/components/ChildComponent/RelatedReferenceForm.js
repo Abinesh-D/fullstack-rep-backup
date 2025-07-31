@@ -1,9 +1,11 @@
 import React from "react";
 import { Row, Col, Label, Input, Button, Form, Spinner } from "reactstrap";
+import SavedSuccess from "../../../../components/Common/SavedSuccess";
 
 const RelatedReferenceForm = ({
     relatedLoading,
     relatedForm,
+    relatedRefSaved,
     handleRelatedSubmit,
     handleRelatedInputChange,
     handleClearInputFields,
@@ -45,7 +47,7 @@ const RelatedReferenceForm = ({
                                         Clear
                                     </Button>
                                 ) : (
-                                    <Button color="success" onClick={() => handleRelatedFetchPatentData(relatedForm.publicationNumber) } className="w-100"> Submit</Button>
+                                    <Button color="success" onClick={() => handleRelatedFetchPatentData(relatedForm.publicationNumber)} className="w-100"> Submit</Button>
                                 )}
                             </div>
                         </Col>
@@ -139,16 +141,19 @@ const RelatedReferenceForm = ({
                                     value={relatedForm.relatedPublicationDate}
                                     onChange={handleRelatedInputChange}
                                 />
-                            </div>
-                        </Col>
+                                </div>
+                            </Col>
 
-                        <Col lg="auto">
-                            <div className="mb-3">
-                                <Button color="info" type="submit" className="mt-2">
-                                    + Add Related
-                                </Button>
-                            </div>
-                        </Col>
+                            <Row className="align-items-center">
+                                <Col lg="2">
+                                    <Button color="info" type="submit" className="w-100">
+                                        + Add Related
+                                    </Button>
+                                </Col>
+                                <Col>
+                                    <SavedSuccess show={relatedRefSaved} message="Related Reference Saved!" />
+                                </Col>
+                            </Row>
                     </Row>
                 </Form>
             )}

@@ -1,6 +1,8 @@
 import { createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { BASE_URL } from '../../../../config';
+import urlSocket from '../../../../helpers/urlSocket';
+import { saveAs } from 'file-saver';
 
 
 
@@ -327,11 +329,7 @@ export const fetchESPData = async (patentNumber, dispatch, type) => {
 // Bulk Patent Biblio Data
 export const fetchBulkESPData = async (patentNumber, dispatch, type) => {
   try {
-    // const trimmedNumber = patentNumber.trim();
-    // if (!trimmedNumber) throw new Error("Patent number is required.");
-
     const response = await axios.get(`${BASE_URL}/bulk/biblio/${patentNumber}`);
-    console.log('response.data', response.data)
 
     if (response.status === 200 && response.data) {
       if (type === 'relevant') {
@@ -559,6 +557,34 @@ export const saveExcelRelatedReferences = async (id, relatedData) => {
 //       dispatch(setRelevantApiTrue(false));
 //     }
 //   };
+
+
+
+export const handleWordDownloadFrontend = (fetchId) => async () => {
+  console.log('payloadData', fetchId)
+  return new Promise(async (resolve, reject) => {
+    try {
+      // const res = await urlSocket.post("/live/report/generate-word", payloadData,
+      //   { responseType: "blob" }
+      // );
+
+      const res = await axios.post("http://localhost:8080/live/report/generate-word", { fetchId },
+        { responseType: "blob" }
+      );
+
+
+      const blob = new Blob([res.data], {
+        type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      });
+
+      // saveAs(blob, `${payloadData.projectTitle || "StaticData"}.docx`);
+      // resolve("Download success");
+    } catch (error) {
+      console.error("Download failed:", error);
+      reject(error);
+    }
+  });
+};
 
 
 

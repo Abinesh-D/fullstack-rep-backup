@@ -78,10 +78,8 @@ const ExcelPatentUploader = ({ setRelatedFormData }) => {
         .map(row => row["Patent Number"])
         .filter(val => val)
         .map(val => String(val).trim());
-        console.log('extractedNumbers', extractedNumbers)
 
       const commaSeparated = extractedNumbers.join(", ");
-      console.log('commaSeparated', commaSeparated)
       setPatentNumbers(commaSeparated.split(',').map(val => val.trim()).filter(val => val !== '').length || 0);
       toast.success(`${file.name} uploaded successfully!`);
       bulkBiblioApiCall(commaSeparated);
@@ -393,7 +391,6 @@ const ExcelPatentUploader = ({ setRelatedFormData }) => {
   //   };
   // });
 
-  // console.log('mappedValue', mappedValue)
 
 
 

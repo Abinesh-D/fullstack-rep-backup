@@ -59,8 +59,6 @@ import { sessionReducer } from "../Slice/manageSessionSlice";
 // import { incentiveReducer } from '../Slice/incentiveSlice'
 
 
-import userSlice from '../Slice/userSlice'
-
 // MindMAp Slice
 import flowSlice from '../pages/ManageMindMap/Components/MindMapSlice/flowSlice';
 
@@ -94,7 +92,6 @@ const rootReducer = combineReducers({
   sessionInfo : sessionReducer,
   patentSlice: BibliographySLice,
 
-  userSlice: userSlice,
   flow: flowSlice,
 });
 

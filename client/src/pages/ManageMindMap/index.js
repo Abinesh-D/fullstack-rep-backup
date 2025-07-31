@@ -8,7 +8,6 @@ const Index = () => {
   const navigate = useNavigate();
 
   const handleFlowChartCreate = () => {
-    console.log('Navigating to Create Flow Chart');
     navigate('/create-flow-chart');
   };
 

@@ -80,13 +80,10 @@ import MappingProjectCreation from "../pages/ManageMapping/components/MappingPro
 import PagesStarter from "../pages/Utility/pages-starter";
 import PagesMaintenance from "../pages/Utility/pages-maintenance";
 import PagesComingsoon from "../pages/Utility/pages-comingsoon";
-import PagesTimeline from "../pages/Utility/pages-timeline";
 import PagesFaqs from "../pages/Utility/pages-faqs";
 import PagesPricing from "../pages/Utility/pages-pricing";
 import Pages404 from "../pages/Utility/pages-404";
 import Pages500 from "../pages/Utility/pages-500";
-import { components } from "react-select";
-import { path } from "d3";
 
 const authProtectedRoutes = [
   { path: "/dashboard", component: <Dashboard /> },

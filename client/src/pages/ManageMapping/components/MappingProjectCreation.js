@@ -10,6 +10,7 @@ import {
     GOOGLE_API_DATA, EPO_API_DATA, fetchProjects, fetchPublicationDetails, fetchProjectById, setRelevantApiTrue, setRelatedApiTrue,
     fetchRelatedReferences,
     setSingleProject,
+    handleWordDownloadFrontend,
 } from "../../ManageEmployees/ManageBibliography/BibliographySLice/BibliographySlice";
 import { mapFamilyMemberData } from "../../ManagePriorFormat/ReusableComp/Functions";
 import { FaFileWord } from "react-icons/fa";
@@ -64,6 +65,8 @@ const MappingProjectCreation = () => {
         analystComments: '',
         relevantExcerpts: ''
     });
+
+    const [relevantRefSaved, setRelevantRefSaved] = useState(false);
     
 
     const resetRelevantForm = () => {
@@ -93,6 +96,8 @@ const MappingProjectCreation = () => {
     const [relatedErrorValidation, setRelatedErrorValidation] = useState(false);
 
     const [overallSummary, setOverallSummary] = useState("");
+    const [summarySaved, setSummarySaved] = useState(false);
+
 
     const [baseSearchTerm, setBaseSearchTerm] = useState("");
     const [baseSearchTermsList, setBaseSearchTermsList] = useState([]);
@@ -128,8 +133,6 @@ const MappingProjectCreation = () => {
         // projectImageUrl: [],
     });
 
-    console.log('projectFormData', projectFormData);
-
     const [nplPatentFormData, setNplPatentFormData] = useState({
         nplTitle: "",
         url: "",
@@ -163,6 +166,7 @@ const MappingProjectCreation = () => {
         relatedPriorityDate: ""
     })
 
+    const [relatedRefSaved, setRelatedRefSaved] = useState(false);
 
     const resetRelatedForm = () => {
         setRelatedForm({
@@ -368,7 +372,6 @@ const MappingProjectCreation = () => {
                 const singleProject = await fetchProjectById(id);
                 if (singleProject) {
                     dispatch(setSingleProject(singleProject));
-                    console.log('singleProject.stages.introduction', singleProject)
                     setProjectFormData({
                         projectTitle: singleProject.stages.introduction?.[0]?.projectTitle || "",
                         projectSubTitle: singleProject.stages.introduction?.[0]?.projectSubTitle || "",
@@ -649,7 +652,7 @@ const MappingProjectCreation = () => {
 
 
     const handleSaveAppendix2Patents = async () => {
-        if (!appendix2Patents.trim()) return;
+        if (!appendix2Patents) return;
 
         try {
             const response = await axios.post(
@@ -667,7 +670,7 @@ const MappingProjectCreation = () => {
     };
 
     const handleSaveAppendix2NPL = async () => {
-        if (!appendix2NPL.trim()) return;
+        if (!appendix2NPL) return;
 
         try {
             const response = await axios.post(
@@ -768,11 +771,12 @@ const MappingProjectCreation = () => {
             try {
                 // setErrorValidation(false);
                 await GOOGLE_API_DATA(trimmedNumber, dispatch, 'relevant');
+                
             } catch (googleError) {
                 setErrorValidation(true);
                 console.error("Google fallback failed:", googleError);
             }
-
+            
             console.error("Espacenet fetch error:", error);
         } finally {
             setLoading(false);
@@ -1325,6 +1329,7 @@ const MappingProjectCreation = () => {
 
     const handleRelevantSubmit = async (e) => {
         e.preventDefault();
+        if (!relevantForm.patentNumber) return;
 
         try {
             const response = await axios.post(
@@ -1335,7 +1340,8 @@ const MappingProjectCreation = () => {
                 resetRelevantForm();
                 const updatedDetails = response.data.stages.relevantReferences.publicationDetails;
                 setrelevantFormData(updatedDetails);
-
+                setRelevantRefSaved(true);
+                setTimeout(() => setRelevantRefSaved(false), 2000);
             }
 
         } catch (error) {
@@ -1405,6 +1411,8 @@ const MappingProjectCreation = () => {
                 }
             );
 
+            setSummarySaved(true);
+            setTimeout(() => setSummarySaved(false), 2000);
         } catch (error) {
             console.error("Error saving Overall Summary:", error);
             if (error.response) {
@@ -1485,6 +1493,7 @@ const MappingProjectCreation = () => {
 
     const handleRelatedSubmit = async (e) => {
         e.preventDefault();
+        if (!relatedForm.publicationNumber) return;
 
         try {
             const response = await axios.post(`http://localhost:8080/live/projectname/add-related/${id}`, relatedForm,
@@ -1494,7 +1503,8 @@ const MappingProjectCreation = () => {
             if (response.status === 200) {
                 resetRelatedForm();
                 setRelatedFormData(response.data.stages.relatedReferences);
-
+                setRelatedRefSaved(true);
+                setTimeout(() => setRelatedRefSaved(false), 2000);
             }
         } catch (error) {
             console.error("Error saving related reference:", error);
@@ -1512,18 +1522,47 @@ const MappingProjectCreation = () => {
     const handleReportDownload = async () => {
         try {
             const getProjectValue = await fetchProjectById(id);
-            console.log('getProjectValue', getProjectValue)
+            console.log('getProjectValue', getProjectValue);
+            // const payload = {
+            //     id: id,
+            //     projectTitle: getProjectValue.stages.introduction[0]?.projectTitle || "",
+            //     projectSubTitle: getProjectValue.stages.introduction[0]?.projectSubTitle || "",
+            //     searchFeatures: getProjectValue.stages.introduction[0]?.searchFeatures || [],
+            //     relevantReferences: getProjectValue.stages.relevantReferences.publicationDetails || [],
+            //     nonPatentLiteratures: getProjectValue.stages.relevantReferences.nonPatentLiteratures || [],
+            //     relatedReferences: getProjectValue.stages.relatedReferences || [],
+            //     appendix1: getProjectValue.stages.appendix1[0] || [],
+            //     appendix2: getProjectValue.stages.appendix2[0] || [],
+            //     overallSummary: getProjectValue.stages.relevantReferences.overallSummary || "",
+            //     getProjectValue: getProjectValue,
+            //     relevantAndNplCombined: getProjectValue.stages.relevantReferences.relevantAndNplCombined || [],
+            // };
+
+            // Dispatch the thunk and handle promise
+            // dispatch(handleWordDownloadFrontend(id))
+            //     .then((res) => {
+            //         console.log("Download completed:", res);
+            //     })
+            //     .catch((err) => {
+            //         console.error("Download error:", err);
+            //     });
+
+
+
+
+
+
             handleWordReportDownload({
-                projectTitle: getProjectValue.stages.introduction[0]?.projectTitle || "ProjectTitle",
-                projectSubTitle: getProjectValue.stages.introduction[0]?.projectSubTitle || "projectSubTitle",
-                searchFeatures: getProjectValue.stages.introduction[0]?.searchFeatures || "searchFeatures",
+                projectTitle: getProjectValue.stages.introduction[0]?.projectTitle || "",
+                projectSubTitle: getProjectValue.stages.introduction[0]?.projectSubTitle || "",
+                searchFeatures: getProjectValue.stages.introduction[0]?.searchFeatures || [],
                 relevantReferences: getProjectValue.stages.relevantReferences.publicationDetails || [],
                 nonPatentLiteratures: getProjectValue.stages.relevantReferences.nonPatentLiteratures || [],
-                relatedReferences: getProjectValue.stages.relatedReferences || "relatedReferences",
-                appendix1: getProjectValue.stages.appendix1[0] || "Appendix 1",
-                appendix2: getProjectValue.stages.appendix2[0] || "Appendix 2",
+                relatedReferences: getProjectValue.stages.relatedReferences || [],
+                appendix1: getProjectValue.stages.appendix1[0] || [],
+                appendix2: getProjectValue.stages.appendix2[0] || [],
                 // projectImageUrl: getProjectValue.stages.introduction[0]?.projectImageUrl || ["Image"],
-                overallSummary: getProjectValue.stages.relevantReferences.overallSummary || "overallSummary",
+                overallSummary: getProjectValue.stages.relevantReferences.overallSummary || "",
                 getProjectValue: getProjectValue,
                 relevantAndNplCombined: getProjectValue.stages.relevantReferences.relevantAndNplCombined || [],
             });
@@ -1687,6 +1726,7 @@ const MappingProjectCreation = () => {
                                                 <TabPane tabId={2}>
                                                     <RelevantRefComponent
                                                         relevantForm={relevantForm}
+                                                        relevantRefSaved={relevantRefSaved}
                                                         handleFetchPatentData={handleFetchPatentData}
                                                         handleRelevantSubmit={handleRelevantSubmit}
                                                         relevantFormData={relevantFormData}
@@ -1700,6 +1740,7 @@ const MappingProjectCreation = () => {
                                                         nonPatentFormData={nonPatentFormData}
                                                         nplPatentFormData={nplPatentFormData}
                                                         overallSummary={overallSummary}
+                                                        summarySaved={summarySaved}
                                                         setOverallSummary={setOverallSummary}
                                                         handleOverAllSummarySave={handleOverAllSummarySave}
                                                         handleRelevatFormInputChange={handleRelevatFormInputChange}
@@ -1729,6 +1770,7 @@ const MappingProjectCreation = () => {
                                                     <RelatedRefComponent
                                                         relatedLoading={relatedLoading}
                                                         relatedForm={relatedForm}
+                                                        relatedRefSaved={relatedRefSaved}
                                                         handleRelatedSubmit={handleRelatedSubmit}
                                                         handleRelatedFetchPatentData={handleRelatedFetchPatentData}
                                                         handleRelatedInputChange={handleRelatedInputChange}

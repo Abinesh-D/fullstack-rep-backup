@@ -16,6 +16,7 @@ import { computeFamId, mappedValue, mapRelatedData } from "../../../ManageBulkUp
 const RelatedRefComponent = ({
     relatedLoading,
     relatedForm,
+    relatedRefSaved,
     handleRelatedSubmit,
     handleRelatedFetchPatentData,
     handleRelatedInputChange,
@@ -73,7 +74,6 @@ const RelatedRefComponent = ({
         try {
             const relatedData = await mapRelatedData(bulkmappedValue);
             const response = await saveExcelRelatedReferences(id, relatedData);
-            console.log('response', response)
             setRelatedFormData(response);
             setApiResponseReceived(false);
         } catch (error) {
@@ -98,8 +98,6 @@ const RelatedRefComponent = ({
             .filter((item) => item.trim() !== "");
 
         const commaSeparated = cleanedArray.join(", ");
-        console.log('commaSeparated', commaSeparated)
-
         await bulkBiblioApiCall(commaSeparated);
     };
 
@@ -256,6 +254,7 @@ const bulkmappedValue = mappedValue(patentSlice.multiRelated, famId);
                                         <RelatedReferenceForm
                                             relatedLoading={relatedLoading}
                                             relatedForm={relatedForm}
+                                            relatedRefSaved={relatedRefSaved}
                                             handleRelatedSubmit={handleRelatedSubmit}
                                             handleRelatedInputChange={handleRelatedInputChange}
                                             handleClearInputFields={handleClearInputFields}

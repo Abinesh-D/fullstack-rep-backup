@@ -1,57 +1,14 @@
 
-import React, { useEffect } from 'react'
 import { Container } from "reactstrap";
-import { useDispatch } from "react-redux";
-import HS_Employees from './Component/HS_Employees';
-// import { retrieveEmployeeListAPI, setSameCaptainAndWaiter, retrieveCaptainData } from 'Slice/incentiveSlice';
 import Breadcrumbs from '../../components/Common/Breadcrumb';
-import PatentLookup from './ManageBibliography/PatentLookup';
-import LensData from './ManageBibliography/LensData';
 import TabContainer from './ManageBibliography/TabContainer';
-import PatentSearch from './ManageBibliography/PatentSearch';
 
 export default function index() {
-
-
-
-    // useEffect(() => {
-    //     fetchIncentives();
-    //     fetchCaptainMappings();
-    // }, []);
-
-
-    // const fetchIncentives = async () => {
-    //     try {
-    //         const response = await dispatch(retrieveEmployeeListAPI());
-    //         if (response) {
-
-    //         }
-    //     } catch (error) {
-    //         console.error('Error fetching incentives:', error);
-    //     }
-    // };
-
-    // const fetchCaptainMappings = async () => {
-    //     try {
-    //         const formData = { "action": "readAll", };
-    //         const data = await dispatch(retrieveCaptainData(formData));
-    //         if (data) {
-    //             dispatch(setSameCaptainAndWaiter(data));
-    //         }
-    //     } catch (error) {
-    //         console.error('Failed to fetch captain mappings:', error);
-    //     }
-    // };
 
     return (
         <div className='page-content'>
              <Breadcrumbs title="Patent Search"/>
-             {/* <Breadcrumbs title="Patent Search"/> */}
             <Container fluid>
-                {/* <PatentSearch /> */}
-                {/* <HS_Employees /> */}
-                {/* < PatentLookup /> */}
-                {/* <LensData /> */}
                 <TabContainer />
             </Container>
         </div>

@@ -116,12 +116,10 @@ export const handleWordReportDownload = async ({
 }) => {
 
 
-    console.log(relevantAndNplCombined, "relevantAndNplCombined")
-
     const typeId1 = getProjectValue.projectTypeId === "0001";
     const typeId2 = getProjectValue.projectTypeId === "0002";
-    const typeId3 = getProjectValue.projectTypeId === "0003";
-    const typeId4 = getProjectValue.projectTypeId === "0004";
+
+    const indent380 = { left: 380, right: 380 };
 
     
     const nplMap = nonPatentLiteratures.map(npl => npl.nplTitle);
@@ -612,40 +610,8 @@ export const handleWordReportDownload = async ({
     };
 
 
-    console.log('combinedUniqueArray', combinedUniqueArray)
 
-    // Table Header Row
-    const headerRow = new TableRow({
-        children: [
-            "S. No",
-            "Patents Literatures",
-            "Heading 1",
-            "Heading 2",
-            "Heading 3",
-            "Heading 4",
-            "Heading 5",
-        ].map((header, index) =>
-            new TableCell({
-                verticalAlign: VerticalAlign.CENTER,
-                shading: {
-                    fill: index < 2 ? "C2D38B" : "A7C7E7",
-                    type: ShadingType.CLEAR,
-                    color: "auto",
-                },
-                children: [
-                    new Paragraph({
-                        alignment: AlignmentType.CENTER,
-                        spacing: { before: 20, after: 0 },
-                        children: [
-                            createTextRun(header, textStyle.arial10, { bold: true }),
-                        ],
-                    }),
-                ],
-                borders: blackBorders,
-            })
-        ),
-    });
-console.log('appendix1', appendix1)
+   
     // Table Data Rows
 
 
@@ -724,6 +690,38 @@ console.log('appendix1', appendix1)
     //     });
     // });
 
+     // Table Header Row
+    const headerRow = new TableRow({
+        children: [
+            "S. No",
+            "Patents Literatures",
+            "Heading 1",
+            "Heading 2",
+            "Heading 3",
+            "Heading 4",
+            "Heading 5",
+        ].map((header, index) =>
+            new TableCell({
+                verticalAlign: VerticalAlign.CENTER,
+                shading: {
+                    fill: index < 2 ? "C2D38B" : "A7C7E7",
+                    type: ShadingType.CLEAR,
+                    color: "auto",
+                },
+                children: [
+                    new Paragraph({
+                        alignment: AlignmentType.CENTER,
+                        spacing: { before: 20, after: 0 },
+                        children: [
+                            createTextRun(header, textStyle.arial10, { bold: true }),
+                        ],
+                    }),
+                ],
+                borders: blackBorders,
+            })
+        ),
+    });
+
     const dataRows = relevantAndNplCombined.map((value, index) => {
         return new TableRow({
             children: [
@@ -769,7 +767,8 @@ console.log('appendix1', appendix1)
 
     // Executive Summary Table
     const ExecutiveSummaryTable = new Table({
-        width: { size: 100, type: WidthType.PERCENTAGE },
+        width: { size: 80, type: WidthType.PERCENTAGE },
+        alignment: AlignmentType.CENTER,
         rows: [headerRow, ...dataRows],
     });
 
@@ -778,6 +777,7 @@ console.log('appendix1', appendix1)
         new Paragraph({
             alignment: AlignmentType.LEFT,
             spacing: { before: 100, after: 100 },
+            indent: indent380,
             children: [
                 createTextRun("The patent literatures identified through quick search disclose the features defined in the objective as summarized in the above table."),
             ],
@@ -785,6 +785,7 @@ console.log('appendix1', appendix1)
         new Paragraph({
             alignment: AlignmentType.LEFT,
             spacing: { before: 100, after: 100 },
+            indent: indent380,
             children: [
                 createTextRun("The shortlisted prior arts disclose a volatile composition dispenser/air freshener housing has a removable bottom portion with protrusion and replaceable cartridge."),
             ],
@@ -792,6 +793,7 @@ console.log('appendix1', appendix1)
         new Paragraph({
             alignment: AlignmentType.LEFT,
             spacing: { before: 100, after: 100 },
+            indent: indent380,
             children: [
                 createTextRun("The shortlisted prior arts does not specifically disclose 5mm of protrusion on the exterior wall of the cartridges."),
             ],
@@ -1066,7 +1068,7 @@ console.log('appendix1', appendix1)
                 spacing: { before: 200, after: 20 },
                 indent: { left: 720 },
             }),
-
+            // Key Search Strings
             new Table({
                 width: {
                     size: 100,
@@ -1091,7 +1093,7 @@ console.log('appendix1', appendix1)
                                 ],
                             }),
                             new TableCell({
-                                width: { size:80, type: WidthType.PERCENTAGE },
+                                width: { size: 80, type: WidthType.PERCENTAGE },
                                 verticalAlign: VerticalAlign.CENTER,
                                 shading: { fill: "353839" },
                                 children: [
@@ -1134,7 +1136,6 @@ console.log('appendix1', appendix1)
                             }),
                         ],
                     }),
-
                     // Data Rows
                     ...appendix1?.keyStrings?.map((keyStr, index) =>
                         new TableRow({
@@ -1202,8 +1203,6 @@ console.log('appendix1', appendix1)
                     insideVertical: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
                 },
             }),
-
-
             new Paragraph({
                 alignment: AlignmentType.RIGHT,
                 children: [
@@ -1736,7 +1735,6 @@ console.log('appendix1', appendix1)
                     })
                 ],
             },
-
             // Search Features
             {
                 properties: createPageProperties(),
@@ -1782,6 +1780,7 @@ console.log('appendix1', appendix1)
                     getSearchMethodology(projectTitle)
             },
 
+            // Relevant Reference
             typeId1 && {
                 properties: createPageProperties(),
                 headers: { default: header },
@@ -1825,6 +1824,7 @@ console.log('appendix1', appendix1)
 
             },
 
+            // Executive Summary
             (typeId2) && {
                 properties: createPageProperties(),
                 headers: { default: header },
@@ -1847,7 +1847,7 @@ console.log('appendix1', appendix1)
                         ],
                     }),
                     new Paragraph({
-                        indent: { left: 630 },
+                        indent: indent380,
                         spacing: { after: 50 },
                         children: [
                             createTextRun(
@@ -1856,11 +1856,13 @@ console.log('appendix1', appendix1)
                                 { italics: true }
                             ),
                         ],
+
                     }),
                     ExecutiveSummaryTable,
                     ...summaryParagraphs,
-                ]
+                ],
             },
+
             // Relevant
             {
                 properties: createPageProperties(),
@@ -1893,7 +1895,7 @@ console.log('appendix1', appendix1)
 
                     ...(Array.isArray( typeId2 ? relevantAndNplCombined : relevantReferences )
                         ? (typeId2 ? relevantAndNplCombined : relevantReferences).flatMap((pub, pubIndex) => {
-                            // const typeId2 = pub.nplId === true;
+                            const isNpl = pub.nplId === true;
                             const leftTableRows = [
                                 {
                                     label: "Publication No",
@@ -1975,7 +1977,7 @@ console.log('appendix1', appendix1)
                                     spacing: { after: 20 },
                                 }),
 
-                                ...(typeId2 ?
+                                ...(isNpl ?
                                     [new Table({
                                         width: { size: 100, type: WidthType.PERCENTAGE },
                                         rows: [
@@ -2010,8 +2012,6 @@ console.log('appendix1', appendix1)
                                                     }),
                                                 ],
                                             }),
-
-                                            // Title row
                                             new TableRow({
                                                 children: [
                                                     new TableCell({
@@ -2038,8 +2038,6 @@ console.log('appendix1', appendix1)
                                                     }),
                                                 ],
                                             }),
-
-                                            // Source row (bottom)
                                             new TableRow({
                                                 children: [
                                                     new TableCell({
@@ -2066,68 +2064,66 @@ console.log('appendix1', appendix1)
                                                     }),
                                                 ],
                                             }),
-
                                         ],
                                     })]
                                     :
-                                    [
-                                        new Table({
-                                            width: { size: 100, type: WidthType.PERCENTAGE },
-                                            rows: [
-                                                new TableRow({
-                                                    children: [
-                                                        new TableCell({
-                                                            columnSpan: 2,
-                                                            shading: {
-                                                                fill: "A7C7E7",
-                                                                type: ShadingType.CLEAR,
-                                                                color: "auto",
-                                                            },
-                                                            verticalAlign: VerticalAlign.CENTER,
-                                                            children: [
-                                                                new Paragraph({
-                                                                    alignment: AlignmentType.CENTER,
-                                                                    spacing: { before: 0, after: 0 },
-                                                                    children: [
-                                                                        createTextRun("Bibliographic Details", textStyle.arial10, {
-                                                                            bold: true,
-                                                                        }),
-                                                                    ],
-                                                                }),
-                                                            ],
-                                                            borders: commonBorders,
-                                                            margins: marginsStyle.margins,
-                                                        }),
-                                                    ],
-                                                }),
-                                                new TableRow({
-                                                    children: [
-                                                        new TableCell({
-                                                            width: { size: 50, type: WidthType.PERCENTAGE },
-                                                            borders: commonBorders,
-                                                            margins: marginsStyle.margins,
-                                                            children: [
-                                                                new Table({
-                                                                    width: { size: 100, type: WidthType.PERCENTAGE },
-                                                                    rows: createSingleColumnTableRows(leftTableRows),
-                                                                }),
-                                                            ],
-                                                        }),
-                                                        new TableCell({
-                                                            width: { size: 50, type: WidthType.PERCENTAGE },
-                                                            borders: commonBorders,
-                                                            margins: marginsStyle.margins,
-                                                            children: [
-                                                                new Table({
-                                                                    width: { size: 100, type: WidthType.PERCENTAGE },
-                                                                    rows: createSingleColumnTableRows(rightTableRows),
-                                                                }),
-                                                            ],
-                                                        }),
-                                                    ],
-                                                }),
-                                            ],
-                                        }),
+                                    [new Table({
+                                        width: { size: 100, type: WidthType.PERCENTAGE },
+                                        rows: [
+                                            new TableRow({
+                                                children: [
+                                                    new TableCell({
+                                                        columnSpan: 2,
+                                                        shading: {
+                                                            fill: "A7C7E7",
+                                                            type: ShadingType.CLEAR,
+                                                            color: "auto",
+                                                        },
+                                                        verticalAlign: VerticalAlign.CENTER,
+                                                        children: [
+                                                            new Paragraph({
+                                                                alignment: AlignmentType.CENTER,
+                                                                spacing: { before: 0, after: 0 },
+                                                                children: [
+                                                                    createTextRun("Bibliographic Details", textStyle.arial10, {
+                                                                        bold: true,
+                                                                    }),
+                                                                ],
+                                                            }),
+                                                        ],
+                                                        borders: commonBorders,
+                                                        margins: marginsStyle.margins,
+                                                    }),
+                                                ],
+                                            }),
+                                            new TableRow({
+                                                children: [
+                                                    new TableCell({
+                                                        width: { size: 50, type: WidthType.PERCENTAGE },
+                                                        borders: commonBorders,
+                                                        margins: marginsStyle.margins,
+                                                        children: [
+                                                            new Table({
+                                                                width: { size: 100, type: WidthType.PERCENTAGE },
+                                                                rows: createSingleColumnTableRows(leftTableRows),
+                                                            }),
+                                                        ],
+                                                    }),
+                                                    new TableCell({
+                                                        width: { size: 50, type: WidthType.PERCENTAGE },
+                                                        borders: commonBorders,
+                                                        margins: marginsStyle.margins,
+                                                        children: [
+                                                            new Table({
+                                                                width: { size: 100, type: WidthType.PERCENTAGE },
+                                                                rows: createSingleColumnTableRows(rightTableRows),
+                                                            }),
+                                                        ],
+                                                    }),
+                                                ],
+                                            }),
+                                        ],
+                                    }),
                                     ]),
 
                                 new Paragraph({

@@ -49,11 +49,8 @@ const MappingProjectList = () => {
     const [selectedProjectId, setSelectedProjectId] = useState(null);
 
 
-    const [newProject, setNewProject] = useState("");
-
 
     const toggle = (mode, editRow) => {
-        console.log('editRow', editRow)
         if (mode === '0') {
             setMode(null);
             setProjectName("");
@@ -62,7 +59,6 @@ const MappingProjectList = () => {
             setSelectedProjectId(null);
         }
         if (mode === "1") {
-            console.log('toggleeditRow', editRow)
             setMode(mode);
             setProjectName(editRow.projectName);
             setProjectType(editRow.projectType);
@@ -115,8 +111,6 @@ const MappingProjectList = () => {
             projectType,
             projectTypeId
         };
-        console.log('payload', payload)
-
         if (mode === "1") {
             try {
                 await axios.put(
@@ -297,7 +291,6 @@ const MappingProjectList = () => {
                                 setProjectType={setProjectType}
                                 setProjectTypeId={setProjectTypeId}
                                 onCreate={handleProjectCreate}
-                                type={newProject}
                                 projectTypeOptions={projectTypeOptions}
                             />
                         }

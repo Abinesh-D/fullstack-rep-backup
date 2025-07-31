@@ -5,14 +5,14 @@ import axios from 'axios'
 
 var urlSocket = axios.create({
     
-    baseURL: baseAPIURL,     
+    baseURL: baseAPIURL,
     mode: 'no-cors',
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Content-Type': 'application/json',
-      // Authorization: process.env.REACT_APP_APIKEY,
+      Authorization: process.env.REACT_APP_APIKEY,
     },
-    // timeout: 5000000,
+    timeout: 5000000,
 
     
 })

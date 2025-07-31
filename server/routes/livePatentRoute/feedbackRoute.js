@@ -36,12 +36,6 @@ router.post("/save", async (req, res) => {
     }
 });
 
-
-
-
-
-
-
 router.get("/fetch", async (req, res) => {
     try {
         const feedback = await cln_feedback_patentnumber_schema.findOne();
