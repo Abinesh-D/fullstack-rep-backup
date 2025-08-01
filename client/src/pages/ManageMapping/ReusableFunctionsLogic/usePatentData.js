@@ -145,6 +145,8 @@ const usePatentData = (data, type) => {
             classData: classifications,
             familyMemData,
             formattedDescriptions,
+            ipcClass: `${ipcrFormatted}${ipcFormatted}`,
+            cpcClass: classifications.cpc,
         };
     } else if (type === "related") {
         return {

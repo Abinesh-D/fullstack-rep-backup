@@ -2,7 +2,6 @@ import {
     Document, BorderStyle, Packer, Paragraph, TextRun, Table, TableRow, AlignmentType, TableCell, VerticalAlign, WidthType, ShadingType,
     ExternalHyperlink, HeadingLevel, ImageRun, InternalHyperlink, Bookmark, Footer, Header, TabStopPosition, TabStopType,
     UnderlineType,
-    PositionalTabLeader,
 } from "docx";
 import { saveAs } from "file-saver";
 import { getSearchMethodology } from "./searchMethodology";
@@ -38,7 +37,9 @@ const borderNone = {
 
 const marginsStyle = { margins: { top: 100, bottom: 100, left: 100, right: 100, }, }
 const margins150 = { margins: { top: 100, bottom: 100, left: 100, right: 100, }, }
-const margins50 = { margins: { top: 50, bottom: 50, left: 50, right: 50, }, }
+
+const indent380 = { left: 380, right: 380 };
+
 
 function formatAssigneeOrInventor(str) {
     if (!str) return "";
@@ -68,22 +69,7 @@ const sanitizeText = (text) =>
         "\"": "&quot;"
     }[c]));
 
-function cleanListWithEtc(input) {
-    const items = input.split(",").map((item) => item.trim());
-    const result = [];
 
-    for (let i = 0; i < items.length; i++) {
-        if (items[i].toLowerCase() === "etc." && i > 0) {
-            result[result.length - 1] += ", etc.";
-        } else if (items[i].toLowerCase().endsWith("etc.")) {
-            result.push(items[i]);
-        } else {
-            result.push(items[i]);
-        }
-    }
-
-    return result;
-}
 
 // async function getImageArrayBufferFromUrl(url) {
 //     const response = await fetch(url);
@@ -91,12 +77,6 @@ function cleanListWithEtc(input) {
 //     return blob.arrayBuffer();
 // }
 
-const borderColor = {
-    top: { style: BorderStyle.SINGLE, size: 20, color: "000000" },
-    bottom: { style: BorderStyle.SINGLE, size: 20, color: "000000" },
-    left: { style: BorderStyle.SINGLE, size: 20, color: "000000" },
-    right: { style: BorderStyle.SINGLE, size: 20, color: "000000" },
-};
 
 const disclaimer = "This search report is based on the resources available in public domain such as published patents/applications, non-patent literature, products, blogs, technology news, company websites and available/accessible/downloadable. Furthermore, the report is based upon individual expert’s view/judgment & such analysis may vary from expert to expert. Kindly refrain concurring them as Molecular Connections’ views. The contents of this research is for general information purposes only. While Molecular Connections endeavor is to keep the information up to date and correct, Molecular Connections makes no representations OR warranties of any kind, express OR implied, about the completeness OR availability with respect to the contents of this research paper. Any reliance placed on such information is therefore strictly at user’s own risk."
 
@@ -115,17 +95,9 @@ export const handleWordReportDownload = async ({
     relevantAndNplCombined
 }) => {
 
-
     const typeId1 = getProjectValue.projectTypeId === "0001";
     const typeId2 = getProjectValue.projectTypeId === "0002";
 
-    const indent380 = { left: 380, right: 380 };
-
-    
-    const nplMap = nonPatentLiteratures.map(npl => npl.nplTitle);
-    const patentMap = relevantReferences.map(ptn => ptn.patentNumber);
-
-    const combinedUniqueArray = [...new Set([...nplMap, ...patentMap])];
 
     const createPageProperties = (margin = 920, orientation = "portrait") => ({
         page: {
@@ -452,7 +424,7 @@ export const handleWordReportDownload = async ({
                                 new Paragraph({
                                     alignment: AlignmentType.LEFT,
                                     spacing: { before: 20, after: 0 },
-                                    indent: { left: 20 },
+                                    indent: { left: 50 },
                                     children: [
                                         new ExternalHyperlink({
                                             link: pub.relatedPublicationUrl,
@@ -582,7 +554,6 @@ export const handleWordReportDownload = async ({
     });
 
 
-
     const createTickedParagraphs = (input) => {
         const normalized = input.replace(/\n/g, ',');
         let items = normalized
@@ -608,8 +579,6 @@ export const handleWordReportDownload = async ({
             })
         );
     };
-
-
 
    
     // Table Data Rows
@@ -727,15 +696,22 @@ export const handleWordReportDownload = async ({
             children: [
                 new TableCell({
                     verticalAlign: VerticalAlign.CENTER,
-                    children: [new Paragraph(String(index + 1))],
+                    children: [
+                        new Paragraph({
+                            text: String(index + 1),
+                            alignment: AlignmentType.CENTER,
+                        }),
+                    ],
                     borders: commonBorders,
                 }),
+
                 new TableCell({
                     verticalAlign: VerticalAlign.CENTER,
                     children: [
                         new Paragraph({
-                            alignment: AlignmentType.CENTER,
+                            alignment: AlignmentType.START,
                             spacing: { before: 10, after: 10 },
+                            indent: { left: 50 },
                             children: value.publicationUrl
                                 ? [
                                     new ExternalHyperlink({
@@ -1896,6 +1872,81 @@ export const handleWordReportDownload = async ({
                     ...(Array.isArray( typeId2 ? relevantAndNplCombined : relevantReferences )
                         ? (typeId2 ? relevantAndNplCombined : relevantReferences).flatMap((pub, pubIndex) => {
                             const isNpl = pub.nplId === true;
+
+                            console.log("pub.ipcClassifications", relevantAndNplCombined,relevantReferences )
+                            // const leftTableRows = [
+                            //     {
+                            //         label: "Publication No",
+                            //         value: [
+                            //             new ExternalHyperlink({
+                            //                 children: [
+                            //                     new TextRun({
+                            //                         text: pub.patentNumber?.toUpperCase() || "N/A",
+                            //                         style: "Hyperlink",
+                            //                         color: "0000FF",
+                            //                         underline: {
+                            //                             type: UnderlineType.SINGLE,
+                            //                         },
+                            //                     }),
+                            //                 ],
+                            //                 link: pub.nplUrl || "",
+                            //             }),
+                            //         ],
+                            //         isParagraphChildren: true,
+                            //     },
+                            //     {
+                            //         label: "Title",
+                            //         value: sanitizeText(pub.title),
+                            //     },
+                            //     {
+                            //         label: "Inventor",
+                            //         value: sanitizeText((pub.inventors || []).join(", ")),
+                            //     },
+                            //     {
+                            //         label: "Assignee",
+                            //         value: (pub.assignee || []).join(", "),
+                            //     },
+                            // ];
+                            // const rightTableRows = [
+                            //     { label: "Grant/Publication Date", value: sanitizeText(pub.grantDate) },
+                            //     { label: "Filing/Application Date", value: sanitizeText(pub.filingDate) },
+                            //     { label: "Priority Date", value: sanitizeText(pub.priorityDate) },
+                            //     {
+                            //         label: "IPC/CPC Classifications",
+                            //         value: getFamilyMembersParagraphChildren(
+                            //             {
+                            //                 FamilyMembers: pub.classifications,
+                            //                 hyperLink: pub.publicationUrl,
+                            //             },
+                            //             textStyle
+                            //         ),
+                            //         isParagraphChildren: true,
+                            //     },
+                            //     {
+                            //         label: "Family Member",
+                            //         value: getFamilyMembersParagraphChildren(
+                            //             {
+                            //                 FamilyMembers: pub.familyMembers,
+                            //                 hyperLink: pub.publicationUrl,
+                            //             },
+                            //             textStyle
+                            //         ),
+                            //         isParagraphChildren: true,
+                            //     },
+                            // ];
+
+                            const usClass = {
+                                label: "US Classifications",
+                                value: getFamilyMembersParagraphChildren(
+                                    {
+                                        FamilyMembers: pub.usClassification,
+                                        hyperLink: pub.publicationUrl,
+                                    },
+                                    textStyle
+                                ),
+                                isParagraphChildren: true,
+                            }
+
                             const leftTableRows = [
                                 {
                                     label: "Publication No",
@@ -1928,22 +1979,6 @@ export const handleWordReportDownload = async ({
                                     label: "Assignee",
                                     value: (pub.assignee || []).join(", "),
                                 },
-                            ];
-                            const rightTableRows = [
-                                { label: "Grant/Publication Date", value: sanitizeText(pub.grantDate) },
-                                { label: "Filing/Application Date", value: sanitizeText(pub.filingDate) },
-                                { label: "Priority Date", value: sanitizeText(pub.priorityDate) },
-                                {
-                                    label: "IPC/CPC Classifications",
-                                    value: getFamilyMembersParagraphChildren(
-                                        {
-                                            FamilyMembers: pub.classifications,
-                                            hyperLink: pub.publicationUrl,
-                                        },
-                                        textStyle
-                                    ),
-                                    isParagraphChildren: true,
-                                },
                                 {
                                     label: "Family Member",
                                     value: getFamilyMembersParagraphChildren(
@@ -1955,7 +1990,53 @@ export const handleWordReportDownload = async ({
                                     ),
                                     isParagraphChildren: true,
                                 },
+                                usClass,
                             ];
+
+                            const rightTableRows = [
+                                { label: "Grant/Publication Date", value: sanitizeText(pub.grantDate) },
+                                { label: "Filing/Application Date", value: sanitizeText(pub.filingDate) },
+                                { label: "Priority Date", value: sanitizeText(pub.priorityDate) },
+                                // {
+                                //     label: "IPC/CPC Classifications",
+                                //     value: getFamilyMembersParagraphChildren(
+                                //         {
+                                //             FamilyMembers: pub.classifications,
+                                //             hyperLink: pub.publicationUrl,
+                                //         },
+                                //         textStyle
+                                //     ),
+                                //     isParagraphChildren: true,
+                                // },
+                                { label: "Classification(IPC)", 
+                                    value: getFamilyMembersParagraphChildren(
+                                        {
+                                            FamilyMembers: pub.ipcClassifications,
+                                            hyperLink: pub.publicationUrl,
+                                        },
+                                        textStyle
+                                    ),
+                                    isParagraphChildren: true,
+                                    // value: (pub.ipcClassifications || []).join(", ")
+                                },
+
+                                { label: "Classification(CPC)", 
+
+                                     value: getFamilyMembersParagraphChildren(
+                                        {
+                                            FamilyMembers: pub.cpcClassifications,
+                                            hyperLink: pub.publicationUrl,
+                                        },
+                                        textStyle
+                                    ),
+                                    isParagraphChildren: true,
+                                    // value: (pub.cpcClassifications || []).join(", ")
+                                
+                                },
+
+                              
+                            ];
+
 
                             return [
                                 new Paragraph({
@@ -2172,7 +2253,7 @@ export const handleWordReportDownload = async ({
                                                     borders: commonBorders,
                                                     margins: marginsStyle.margins,
                                                     children: [
-                                                        typeId2 ?
+                                                        isNpl ?
                                                             new Paragraph({
                                                                 alignment: AlignmentType.CENTER,
                                                                 spacing: { after: 400 },
@@ -2200,7 +2281,7 @@ export const handleWordReportDownload = async ({
                                                     ],
                                                 }),
                                             ],
-                                        }),
+                                        })
 
                                     ],
                                 }),

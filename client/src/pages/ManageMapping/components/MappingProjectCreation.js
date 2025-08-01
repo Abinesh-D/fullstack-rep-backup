@@ -53,13 +53,15 @@ const MappingProjectCreation = () => {
         patentNumber: '',
         publicationUrl: '',
         title: '',
-        abstract: "",
+        abstract: '',
         filingDate: '',
         assignee: '',
         grantDate: '',
         inventors: '',
         priorityDate: '',
         classifications: '',
+        ipcClassifications: '',
+        cpcClassifications: '',
         usClassification: '',
         familyMembers: '',
         analystComments: '',
@@ -74,7 +76,7 @@ const MappingProjectCreation = () => {
             patentNumber: '',
             publicationUrl: '',
             title: '',
-            abstract: "",
+            abstract: '',
             filingDate: '',
             assignee: '',
             grantDate: '',
@@ -122,8 +124,10 @@ const MappingProjectCreation = () => {
     const [dataAvailabilityValue, setDataAvailabilityValue] = useState([]);
 
     const [appendix2Patents, setAppendix2Patents] = useState("");
+    const [appendix2PatentsSaved, setAppendix2PatentsSaved] = useState("");
 
     const [appendix2NPL, setAppendix2NPL] = useState("");
+    const [appendix2NPLSaved, setAppendix2NPLSaved] = useState("");
 
 
     const [projectFormData, setProjectFormData] = useState({
@@ -662,7 +666,9 @@ const MappingProjectCreation = () => {
             );
 
             if (response.status === 200) {
-                setAppendix2Patents(response.data.stages.appendix2[0].patents)
+                setAppendix2Patents(response.data.stages.appendix2[0].patents);
+                setAppendix2PatentsSaved(true);
+                setTimeout(() => setAppendix2PatentsSaved(false), 2000);
             }
         } catch (err) {
             console.error("Error saving Appendix 2 - Patents:", err);
@@ -680,7 +686,9 @@ const MappingProjectCreation = () => {
             );
 
             if (response.status === 200) {
-                setAppendix2NPL(response.data.stages.appendix2[0].nonPatentLiterature)
+                setAppendix2NPL(response.data.stages.appendix2[0].nonPatentLiterature);
+                setAppendix2NPLSaved(true);
+                setTimeout(() => setAppendix2NPLSaved(false), 2000);
             }
         } catch (err) {
             console.error("Error saving Appendix 2 - NPL:", err);
@@ -785,7 +793,7 @@ const MappingProjectCreation = () => {
 
 
     const { title, publicationUrl, abstractData, aplDate, pubDate, priorityDates, inventorNames, applicantNames, classificationsSymbol,
-        classData, familyMemData, formattedDescriptions, } = usePatentData(data, "relevant");
+        classData, familyMemData, formattedDescriptions, ipcClass, cpcClass } = usePatentData(data, "relevant");
 
     // function getEnglishAbstract(biblio) {
     //     const abstractArray = biblio?.['world-patent-data']?.['exchange-documents']?.['exchange-document']?.abstract;
@@ -1305,6 +1313,22 @@ const MappingProjectCreation = () => {
                     .map(c => c.trim())
                     .filter(Boolean),
 
+                            ipcClassifications: ( 
+                                ipcClass ||
+                            googleClassCPC ||
+                            "")
+                            .split(",")
+                            .map(c => c.trim())
+                            .filter(Boolean),
+
+                            cpcClassifications: ( 
+                                cpcClass ||
+                            googleClassCPC ||
+                            "")
+                            .split(",")
+                            .map(c => c.trim())
+                            .filter(Boolean),
+
                 usClassification: (classData?.US_Classification ||
                     releventBiblioGoogleData?.usClassification ||
                     "")
@@ -1376,6 +1400,7 @@ const MappingProjectCreation = () => {
 
     const handleNplSubmit = async (e) => {
         e.preventDefault();
+        if (!nplPatentFormData.nplTitle.trim()) return;
 
         try {
             const response = await axios.post(
@@ -1827,9 +1852,11 @@ const MappingProjectCreation = () => {
                                                 <TabPane tabId={5}>
                                                     <Appendix2
                                                         appendix2Patents={appendix2Patents}
+                                                        appendix2PatentsSaved={appendix2PatentsSaved}
                                                         setAppendix2Patents={setAppendix2Patents}
                                                         handleSaveAppendix2Patents={handleSaveAppendix2Patents}
                                                         appendix2NPL={appendix2NPL}
+                                                        appendix2NPLSaved={appendix2NPLSaved}
                                                         setAppendix2NPL={setAppendix2NPL}
                                                         handleSaveAppendix2NPL={handleSaveAppendix2NPL}
                                                     />

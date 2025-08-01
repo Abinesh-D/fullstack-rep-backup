@@ -232,10 +232,9 @@ const Appendix1 = ({
         },
     ], [dataAvailabilityValue]);
 
-
     return (
         <>
-            <h4 className="fw-bold mb-3">Appendix 1</h4>
+            <h4 className="fw-bold mb-3">{ singleProject.projectTypeId === "0002" ? "Appendix 2" : "Appendix 1"}</h4>
             <p className="text-muted mb-4">
                 <i>The search terms and key strings to extract relevant patent publications and non-patent literature are provided below.</i>
             </p>

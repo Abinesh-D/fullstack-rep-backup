@@ -19,6 +19,7 @@ import NonAuthLayout from "./components/NonAuthLayout";
 import "./assets/scss/theme.scss";
 
 import { ReactFlowProvider } from "@xyflow/react"; 
+import { ToastContainer } from "react-toastify";
 
 // import fakeBackend from "./helpers/AuthType/fakeBackend";
 
@@ -80,6 +81,7 @@ const App = () => {
             element={
               <Authmiddleware>
                 <Layout>{route.component}</Layout>
+                <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
               </Authmiddleware>}
             key={idx}
             exact={true}

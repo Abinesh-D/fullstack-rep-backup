@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useRef  } from "react";
 import { Row, Col, Button, Label, Input, Form, Spinner } from "reactstrap";
 import TableContainer from "../../ReusableComponents/TableContainer";
 import { Link } from "react-router-dom";
@@ -11,6 +11,7 @@ import DraggableTable from "../../../../components/Common/commonReport/Draggable
 import RelevantReferenceOffCanvas from '../../../../components/Common/commonReport/RelevantReferenceOffCanvas';
 import axios from "axios";
 import SavedSuccess from "../../../../components/Common/SavedSuccess";
+
 
 const RelevantRefComponent = ({
     loading,
@@ -47,6 +48,9 @@ const RelevantRefComponent = ({
 
     const toggleCanvas = () => setIsCanvasOpen(!isCanvasOpen);
 
+    const prevRelevantRef = useRef([]);
+    const prevNonPatentRef = useRef([]);
+
     const nonPatentModified = nonPatentFormData.map((item) => ({
         patentNumber: item.nplTitle,
         publicationUrl: item.url,
@@ -56,26 +60,65 @@ const RelevantRefComponent = ({
         nplId: true,
     }));
 
-    const combinedDataValue = useMemo(() => {
-        if (relevantAndNplUpdatedData?.length > 0) {
-            return [...relevantAndNplUpdatedData];
-        } else {
-            return [...relevantFormData, ...nonPatentModified];
-        }
-    }, [relevantFormData, nonPatentFormData]);
+        // const updatedKeys = new Set(
+        //     relevantAndNplUpdatedData.map((item) => item.patentNumber || item.title)
+        // );
 
-    // , relevantFormData[relevantFormData.length - 1], nonPatentModified[nonPatentModified.length - 1]
+        // const matchingRelevant = relevantFormData.filter(
+        //     (item) => !updatedKeys.has(item.patentNumber || item.title)
+        // );
 
-    useEffect(() => {
-        setTableData(combinedDataValue);
-    }, [relevantFormData, nonPatentFormData])
+        // const matchingNonPatent = nonPatentFormData.filter(
+        //     (item) => !updatedKeys.has(item.patentNumber || item.nplTitle)
+        // );
 
+
+
+    // const combinedDataValue = useMemo(() => {
+
+    //     // if (relevantAndNplUpdatedData?.length > 0) {
+    //     //     return [...relevantAndNplUpdatedData];
+    //     // } else {
+    //     //     return [...relevantFormData, ...nonPatentModified];
+    //     // }
+
+    //      return [...relevantFormData, ...nonPatentModified];
+
+    // }, [relevantFormData, nonPatentFormData]);
 
     // useEffect(() => {
-    //     if (relevantAndNplUpdatedData?.length > 0) {
-    //         setTableData(relevantAndNplUpdatedData);
-    //     }
-    // }, [relevantAndNplUpdatedData]);
+    //     setTableData(combinedDataValue);
+    // }, [relevantFormData, nonPatentFormData])
+
+
+    const combinedDataValue = useMemo(() => {
+        const currentCombined = [...relevantFormData, ...nonPatentModified];
+
+        const hasChanged = (
+            prevRelevantRef.current.length !== relevantFormData.length ||
+            prevNonPatentRef.current.length !== nonPatentModified.length ||
+            JSON.stringify(prevRelevantRef.current) !== JSON.stringify(relevantFormData) ||
+            JSON.stringify(prevNonPatentRef.current) !== JSON.stringify(nonPatentModified)
+        );
+
+        if (relevantAndNplUpdatedData?.length > 0 && !hasChanged) {
+            return [...relevantAndNplUpdatedData];
+        } else {
+            return currentCombined;
+        }
+    }, [relevantFormData, nonPatentFormData, relevantAndNplUpdatedData]);
+
+    // ✅ Save previous values AFTER update
+    useEffect(() => {
+        prevRelevantRef.current = relevantFormData;
+        prevNonPatentRef.current = nonPatentModified;
+    }, [relevantFormData, nonPatentFormData]);
+
+    // ✅ Update table data when combined changes
+    useEffect(() => {
+        setTableData(combinedDataValue);
+    }, [combinedDataValue]);
+
 
 
 
@@ -89,6 +132,8 @@ const RelevantRefComponent = ({
             if (response.status === 200) {
                 const updatedDetails = response.data.stages.relevantReferences.relevantAndNplCombined;
                 setTableData(updatedDetails);
+                toggleCanvas();
+                // showSuccessToast("Order Saved !");
             }
 
         } catch (error) {
@@ -127,25 +172,6 @@ const RelevantRefComponent = ({
             accessorKey: "priorityDate",
             enableColumnFilter: false,
             enableSorting: true,
-        },
-        {
-            header: "Actions",
-            cell: ({ row }) => {
-                const rowData = row.original;
-                return (
-                    <div className="d-flex justify-content-center align-items-center gap-3">
-                        <Link
-                            to="#"
-                            data-bs-toggle="tooltip"
-                            data-bs-placement="top"
-                            title="Delete Publication"
-                            onClick={() => onDeleteClick(rowData)}
-                        >
-                            <i className="mdi mdi-delete text-danger font-size-18"></i>
-                        </Link>
-                    </div>
-                );
-            },
         },
     ], [relevantAndNplUpdatedData]);
 
@@ -299,7 +325,7 @@ const RelevantRefComponent = ({
                                         handleRelevatFormInputChange(e);
                                         setErrorValidation(false);
                                     }}
-                                    style={{ border: errorValidation ? '1px solid red' : '' }}
+                                    // style={{ border: errorValidation ? '1px solid red' : '' }}
                                 />
                             </div>
                         </Col>
@@ -446,6 +472,23 @@ const RelevantRefComponent = ({
                         </Col>
                     </Row>
 
+
+                    {/* <Row>
+                          <Col lg="12">
+                            <div className="mb-3">
+                                <Label for="cpc-classifications">Classification (CPC)</Label>
+                                <Input
+                                    type="text"
+                                    id="cpc-classifications"
+                                    className="form-control"
+                                    placeholder="Enter CPC Classification: Comma(,) Separated Values"
+                                    value={relevantForm.classifications}
+                                    onChange={handleRelevatFormInputChange}
+                                />
+                            </div>
+                        </Col>
+                    </Row> */}
+
                     <Row>
                         <Col lg="12">
                             <div className="mb-3">
@@ -537,22 +580,39 @@ const RelevantRefComponent = ({
             }
 
             {(relevantFormData.length > 0 && nonPatentFormData.length > 0 && patentSlice.singleProject.projectTypeId === "0002") && (
-                <div style={{ borderTop: '1px solid #343a40', borderBottom: '1px solid #343a40', padding: '10px', }}>
-                    <Button color="primary" onClick={toggleCanvas}>
-                        View Relevant & Npl References
-                    </Button>
 
-                    <RelevantReferenceOffCanvas
-                        isOpen={isCanvasOpen}
-                        toggle={toggleCanvas}
-                        data={tableData}
-                        setTableData={setTableData}
-                        columns={relevantAndNplColumns}
-                        handleUpdate={handleRelevantAndNplCombinedSubmit}
-                    />
-                </div>
-            )
-            }
+                <>
+                    <Row style={{
+                            backgroundColor: "#fff3cd",
+                            border: "1px solid #ffeeba",borderRadius: "8px",padding: "0.5rem",
+                            alignItems: "center",
+                        }}
+                    >   
+                        <Col lg="2" className="mt-3 mt-lg-0">
+                            <Button color="secondary" onClick={toggleCanvas}>
+                                Reorder Now
+                            </Button>
+                        </Col>
+                        <Col lg="10">
+                            <div style={{ flex: '1 1 auto', color: '#dc3545', fontWeight: 500 }}>
+                                ⚠️ Don't forget to <strong>Reorder</strong> — otherwise your <strong>Relevant</strong> and <strong>NPL</strong> 
+                                reference will not appear in the generated Word report.
+                            </div>
+                        </Col>
+                    </Row>
+                </>
+            )}
+
+            <RelevantReferenceOffCanvas
+                isOpen={isCanvasOpen}
+                toggle={toggleCanvas}
+                data={tableData}
+                setTableData={setTableData}
+                columns={relevantAndNplColumns}
+                handleUpdate={handleRelevantAndNplCombinedSubmit}
+            />
+
+
 
             {/* <h4 className="mt-5 fw-bold mb-4">2. Non-Patent Literatures(NPL)</h4>
             <Form onSubmit={handleNplSubmit}>
