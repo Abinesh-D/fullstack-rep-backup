@@ -28,6 +28,7 @@ const IntroductionTab = ({
         const formData = {
             projectTitle: projectFormData.projectTitle || "",
             projectSubTitle: projectFormData.projectSubTitle || "",
+            projectId: projectFormData.projectId || "",
             searchFeatures: projectFormData.searchFeatures || "",
         };
 
@@ -162,7 +163,7 @@ const IntroductionTab = ({
                         />
                     </div>
                 </Col>
-                <Col lg="6">
+                <Col lg="4">
                     <div className="mb-3">
                         <Label for="project-subtitle-input">Project Sub Title</Label>
                         <Input
@@ -172,6 +173,20 @@ const IntroductionTab = ({
                             id="project-subtitle-input"
                             placeholder="Enter Project Sub Title"
                             value={projectFormData.projectSubTitle}
+                            onChange={handleProjectChange}
+                        />
+                    </div>
+                </Col>
+                 <Col lg="2">
+                    <div className="mb-3">
+                        <Label for="project-id-input">Project ID</Label>
+                        <Input
+                            type="text"
+                            name="projectId"
+                            className="form-control"
+                            id="project-id-input"
+                            placeholder="Enter Project ID"
+                            value={projectFormData.projectId}
                             onChange={handleProjectChange}
                         />
                     </div>

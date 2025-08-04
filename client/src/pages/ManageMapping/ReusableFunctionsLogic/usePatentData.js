@@ -9,13 +9,15 @@ import {
     mapFamilyMemberData,
 } from "./patentUtils.js";
 
-const usePatentData = (data, type) => {
+const usePatentData = (data, type, pubNumber) => {
     const abstractData = getEnglishAbstract(data?.biblio);
 
     const descriptionText = (data?.descriptionData?.['world-patent-data']?.['fulltext-documents']?.['fulltext-document']?.description.p || []).join('\n');
     const formattedDescriptions = convertDescriptionToKeyValue(descriptionText);
 
     const publicationUrl = famFilterFunction(data);
+
+    const googlePublicationUrl = `https://patents.google.com/patent/${pubNumber}/en`;
 
     const biblioData = data?.biblio?.['world-patent-data']?.['exchange-documents']?.['exchange-document']?.['bibliographic-data'];
 
@@ -135,6 +137,7 @@ const usePatentData = (data, type) => {
         return {
             title,
             publicationUrl,
+            googlePublicationUrl,
             abstractData,
             aplDate: applicationDate,
             pubDate: publicationDate,

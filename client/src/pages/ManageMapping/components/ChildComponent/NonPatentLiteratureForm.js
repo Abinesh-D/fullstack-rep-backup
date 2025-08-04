@@ -56,6 +56,20 @@ const NonPatentLiteratureForm = ({
                         </div>
                     </Col>
                 </Row>
+                <Row>
+                    <Col lg="12">
+                        <div className="mb-3">
+                            <Label for="npl-url">Url</Label>
+                            <Input
+                                type="text"
+                                id="npl-url"
+                                placeholder="Enter url"
+                                value={nplPatentFormData.nplPublicationUrl}
+                                onChange={handleNplChange}
+                            />
+                        </div>
+                    </Col>
+                </Row>
 
                 <Row>
                     <Col lg="12">

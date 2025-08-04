@@ -6,6 +6,7 @@ const publicationDetailsSchema = new Schema({
   _id: { type: String, default: uuidv4 },
   patentNumber: { type: String, default: "" },
   publicationUrl: { type: String, default: "" },
+  googlePublicationUrl: { type: String, default: "" },
   title: { type: String, default: "" },
   abstract: { type: String, default: "" },
   filingDate: { type: String, default: "" },
@@ -28,6 +29,7 @@ const relevantAndNplCombined = new Schema({
   patentNumber: { type: String, default: "" },
   publicationUrl: { type: String, default: "" },
   title: { type: String, default: "" },
+  source: { type: String, default: "" },
   abstract: { type: String, default: "" },
   filingDate: { type: String, default: "" },
   priorityDate: { type: String, default: "" },
@@ -50,6 +52,7 @@ const nonPatentLiteratureSchema = new Schema({
   nplTitle: String,
   url: String,
   nplPublicationDate: { type: String, default: "" },
+  nplPublicationUrl: { type: String, default: "" },
   comments: String,
   excerpts: String
 });
@@ -122,6 +125,7 @@ const introductionSchema = new Schema({
   // _id: { type: String, default: uuidv4 },
   projectTitle: String,
   projectSubTitle: String,
+  projectId: { type: String, default: "" },
   searchFeatures: [String],
   // projectImageUrl: [ImageSchema],
   // createdAt: { type: Date, default: Date.now },

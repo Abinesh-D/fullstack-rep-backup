@@ -53,7 +53,8 @@ const RelevantRefComponent = ({
 
     const nonPatentModified = nonPatentFormData.map((item) => ({
         patentNumber: item.nplTitle,
-        publicationUrl: item.url,
+        publicationUrl: item.nplPublicationUrl,
+        source: item.nplUrl,
         analystComments: item.comments,
         filingDate: item.nplPublicationDate,
         _id: item._id,

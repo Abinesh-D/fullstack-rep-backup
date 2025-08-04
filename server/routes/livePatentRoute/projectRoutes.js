@@ -122,7 +122,7 @@ router.get("/get-introduction/:id", async (req, res) => {
 
 router.post("/update-introduction/:id", async (req, res) => {
   const { id } = req.params;
-  const { projectTitle, projectSubTitle, searchFeatures } = req.body;
+  const { projectTitle, projectSubTitle, searchFeatures, projectId } = req.body;
 
   try {
     const updatedProject = await cln_prior_report_schema.findByIdAndUpdate(
@@ -132,6 +132,7 @@ router.post("/update-introduction/:id", async (req, res) => {
           "stages.introduction": [{
             projectTitle,
             projectSubTitle,
+            projectId,
             searchFeatures,
           }],
         },

@@ -5,6 +5,7 @@ import {
 } from "docx";
 import { saveAs } from "file-saver";
 import { getSearchMethodology } from "./searchMethodology";
+import { Book, BookMarked } from "lucide-react";
 
 const textStyle = {
     arial24: { font: "Arial", size: 48 },
@@ -78,12 +79,17 @@ const sanitizeText = (text) =>
 // }
 
 
+const fetchImageBuffer = async (imageUrl) => {
+  const response = await fetch(imageUrl);
+  const buffer = await response.arrayBuffer();
+  return buffer;
+};
+
+
 const disclaimer = "This search report is based on the resources available in public domain such as published patents/applications, non-patent literature, products, blogs, technology news, company websites and available/accessible/downloadable. Furthermore, the report is based upon individual expert’s view/judgment & such analysis may vary from expert to expert. Kindly refrain concurring them as Molecular Connections’ views. The contents of this research is for general information purposes only. While Molecular Connections endeavor is to keep the information up to date and correct, Molecular Connections makes no representations OR warranties of any kind, express OR implied, about the completeness OR availability with respect to the contents of this research paper. Any reliance placed on such information is therefore strictly at user’s own risk."
 
 export const handleWordReportDownload = async ({
-    projectTitle,
-    projectSubTitle,
-    searchFeatures,
+    introduction,
     relevantReferences,
     nonPatentLiteratures,
     relatedReferences,
@@ -95,6 +101,7 @@ export const handleWordReportDownload = async ({
     relevantAndNplCombined
 }) => {
 
+    console.log('introduction', introduction)
     const typeId1 = getProjectValue.projectTypeId === "0001";
     const typeId2 = getProjectValue.projectTypeId === "0002";
 
@@ -155,55 +162,16 @@ export const handleWordReportDownload = async ({
     );
 
 
-
-
-    // const createSingleColumnTableRows = (rows) =>
-    //     rows.map(({ label, value, isParagraphChildren }) =>
-    //         new TableRow({
-    //             children: [
-    //                 new TableCell({
-    //                     verticalAlign: AlignmentType.CENTER,
-    //                     children: [
-    //                         new Paragraph({
-    //                             text: `${label}:`,
-    //                             bold: true,
-    //                         }),
-    //                     ],
-    //                     borders: borderNone,
-    //                 }),
-    //                 new TableCell({
-    //                     verticalAlign: AlignmentType.CENTER,
-    //                     children: [
-    //                         isParagraphChildren
-    //                             ? new Paragraph({ children: value })
-    //                             : new Paragraph({ text: value })
-    //                     ],
-    //                     borders: borderNone,
-    //                 }),
-    //             ],
-    //         })
-    //     );
-
-
-
-
-
     const header = new Header({
         children: [
             new Paragraph({
                 alignment: AlignmentType.CENTER,
                 children: [
-                    new TextRun({
-                        text: "Docket No. - IDF-34131",
-                        bold: true,
-                        color: "000000",
-                        size: 20,
-                        font: "Arial",
-                    }),
+                    createTextRun(introduction.projectId || "", textStyle.arial10, { bold: true, color: "000000" })
                 ],
             }),
         ],
-    });
+    });    
 
     const footer = new Footer({
         children: [
@@ -230,6 +198,9 @@ export const handleWordReportDownload = async ({
             }),
         ],
     });
+
+
+
 
     // const cloudinaryUrls = (projectImageUrl || []).map(buf => buf?.base64Url).filter(Boolean);
 
@@ -325,48 +296,43 @@ export const handleWordReportDownload = async ({
 
 
     const tocConfig = [
-        { label: "1.   Search Features", anchor: "search-features", isBold: true },
-        { label: "2.   Search Methodology", anchor: "search-methodology", isBold: true },
-        { label: "3.   Potentially Relevant References", anchor: "potentially-relevant-references", isBold: true },
-        { label: "4.   Potentially Relevant References", anchor: "potentially-relevant-references-2", isBold: true },
+        { label: "1.   Search Features", anchor: "typeID1-search-features", isBold: true },
+        { label: "2.   Search Methodology", anchor: "typeID1-search-methodology", isBold: true },
+        { label: "3.   Potentially Relevant References", anchor: "typeID1-relevant-toc", isBold: true },
+        { label: "4.   Potentially Relevant References", anchor: "typeID1-relevant-biblio", isBold: true },
         ...relevantReferences.map((ref, index) => ({
             label: `${index + 1}.    ${ref.patentNumber}`,
-            anchor: `patentNumberCount-${index + 1}`,
+            anchor: `typeID1-${index + 1}`,
             indent: 360,
         })),
-        { label: "5.   Related References", anchor: "related-references", isBold: true },
-        { label: "Appendix 1", anchor: "appendix-link-1", isBold: true },
-        { label: "Search Terms & Search Strings", anchor: "search-terms", indent: 720, font13: true },
-        { label: "Data Availability", anchor: "data-availability", indent: 720, font13: true },
-        { label: "Appendix 2", anchor: "appendix-link-2", isBold: true },
-        { label: "Databases", anchor: "databases", indent: 720, font13: true },
-        { label: "Disclaimer", anchor: "disclaimer", isBold: true },
+        { label: "5.   Related References", anchor: "typeID1-related-references", isBold: true },
+        { label: "Appendix 1", anchor: "typeID1-appendix1", isBold: true },
+        { label: "Search Terms & Search Strings", anchor: "typeID1-search-terms", indent: 720, font13: true },
+        { label: "Data Availability", anchor: "typeID1-data-availability", indent: 720, font13: true },
+        { label: "Appendix 2", anchor: "typeID1-appendix2", isBold: true },
+        { label: "Databases", anchor: "typeID1-databases", indent: 720, font13: true },
+        { label: "Disclaimer", anchor: "typeID1-disclaimer", isBold: true },
     ];
 
-      const tocConfigSummary = [
-        { label: "1.   Search Features", anchor: "search-features", isBold: true },
-        { label: "2.   Executive Summary", anchor: "executive-summary", isBold: true },
-        { label: "3.   Potentially Relevant References", anchor: "potentially-relevant-references-2", isBold: true },
+    const tocConfigSummary = [
+        { label: "1.   Search Features", anchor: "typeID2-search-features", isBold: true },
+        { label: "2.   Executive Summary", anchor: "typeID2-executive-summary", isBold: true },
+        { label: "3.   Potentially Relevant References", anchor: "typeID2-potentially-relevant-references", isBold: true },
 
-          ...nonPatentLiteratures.map((npl, index) => ({
-              label: `${index + 1}.    ${npl.nplTitle}`,
-              anchor: `nplNumber-${index + 1}`,
-              indent: 360,
-          })),
-
-          ...relevantReferences.map((ref, index) => ({
-              label: `${nonPatentLiteratures.length + index + 1}.    ${ref.patentNumber}`,
-              anchor: `patentNumberCount-${nonPatentLiteratures.length + index + 1}`,
-              indent: 360,
-          })),
-        { label: "4.   Related References", anchor: "related-references", isBold: true },
-        { label: "Appendix 1", anchor: "appendix-link-1", isBold: true },
-        { label: "Search Terms & Search Strings", anchor: "search-terms", indent: 720, font13: true },
-        { label: "Data Availability", anchor: "data-availability", indent: 720, font13: true },
-        { label: "Appendix 2", anchor: "appendix-link-2", isBold: true },
-        { label: "Databases", anchor: "databases", indent: 720, font13: true },
-        { label: "Disclaimer", anchor: "disclaimer", isBold: true },
-    ];
+        ...relevantAndNplCombined?.map((map, index) => ({
+            label: `${index + 1}.    ${map.patentNumber}`,
+            anchor: `typeID2-${index + 1}`,
+            indent: 360,
+        })),
+        { label: "4.   Related References", anchor: "typeID2-related-references", isBold: true },
+        { label: "Appendix 1", anchor: "typeID2-appendix1", isBold: true },
+        { label: "Appendix 2", anchor: "typeID2-appendix2", isBold: true },
+        { label: "Search Terms & Search Strings", anchor: "typeID2-search-terms", indent: 720, font13: true },
+        { label: "Data Availability", anchor: "typeID2-data-availability", indent: 720, font13: true },
+        { label: "Appendix", anchor: "typeID2-appendix", isBold: true },
+        { label: "Databases", anchor: "typeID2-databases", indent: 720, font13: true },
+        { label: "Disclaimer", anchor: "typeID2-disclaimer", isBold: true },
+      ];
 
     const relatedReferencesTable = new Table({
         width: { size: 100, type: WidthType.PERCENTAGE },
@@ -839,7 +805,7 @@ export const handleWordReportDownload = async ({
                                     spacing: { before: 50 },
                                     children: [
                                         new InternalHyperlink({
-                                            anchor: `patent-${ref.patentNumber}`,
+                                            anchor: `typeId1-${ref.patentNumber}`,
                                             children: [
                                                 createTextRun(`Reference ${index + 1}`, { color: "0000FF", underline: true, }),
                                             ],
@@ -919,11 +885,26 @@ export const handleWordReportDownload = async ({
                                     },
                                 ],
                                 children: [
-                                    createTextRun(item.label, textStyle.arial10, {
-                                        bold: item.isBold || false,
-                                        size: item.font13 ? 26 : 22,
+                                    new InternalHyperlink({
+                                        anchor: item.anchor,
+                                        children: [
+                                            createTextRun(item.label, textStyle.arial10, {
+                                                bold: item.isBold || false,
+                                                size: item.font13 ? 26 : 22,
+                                            }),
+                                        ],
                                     }),
                                 ],
+
+
+
+
+                // children: [
+                //     createTextRun(item.label, textStyle.arial10, {
+                                //         bold: item.isBold || false,
+                                //         size: item.font13 ? 26 : 22,
+                                //     }),
+                                // ],
                             }),
                         ],
                         borders: {
@@ -980,7 +961,7 @@ export const handleWordReportDownload = async ({
             new Paragraph({
                 children: [
                     new Bookmark({
-                        id: "Appendix-1",
+                        id: typeId2 ? "typeID2-appendix2" : "typeID1-appendix1",
                         children: [
                             createTextRun(typeId2 ? "Appendix 2" : typeId1 ? "Appendix 1" : "", textStyle.arial14, { bold: true, color: "000000" }),
                         ],
@@ -994,7 +975,12 @@ export const handleWordReportDownload = async ({
 
             new Paragraph({
                 children: [
-                    createTextRun("Search Terms & Search Strings", textStyle.arial11, { bold: true, color: "000000" }),
+                    new Bookmark({
+                        id: "typeID2-search-terms",
+                        children: [
+                            createTextRun("Search Terms & Search Strings", textStyle.arial11, { bold: true, color: "000000" }),
+                        ]
+                    }),
                 ],
                 heading: HeadingLevel.HEADING_2,
                 alignment: AlignmentType.START,
@@ -1198,9 +1184,14 @@ export const handleWordReportDownload = async ({
             }),
 
             // Data Availability
-            new Paragraph({
+            new Paragraph({ 
                 children: [
-                    createTextRun("Data Availability", textStyle.arial11, { bold: true, color: "000000" }),
+                    new Bookmark({
+                        id: "typeID2-data-availability",
+                        children: [
+                            createTextRun("Data Availability", textStyle.arial11, { bold: true, color: "000000" }),
+                        ]
+                    })
                 ],
                 alignment: AlignmentType.START,
                 spacing: { before: 200, after: 100 },
@@ -1225,7 +1216,7 @@ export const handleWordReportDownload = async ({
             new Paragraph({
                 children: [
                     new Bookmark({
-                        id: "Appendix-1",
+                        id: "typeID1-appendix1",
                         children: [
                             createTextRun("Appendix 1", textStyle.arial14, { bold: true, color: "000000" }),
                         ],
@@ -1239,7 +1230,12 @@ export const handleWordReportDownload = async ({
 
             new Paragraph({
                 children: [
-                    createTextRun("Search Terms & Search Strings", textStyle.arial11, { bold: true, color: "000000" }),
+                       new Bookmark({
+                        id: "typeID1-search-terms",
+                        children: [
+                            createTextRun("Search Terms & Search Strings", textStyle.arial11, { bold: true, color: "000000" }),
+                        ]
+                    }),
                 ],
                 heading: HeadingLevel.HEADING_2,
                 alignment: AlignmentType.START,
@@ -1626,7 +1622,12 @@ export const handleWordReportDownload = async ({
             // ✅ Data Availability
             new Paragraph({
                 children: [
-                    createTextRun("Data Availability", textStyle.arial11, { bold: true, color: "000000" }),
+                    new Bookmark({
+                        id: "typeID1-data-availability",
+                        children: [
+                            createTextRun("Data Availability", textStyle.arial11, { bold: true, color: "000000" }),
+                        ]
+                    })
                 ],
                 alignment: AlignmentType.START,
                 spacing: { before: 200, after: 100 },
@@ -1675,14 +1676,14 @@ export const handleWordReportDownload = async ({
                         alignment: AlignmentType.CENTER,
                         spacing: { after: 50 },
                         children: [
-                            createTextRun(projectTitle, textStyle.arial24, { bold: true }),
+                            createTextRun(introduction.projectTitle, textStyle.arial24, { bold: true }),
                         ],
                     }),
                     new Paragraph({
                         alignment: AlignmentType.CENTER,
                         spacing: { before: 50, after: 50 },
                         children: [
-                            createTextRun(projectSubTitle, textStyle.arial24, { bold: true }),
+                            createTextRun(introduction.projectSubTitle, textStyle.arial24, { bold: true }),
                         ],
                     }),
                 ],
@@ -1720,7 +1721,7 @@ export const handleWordReportDownload = async ({
                     new Paragraph({
                         children: [
                             new Bookmark({
-                                id: "search-features",
+                                id: typeId2 ? "typeID2-search-features" : "typeID1-search-features",
                                 children: [
                                     createTextRun("1.  Search Features", textStyle.arial14, { bold: true, color: "000000" }),
                                 ]
@@ -1731,7 +1732,7 @@ export const handleWordReportDownload = async ({
                         indent: { left: 880 },
                         heading: HeadingLevel.HEADING_1,
                     }),
-                    ...searchFeatures
+                    ...introduction.searchFeatures
                         .filter((p) => p.trim() !== "")
                         .map((para) =>
                             new Paragraph({
@@ -1753,7 +1754,7 @@ export const handleWordReportDownload = async ({
                 headers: { default: header },
                 footers: { default: footer },
                 children: 
-                    getSearchMethodology(projectTitle)
+                    getSearchMethodology(introduction.projectTitle)
             },
 
             // Relevant Reference
@@ -1766,7 +1767,7 @@ export const handleWordReportDownload = async ({
                         indent: { left: 880 },
                         children: [
                             new Bookmark({
-                                id: "potentially-relevant-references",
+                                id: "typeID1-relevant-toc",
                                 children: [
                                     createTextRun("3. Potentially Relevant References", textStyle.arial14, {
                                         bold: true,
@@ -1812,7 +1813,7 @@ export const handleWordReportDownload = async ({
                         heading: HeadingLevel.HEADING_1,
                         children: [
                             new Bookmark({
-                                id: "related-references",
+                                id: "typeID2-executive-summary",
                                 children: [
                                     createTextRun("2. Executive Summary", textStyle.arial14, {
                                         bold: true,
@@ -1832,7 +1833,6 @@ export const handleWordReportDownload = async ({
                                 { italics: true }
                             ),
                         ],
-
                     }),
                     ExecutiveSummaryTable,
                     ...summaryParagraphs,
@@ -1849,7 +1849,7 @@ export const handleWordReportDownload = async ({
                         indent: { left: 880 },
                         children: [
                             new Bookmark({
-                                id: "potentially-relevant-references-2",
+                                id: typeId2 ? "typeID2-potentially-relevant-references" : "typeID1-relevant-biblio",
                                 children: [
                                     createTextRun(`${typeId2 ? "3" : "4"}. Potentially Relevant References`, textStyle.arial14, { bold: true, color: "000000" }),
                                 ]
@@ -1873,7 +1873,6 @@ export const handleWordReportDownload = async ({
                         ? (typeId2 ? relevantAndNplCombined : relevantReferences).flatMap((pub, pubIndex) => {
                             const isNpl = pub.nplId === true;
 
-                            console.log("pub.ipcClassifications", relevantAndNplCombined,relevantReferences )
                             // const leftTableRows = [
                             //     {
                             //         label: "Publication No",
@@ -1948,10 +1947,31 @@ export const handleWordReportDownload = async ({
                             }
 
                             const leftTableRows = [
+                                // {
+                                //     label: "Publication No",
+                                //     value: [
+                                //         new ExternalHyperlink({
+                                //             children: [
+                                //                 new TextRun({
+                                //                     text: pub.patentNumber?.toUpperCase() || "N/A",
+                                //                     style: "Hyperlink",
+                                //                     color: "0000FF",
+                                //                     underline: {
+                                //                         type: UnderlineType.SINGLE,
+                                //                     },
+                                //                 }),
+                                //             ],
+                                //             link: pub.nplUrl || "",
+                                //         }),
+                                //     ],
+                                //     isParagraphChildren: true,
+                                // },
+
                                 {
                                     label: "Publication No",
                                     value: [
                                         new ExternalHyperlink({
+                                            link: pub.nplPublicationUrl || "",
                                             children: [
                                                 new TextRun({
                                                     text: pub.patentNumber?.toUpperCase() || "N/A",
@@ -1962,11 +1982,38 @@ export const handleWordReportDownload = async ({
                                                     },
                                                 }),
                                             ],
-                                            link: pub.nplUrl || "",
+                                        }),
+
+                                        new TextRun({ text: "  " }),
+
+                                        new TextRun({
+                                            text: "[Google Patents Link: ",
+                                            bold: true,
+                                        }),
+
+                                        new ExternalHyperlink({
+                                            link: pub.googlePublicationUrl || "",
+                                            children: [
+                                                new TextRun({
+                                                    text: pub.patentNumber?.toUpperCase() || "N/A",
+                                                    style: "Hyperlink",
+                                                    color: "0000FF",
+                                                    underline: {
+                                                        type: UnderlineType.SINGLE,
+                                                    },
+                                                }),
+                                            ],
+                                        }),
+
+                                        new TextRun({
+                                            text: "]",
+                                            bold: true,
                                         }),
                                     ],
                                     isParagraphChildren: true,
                                 },
+
+
                                 {
                                     label: "Title",
                                     value: sanitizeText(pub.title),
@@ -2044,7 +2091,7 @@ export const handleWordReportDownload = async ({
                                     indent: { left: 1250 },
                                     children: [
                                         new Bookmark({
-                                            id: `patent-${pub.patentNumber}`,
+                                            id: typeId2 ? `typeID2-${pubIndex + 1}` : `typeID1-${pubIndex + 1}`,
                                             children: [
                                                 createTextRun(
                                                     `${pubIndex + 1}.       ${pub.patentNumber}`,
@@ -2849,7 +2896,7 @@ export const handleWordReportDownload = async ({
                         indent: { left: 630 },
                         children: [
                             new Bookmark({
-                                id: "related-references",
+                                id: typeId2 ? "typeID2-related-references" : "typeID1-related-references",
                                 children: [
                                     createTextRun(`${typeId2 ? "4" : "5"}.  Related References`, textStyle.arial14, { bold: true, color: "000000" }),
                                 ]
@@ -2915,7 +2962,7 @@ export const handleWordReportDownload = async ({
                         indent: { left: 520 },
                         children: [
                             new Bookmark({
-                                id: "Appendix-2",
+                                id: typeId1 ? "typeID1-appendix2" : "typeID2-appendix",
                                 children: [
                                     createTextRun(
                                         typeId2 ? "Appendix" : typeId1 ? "Appendix 2" : "",
@@ -2933,7 +2980,12 @@ export const handleWordReportDownload = async ({
 
                     new Paragraph({
                         children: [
-                            createTextRun("Databases", textStyle.arial11, { bold: true, color: "000000" }),
+                            new Bookmark({
+                                id: typeId2 ? "typeID2-databases" : "typeID1-databases",
+                                children: [
+                                    createTextRun("Databases", textStyle.arial11, { bold: true, color: "000000" }),
+                                ]
+                            })
                         ],
                         heading: HeadingLevel.HEADING_2,
                         alignment: AlignmentType.START,
@@ -3014,7 +3066,12 @@ export const handleWordReportDownload = async ({
                     new Paragraph({
                         indent: { left: 520 },
                         children: [
-                            createTextRun("Disclaimer", textStyle.arial14, { bold: true, color: "000000" }),
+                            new Bookmark({
+                                id: typeId1 ? "typeID1-disclaimer" : "typeID2-disclaimer",
+                                children: [
+                                    createTextRun("Disclaimer", textStyle.arial14, { bold: true, color: "000000" }),
+                                ]
+                            })
                         ],
                         heading: HeadingLevel.HEADING_1,
                         alignment: AlignmentType.START,
@@ -3035,5 +3092,5 @@ export const handleWordReportDownload = async ({
     });
 
     const blob = await Packer.toBlob(doc);
-    saveAs(blob, `${projectTitle || "StaticData"}.docx`);
+    saveAs(blob, `${introduction.projectTitle || "StaticData"}.docx`);
 };

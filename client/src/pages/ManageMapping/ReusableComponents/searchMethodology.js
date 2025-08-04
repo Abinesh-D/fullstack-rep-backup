@@ -52,7 +52,7 @@ export const getSearchMethodology = (projectTitle) => [
             spacing: { after: 50 },
             children: [
                 new Bookmark({
-                    id: "search-methodology",
+                    id: "typeID2-appendix1",
                     children: [
                         new TextRun({ text: "Appendix 1", font: "Arial", size: 28, color: "000000", bold: true, }),
                     ]
@@ -65,7 +65,7 @@ export const getSearchMethodology = (projectTitle) => [
         new Paragraph({
             spacing: { after: 50 },
             children: [
-                        new TextRun({ text: "Search Methodology", font: "Arial", size: 24, color: "000000", bold: true, }),
+                    new TextRun({ text: "Search Methodology", font: "Arial", size: 24, color: "000000", bold: true, }),
             ],
             indent: { left: 520 }
         })
@@ -75,7 +75,7 @@ export const getSearchMethodology = (projectTitle) => [
             spacing: { after: 50 },
             children: [
                 new Bookmark({
-                    id: "search-methodology",
+                    id: "typeID1-search-methodology",
                     children: [new TextRun({ text: "2. Search Methodology", font: "Arial", size: 28, color: "000000", bold: true, }),
                     ]
                 })

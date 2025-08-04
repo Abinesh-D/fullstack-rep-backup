@@ -52,6 +52,7 @@ const MappingProjectCreation = () => {
     const [relevantForm, setRelevantForm] = useState({
         patentNumber: '',
         publicationUrl: '',
+        googlePublicationUrl: '',
         title: '',
         abstract: '',
         filingDate: '',
@@ -75,6 +76,7 @@ const MappingProjectCreation = () => {
         setRelevantForm({
             patentNumber: '',
             publicationUrl: '',
+            googlePublicationUrl: '',
             title: '',
             abstract: '',
             filingDate: '',
@@ -133,6 +135,7 @@ const MappingProjectCreation = () => {
     const [projectFormData, setProjectFormData] = useState({
         projectTitle: '',
         projectSubTitle: '',
+        projectId: "",
         searchFeatures: "",
         // projectImageUrl: [],
     });
@@ -141,6 +144,7 @@ const MappingProjectCreation = () => {
         nplTitle: "",
         url: "",
         nplPublicationDate: "",
+        nplPublicationUrl: "",
         comments: "",
         excerpts: "",
     });
@@ -150,6 +154,7 @@ const MappingProjectCreation = () => {
             nplTitle: "",
             url: "",
             nplPublicationDate: "",
+            nplPublicationUrl: "",
             comments: "",
             excerpts: "",
         });
@@ -379,6 +384,7 @@ const MappingProjectCreation = () => {
                     setProjectFormData({
                         projectTitle: singleProject.stages.introduction?.[0]?.projectTitle || "",
                         projectSubTitle: singleProject.stages.introduction?.[0]?.projectSubTitle || "",
+                        projectId: singleProject.stages.introduction?.[0]?.projectId || "",
                         searchFeatures: singleProject.stages.introduction?.[0]?.searchFeatures || [],
                         // projectImageUrl: singleProject.stages.introduction?.[0]?.projectImageUrl || [],
                     });
@@ -792,8 +798,8 @@ const MappingProjectCreation = () => {
     };
 
 
-    const { title, publicationUrl, abstractData, aplDate, pubDate, priorityDates, inventorNames, applicantNames, classificationsSymbol,
-        classData, familyMemData, formattedDescriptions, ipcClass, cpcClass } = usePatentData(data, "relevant");
+    const { title, publicationUrl, googlePublicationUrl, abstractData, aplDate, pubDate, priorityDates, inventorNames, applicantNames,
+        classificationsSymbol, classData, familyMemData, formattedDescriptions, ipcClass, cpcClass } = usePatentData(data, "relevant", relevantForm.patentNumber);
 
     // function getEnglishAbstract(biblio) {
     //     const abstractArray = biblio?.['world-patent-data']?.['exchange-documents']?.['exchange-document']?.abstract;
@@ -1266,6 +1272,10 @@ const MappingProjectCreation = () => {
                     publicationUrl ||
                     releventBiblioGoogleData?.pageUrl ||
                     "",
+                googlePublicationUrl:
+                    googlePublicationUrl ||
+                    releventBiblioGoogleData?.pageUrl ||
+                    "",
 
                 title:
                     title ||
@@ -1578,9 +1588,12 @@ const MappingProjectCreation = () => {
 
 
             handleWordReportDownload({
-                projectTitle: getProjectValue.stages.introduction[0]?.projectTitle || "",
-                projectSubTitle: getProjectValue.stages.introduction[0]?.projectSubTitle || "",
-                searchFeatures: getProjectValue.stages.introduction[0]?.searchFeatures || [],
+                // projectTitle: getProjectValue.stages.introduction[0]?.projectTitle || "",
+                // projectSubTitle: getProjectValue.stages.introduction[0]?.projectSubTitle || "",
+                // searchFeatures: getProjectValue.stages.introduction[0]?.searchFeatures || [],
+                introduction: getProjectValue.stages.introduction[0] || [],
+
+
                 relevantReferences: getProjectValue.stages.relevantReferences.publicationDetails || [],
                 nonPatentLiteratures: getProjectValue.stages.relevantReferences.nonPatentLiteratures || [],
                 relatedReferences: getProjectValue.stages.relatedReferences || [],
