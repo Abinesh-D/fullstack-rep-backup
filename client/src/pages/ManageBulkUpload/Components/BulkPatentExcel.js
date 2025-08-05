@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import * as XLSX from 'xlsx';
 import sampleExcelImage from "../../../assets/images/bulk_patent_sample_image.png";
@@ -6,13 +6,12 @@ import sampleExcelImage from "../../../assets/images/bulk_patent_sample_image.pn
 import { Modal, ModalBody, ModalHeader, Button } from "reactstrap";
 import { fetchBulkESPData, saveExcelRelatedReferences } from '../../ManageEmployees/ManageBibliography/BibliographySLice/BibliographySlice';
 import { FaFileExcel } from 'react-icons/fa';
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import { downloadSampleExcel } from './sampleBulkPatentDownload';
 import {
   extractAbstractText, inventionTitle, publicationDateFunction, applicationDateFunction, getPriorityDates, classifications,
   normalizeText, computeFamId, mapRelatedData, mappedValue, 
 } from "./BulkResponseMap";
+import debounce from 'lodash/debounce';
 
 
 const ExcelPatentUploader = ({ setRelatedFormData }) => {
@@ -48,44 +47,84 @@ const ExcelPatentUploader = ({ setRelatedFormData }) => {
     try {
       setLoading(true);
       await fetchBulkESPData(patentNumbers, dispatch, "related");
-      toast.success("📚 Biblio data fetched successfully!");
     } catch (error) {
       console.error("❌ Error fetching data:", error);
-      toast.error("Failed to fetch biblio data.");
     } finally {
       setLoading(false);
       setSubmitDisable(true);
     }
   };
 
+
+  useEffect(() => {
+    return () => {
+      debouncedParseFile.cancel();
+    };
+  }, []);
+
+
+
+  const debouncedParseFile = useCallback(
+    debounce((file) => {
+      setFileName(file.name);
+      setLoading(true);
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: "array" });
+
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+
+        const extractedNumbers = jsonData
+          .map(row => row["Patent Number"])
+          .filter(val => val)
+          .map(val => String(val).trim());
+
+        const commaSeparated = extractedNumbers.join(", ");
+        setPatentNumbers(commaSeparated.split(',').map(val => val.trim()).filter(val => val !== '').length || 0);
+        bulkBiblioApiCall(commaSeparated);
+      };
+
+      reader.readAsArrayBuffer(file);
+
+    }, 300),
+    []
+  );
+
+
+
   const handleFileUpload = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
-    setFileName(file.name);
-    setLoading(true);
+    debouncedParseFile(file);
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const data = new Uint8Array(e.target.result);
-      const workbook = XLSX.read(data, { type: "array" });
+    // setFileName(file.name);
+    // setLoading(true);
 
-      const sheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[sheetName];
-      const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+    // const reader = new FileReader();
+    // reader.onload = (e) => {
+    //   const data = new Uint8Array(e.target.result);
+    //   const workbook = XLSX.read(data, { type: "array" });
 
-      const extractedNumbers = jsonData
-        .map(row => row["Patent Number"])
-        .filter(val => val)
-        .map(val => String(val).trim());
+    //   const sheetName = workbook.SheetNames[0];
+    //   const worksheet = workbook.Sheets[sheetName];
+    //   const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
 
-      const commaSeparated = extractedNumbers.join(", ");
-      setPatentNumbers(commaSeparated.split(',').map(val => val.trim()).filter(val => val !== '').length || 0);
-      toast.success(`${file.name} uploaded successfully!`);
-      bulkBiblioApiCall(commaSeparated);
-    };
+    //   const extractedNumbers = jsonData
+    //     .map(row => row["Patent Number"])
+    //     .filter(val => val)
+    //     .map(val => String(val).trim());
 
-    reader.readAsArrayBuffer(file);
+    //   const commaSeparated = extractedNumbers.join(", ");
+    //   setPatentNumbers(commaSeparated.split(',').map(val => val.trim()).filter(val => val !== '').length || 0);
+    //   bulkBiblioApiCall(commaSeparated);
+    // };
+
+    // reader.readAsArrayBuffer(file);
   };
 
   const handleDrop = (e) => {
@@ -102,23 +141,10 @@ const ExcelPatentUploader = ({ setRelatedFormData }) => {
     setSubmitLoading(true);
     try {
       const relatedData = mapRelatedData(bulkmappedValue);
-
-      // mappedValue.map(item => ({
-      //   publicationNumber: item.patentNumber || "",
-      //   relatedPublicationUrl: item.publicationUrl || "",
-      //   relatedTitle: item.invention || "",
-      //   relatedAssignee: item.applicantNames ? item.applicantNames.split(';').map(name => name.trim()) : [],
-      //   relatedInventor: item.inventorNames ? item.inventorNames.split(';').map(name => name.trim()) : [],
-      //   relatedFamilyMembers: item.familyMembersData.map(f => f.familyPatent),
-      //   relatedPublicationDate: item.publicationDate || "",
-      //   relatedPriorityDate: item.priorityDates || ""
-      // }));
       const response = await saveExcelRelatedReferences(id, relatedData);
       setRelatedFormData(response);
-      toast.success("✅ Biblio submitted successfully!");
     } catch (error) {
       console.log(error, "error")
-      toast.error("❌ Failed to submit biblio.");
     } finally {
       setSubmitLoading(false);
       setPatentNumbers(0);
@@ -280,8 +306,16 @@ const ExcelPatentUploader = ({ setRelatedFormData }) => {
   //   setfamId(result);
   // }, [espData]);
 
+
+
+
   // // Bulk Biblio
-   const bulkmappedValue = mappedValue(espData, famId);
+  //  const bulkmappedValue = mappedValue(espData, famId);
+
+  const bulkmappedValue = useMemo(() => mappedValue(espData, famId), [espData, famId]);
+
+
+
 
   // const mappedValue = espData.map((map) => {
 
@@ -407,8 +441,6 @@ const ExcelPatentUploader = ({ setRelatedFormData }) => {
       onDragLeave={() => setIsDragOver(false)}
       onDrop={handleDrop}
     >
-      <ToastContainer position="top-right" autoClose={3000} />
-
       <label
         htmlFor="excel-upload"
         className={`d-block p-5 text-center border rounded-lg ${isDragOver ? "border-primary bg-primary bg-opacity-10" : "border-secondary"}`}
@@ -485,13 +517,24 @@ const ExcelPatentUploader = ({ setRelatedFormData }) => {
         <ModalHeader toggle={() => setShowSampleModal(false)}>
           📄 Sample Excel Format
         </ModalHeader>
+
         <ModalBody className="text-center">
+          {showSampleModal && (
+            <img
+              src={sampleExcelImage}
+              alt="Sample Excel Format"
+              className="img-fluid rounded shadow"
+            />
+          )}
+        </ModalBody>
+
+        {/* <ModalBody className="text-center">
           <img
             src={sampleExcelImage}
             alt="Sample Excel Format"
             className="img-fluid rounded shadow"
           />
-        </ModalBody>
+        </ModalBody> */}
       </Modal>
     </div>
 
@@ -507,7 +550,6 @@ const ExcelPatentUploader = ({ setRelatedFormData }) => {
     //   onDragLeave={() => setIsDragOver(false)}
     //   onDrop={handleDrop}
     // >
-    //   <ToastContainer position="top-right" autoClose={3000} />
 
     //   <label htmlFor="excel-upload"
     //     className={`d-block p-5 text-center border rounded-lg ${isDragOver ? "border-primary bg-primary bg-opacity-10" : "border-secondary"}`}
@@ -610,7 +652,6 @@ const ExcelPatentUploader = ({ setRelatedFormData }) => {
     //   onDragLeave={() => setIsDragOver(false)}
     //   onDrop={handleDrop}
     // >
-    //   <ToastContainer position="top-right" autoClose={3000} />
     //   <label
     //     htmlFor="excel-upload"
     //     className={`d-block p-5 text-center border rounded-lg ${isDragOver ? "border-primary bg-primary bg-opacity-10" : "border-secondary"

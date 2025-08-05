@@ -32,7 +32,6 @@ const NonPatentLiteratureForm = ({
                     <Col lg="4">
                         <div className="mb-3">
                             <Label for="npl-url">Source</Label>
-                            {/* <Label for="npl-url">URL</Label> */}
                             <Input
                                 type="text"
                                 id="npl-url"
@@ -59,10 +58,10 @@ const NonPatentLiteratureForm = ({
                 <Row>
                     <Col lg="12">
                         <div className="mb-3">
-                            <Label for="npl-url">Url</Label>
+                            <Label for="npl-nplPublicationUrl">Url</Label>
                             <Input
                                 type="text"
-                                id="npl-url"
+                                id="npl-nplPublicationUrl"
                                 placeholder="Enter url"
                                 value={nplPatentFormData.nplPublicationUrl}
                                 onChange={handleNplChange}

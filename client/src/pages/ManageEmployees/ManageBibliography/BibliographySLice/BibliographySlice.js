@@ -588,6 +588,17 @@ export const handleWordDownloadFrontend = (fetchId) => async () => {
 
 
 
+export const handleNonPatentDeleteSlice = async (id, _id) => {
+  try {
+    const response = await urlSocket.delete(`/live/projectname/delete-npl/${id}/${_id}`);
+    return response; // ✅ Return the response to access status and data
+  } catch (error) {
+    console.error("Error deleting NPL:", error);
+    throw error; // ✅ Rethrow for the caller to handle
+  }
+};
+
+
 
 export const { setPatentData, setEspaceApiData, setBulkESPData, resetPatentData, setGoogleApiData, setLensOrgApiData, setFreePatentApiData,
   setPatentLoading, setLensPageUrl, setFetchESPData, setESPData, setFetchLegalStatus, setClassifyData, setChatBoxData,

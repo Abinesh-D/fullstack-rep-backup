@@ -160,170 +160,170 @@ const ClassifySearch = (activeTab) => {
 
   return (
     <div>
-      <Nav tabs className="nav-tabs-custom nav-justified mb-4">
-      <NavItem>
-        <NavLink
-          style={{ cursor: "pointer" }}
-          className={classnames({ active: customActiveTab === "1" })}
-          onClick={() => toggleCustom("1")}
-        >
-          <span className="d-block d-sm-none"><i className="fas fa-search"></i></span>
-          <span className="d-none d-sm-block">Classification Manual Upload</span>
-        </NavLink>
-      </NavItem>
+       <Nav tabs className="nav-tabs-custom nav-justified mb-4">
+        <NavItem>
+          <NavLink
+            style={{ cursor: "pointer" }}
+            className={classnames({ active: customActiveTab === "1" })}
+            onClick={() => toggleCustom("1")}
+          >
+            <span className="d-block d-sm-none"><i className="fas fa-search"></i></span>
+            <span className="d-none d-sm-block">Classification Manual Upload</span>
+          </NavLink>
+        </NavItem>
 
-      <NavItem>
-        <NavLink
-          style={{ cursor: "pointer" }}
-          className={classnames({ active: customActiveTab === "2" })}
-          onClick={() => toggleCustom("2")}
-        >
-          <span className="d-block d-sm-none"><i className="fas fa-search"></i></span>
-          <span className="d-none d-sm-block">Classification Excel Upload</span>
-        </NavLink>
-      </NavItem>
-
+        <NavItem>
+          <NavLink
+            style={{ cursor: "pointer" }}
+            className={classnames({ active: customActiveTab === "2" })}
+            onClick={() => toggleCustom("2")}
+          >
+            <span className="d-block d-sm-none"><i className="fas fa-search"></i></span>
+            <span className="d-none d-sm-block">Classification Excel Upload</span>
+          </NavLink>
+        </NavItem>
       </Nav>
 
-
-      <>
+      <TabContent activeTab={customActiveTab}>
         <TabPane tabId="1">
           <IPCDefinition />
         </TabPane>
-      </>
 
-      <TabPane tabId="2">
-
-        <div className="p-3 bg-white rounded-3 shadow-sm border border-light mb-3">
-          <form onSubmit={handleClassifySubmit}>
-            <div className="mb-3">
-              <label className="form-label fw-semibold text-primary mb-1" style={{ fontSize: "0.95rem" }}>
-                CPC Classification Number
-              </label>
-              <input
-                type="text"
-                value={classifyNumber.trim()}
-                onChange={(e) => setClassifyNumber(e.target.value)}
-                className="form-control form-control-md rounded-2"
-                placeholder="E.g., A01B 1/00"
-              />
-              <small className="text-muted" style={{ fontSize: "0.75rem" }}>
-                Enter a valid Cooperative Patent Classification number(CPC).
-              </small>
-            </div>
-
-            <Row className="align-items-center mt-3">
-              <Col md="9" className="mb-2 mb-md-0">
-                {showAlert && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className={`alert ${alertType === "success" ? "alert-success" : "alert-danger"} fw-normal py-2 px-3 mb-0 rounded-2 text-center`}
-                    style={{ fontSize: "0.85rem" }}
-                  >
-                    {customAlertMessage}
-                  </motion.div>
-                )}
-              </Col>
-              <Col md="3" className="text-md-end text-center">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  type="submit"
-                  className="btn btn-sm btn-primary px-3 py-2 rounded-pill shadow-sm"
-                  disabled={loading}
-                  style={{ fontSize: "0.85rem", minWidth: loading ? "120px" : "auto" }}
-                >
-                  {loading && <Spinner size="sm" color="light" className="me-2" />}
-                  {loading ? "Searching..." : "Search"}
-                </motion.button>
-              </Col>
-            </Row>
-          </form>
-        </div>
-      </TabPane>
-      {!submitted ? null : loading ? (
-        <div style={{ position: 'relative', height: '100%', width: '100%' }}>
-          <Spinner size="md" color="primary" style={{ position: 'absolute', top: '50%', left: '50%', }} />
-        </div>
-      ) : cpcItems && cpcItems.length > 0 ? (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          style={{
-            backgroundColor: "#f9f9f9",
-            border: "1px solid #ccc",
-            borderRadius: "10px",
-            padding: "1.5rem",
-            marginTop: "1rem",
-            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.05)",
-          }}
-        >
-          {classificationSymbol && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="mt-4"
-            >
-              <div className="row align-items-center justify-content-between mb-3">
-                <ClassifyWindowModal cpcItems={cpcItems} classificationSymbol={classificationSymbol} />
+        <TabPane tabId="2">
+          <div className="p-3 bg-white rounded-3 shadow-sm border border-light mb-3">
+            <form onSubmit={handleClassifySubmit}>
+              <div className="mb-3">
+                <label className="form-label fw-semibold text-primary mb-1" style={{ fontSize: "0.95rem" }}>
+                  CPC Classification Number
+                </label>
+                <input
+                  type="text"
+                  value={classifyNumber.trim()}
+                  onChange={(e) => setClassifyNumber(e.target.value)}
+                  className="form-control form-control-md rounded-2"
+                  placeholder="E.g., A01B 1/00"
+                />
+                <small className="text-muted" style={{ fontSize: "0.75rem" }}>
+                  Enter a valid Cooperative Patent Classification number (CPC).
+                </small>
               </div>
 
-              <Card className="mb-3 shadow-sm border-start border-primary border-4">
-                <CardBody>
-                  <h6 className="fw-semibold text-primary d-flex align-items-center">
-                    <FaCode className="me-2" /> Classification Symbol
-                  </h6>
-                  <p className="mb-0 text-muted">{classificationSymbol || "N/A"}</p>
-                </CardBody>
-              </Card>
-
-              <Card className="mb-3 shadow-sm border-start border-success border-4">
-                <CardBody>
-                  <h6 className="fw-semibold text-success d-flex align-items-center">
-                    <FaBook className="me-2" /> Title Text
-                  </h6>
-                  <p className="mb-0 text-muted">{classTitle || "N/A"}</p>
-                </CardBody>
-              </Card>
-
-              <Card className="mb-3 shadow-sm border-start border-warning border-4">
-                <CardBody>
-                  <h6 className="fw-semibold text-warning d-flex align-items-center">
-                    <FaCalendarAlt className="me-2" /> Date Revised
-                  </h6>
-                  <p className="mb-0 text-muted">{dateRevised || "N/A"}</p>
-                </CardBody>
-              </Card>
-
-              <Card className="mb-3 shadow-sm border-start border-danger border-4">
-                <CardBody>
-                  <h6 className="fw-semibold text-danger d-flex align-items-center">
-                    <FaInfoCircle className="me-2" /> Status
-                  </h6>
-                  <p className="mb-0">
-                    <span
-                      className={`badge px-3 py-1 ${status === "published"
-                        ? "bg-success"
-                        : status === "Inactive"
-                          ? "bg-secondary"
-                          : "bg-dark"
-                        }`}
+              <Row className="align-items-center mt-3">
+                <Col md="9" className="mb-2 mb-md-0">
+                  {showAlert && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className={`alert ${alertType === "success" ? "alert-success" : "alert-danger"} fw-normal py-2 px-3 mb-0 rounded-2 text-center`}
+                      style={{ fontSize: "0.85rem" }}
                     >
-                      {status || "N/A"}
-                    </span>
-                  </p>
-                </CardBody>
-              </Card>
-            </motion.div>
-          )}  </motion.div>
-      ) : null}
+                      {customAlertMessage}
+                    </motion.div>
+                  )}
+                </Col>
+                <Col md="3" className="text-md-end text-center">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    type="submit"
+                    className="btn btn-sm btn-primary px-3 py-2 rounded-pill shadow-sm"
+                    disabled={loading}
+                    style={{ fontSize: "0.85rem", minWidth: loading ? "120px" : "auto" }}
+                  >
+                    {loading && <Spinner size="sm" color="light" className="me-2" />}
+                    {loading ? "Searching..." : "Search"}
+                  </motion.button>
+                </Col>
+              </Row>
+            </form>
+          </div>
+          {!submitted ? null : loading ? (
+          <div style={{ position: 'relative', height: '100%', width: '100%' }}>
+            <Spinner size="md" color="primary" style={{ position: 'absolute', top: '50%', left: '50%', }} />
+          </div>
+        ) : cpcItems && cpcItems.length > 0 ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            style={{
+              backgroundColor: "#f9f9f9",
+              border: "1px solid #ccc",
+              borderRadius: "10px",
+              padding: "1.5rem",
+              marginTop: "1rem",
+              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.05)",
+            }}
+          >
+            {classificationSymbol && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="mt-4"
+              >
+                <div className="row align-items-center justify-content-between mb-3">
+                  <ClassifyWindowModal cpcItems={cpcItems} classificationSymbol={classificationSymbol} />
+                </div>
+
+                <Card className="mb-3 shadow-sm border-start border-primary border-4">
+                  <CardBody>
+                    <h6 className="fw-semibold text-primary d-flex align-items-center">
+                      <FaCode className="me-2" /> Classification Symbol
+                    </h6>
+                    <p className="mb-0 text-muted">{classificationSymbol || "N/A"}</p>
+                  </CardBody>
+                </Card>
+
+                <Card className="mb-3 shadow-sm border-start border-success border-4">
+                  <CardBody>
+                    <h6 className="fw-semibold text-success d-flex align-items-center">
+                      <FaBook className="me-2" /> Title Text
+                    </h6>
+                    <p className="mb-0 text-muted">{classTitle || "N/A"}</p>
+                  </CardBody>
+                </Card>
+
+                <Card className="mb-3 shadow-sm border-start border-warning border-4">
+                  <CardBody>
+                    <h6 className="fw-semibold text-warning d-flex align-items-center">
+                      <FaCalendarAlt className="me-2" /> Date Revised
+                    </h6>
+                    <p className="mb-0 text-muted">{dateRevised || "N/A"}</p>
+                  </CardBody>
+                </Card>
+
+                <Card className="mb-3 shadow-sm border-start border-danger border-4">
+                  <CardBody>
+                    <h6 className="fw-semibold text-danger d-flex align-items-center">
+                      <FaInfoCircle className="me-2" /> Status
+                    </h6>
+                    <p className="mb-0">
+                      <span
+                        className={`badge px-3 py-1 ${status === "published"
+                          ? "bg-success"
+                          : status === "Inactive"
+                            ? "bg-secondary"
+                            : "bg-dark"
+                          }`}
+                      >
+                        {status || "N/A"}
+                      </span>
+                    </p>
+                  </CardBody>
+                </Card>
+              </motion.div>
+            )}  </motion.div>
+        ) : null}
+        </TabPane>        
+      </TabContent>
+
+      
+     
 
 
-      <TabContent
+      {/* <TabContent
         activeTab={customActiveTab}
         className="p-3"
         tag={motion.div}
@@ -467,7 +467,7 @@ const ClassifySearch = (activeTab) => {
 
         </TabPane>
 
-      </TabContent>
+      </TabContent> */}
 
     </div>
   );

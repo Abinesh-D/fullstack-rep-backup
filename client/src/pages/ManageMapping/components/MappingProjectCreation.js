@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import {
     Card, CardBody, Col, Container, NavItem, NavLink, Row, TabContent, TabPane,
 } from "reactstrap";
@@ -10,9 +10,8 @@ import {
     GOOGLE_API_DATA, EPO_API_DATA, fetchProjects, fetchPublicationDetails, fetchProjectById, setRelevantApiTrue, setRelatedApiTrue,
     fetchRelatedReferences,
     setSingleProject,
-    handleWordDownloadFrontend,
+    handleNonPatentDeleteSlice,
 } from "../../ManageEmployees/ManageBibliography/BibliographySLice/BibliographySlice";
-import { mapFamilyMemberData } from "../../ManagePriorFormat/ReusableComp/Functions";
 import { FaFileWord } from "react-icons/fa";
 import axios from "axios";
 import RelevantRefComponent from "./ChildComponent/RelevantRefComponent";
@@ -311,24 +310,44 @@ const MappingProjectCreation = () => {
 
 
 
+   const handleNonPatentDelete = async () => {
+  try {
+    const response = await handleNonPatentDeleteSlice(id, selectedRow._id);
 
-    const handleNonPatentDelete = async () => {
-        try {
-            const response = await axios.delete(
-                `http://localhost:8080/live/projectname/delete-npl/${id}/${selectedRow._id}`
-            );
+    if (response.status === 200) {
+      const updatedNPLs = response.data.stages.relevantReferences.nonPatentLiteratures;
+      setNonPatentFormData(updatedNPLs);
+    }
+  } catch (error) {
+    console.error("Error deleting NPL:", error);
+  } finally {
+    setActiveModal(null);
+    setSelectedRow(null);
+  }
+};
 
-            if (response.status === 200) {
-                const updatedNPLs = response.data.stages.relevantReferences.nonPatentLiteratures;
-                setNonPatentFormData(updatedNPLs);
-            }
-        } catch (error) {
-            console.error("Error deleting NPL:", error);
-        } finally {
-            setActiveModal(null);
-            setSelectedRow(null);
-        }
-    };
+
+
+
+
+
+    // const handleNonPatentDelete = async () => {
+    //     try {
+    //         const response = await axios.delete(
+    //             `http://localhost:8080/live/projectname/delete-npl/${id}/${selectedRow._id}`
+    //         );
+
+    //         if (response.status === 200) {
+    //             const updatedNPLs = response.data.stages.relevantReferences.nonPatentLiteratures;
+    //             setNonPatentFormData(updatedNPLs);
+    //         }
+    //     } catch (error) {
+    //         console.error("Error deleting NPL:", error);
+    //     } finally {
+    //         setActiveModal(null);
+    //         setSelectedRow(null);
+    //     }
+    // };
 
     const handlePublicationDelete = async () => {
         if (!selectedRow) return;
@@ -702,74 +721,6 @@ const MappingProjectCreation = () => {
     };
 
 
-    const getCleanPartyNames = (partyArray = [], nameKey = '') => {
-        if (!Array.isArray(partyArray) || !nameKey) return '';
-
-        const priority = ['epodoc', 'original', 'docdb'];
-
-        const availableFormat = priority.find(format =>
-            partyArray.some(item => item?.$?.['data-format'] === format)
-        );
-
-        if (!availableFormat) return '';
-        const filteredArray = partyArray.filter(
-            item => item?.$?.['data-format'] === availableFormat
-        );
-
-        const cleanedNames = filteredArray
-            .map(item =>
-                nameKey.split('.').reduce((obj, key) => obj?.[key], item)
-                    ?.replace(/\[.*?\]/g, '')
-                    ?.replace(/[.,;]/g, '')
-                    ?.replace(/\s+/g, ' ')
-                    ?.trim()
-            )
-            .filter(Boolean);
-
-        const uniqueNames = [...new Map(
-            cleanedNames.map(name => [name.toLowerCase(), name])
-        ).values()];
-
-        const titleCasedNames = uniqueNames.map(str =>
-            str.replace(/\b\w/g, char => char.toUpperCase())
-        );
-
-        return titleCasedNames.join('; ');
-    };
-
-
-
-
-    // const getCleanPartyNames = (partyArray = [], nameKey = '') => {
-    //     if (!Array.isArray(partyArray) || !nameKey) return '';
-
-    //     const priority = { epodoc: 1, original: 2, docdb: 3 };
-
-    //     const cleanedNames = [...partyArray]
-    //         .sort((a, b) =>
-    //             (priority[a?.$?.['data-format']] || 999) - (priority[b?.$?.['data-format']] || 999)
-    //         )
-    //         .map(item =>
-    //             nameKey.split('.').reduce((obj, key) => obj?.[key], item)
-    //                 ?.replace(/\[.*?\]/g, '')
-    //                 ?.replace(/[.,;]/g, '')
-    //                 ?.replace(/\s+/g, ' ')
-    //                 ?.trim()
-    //         )
-    //         .filter(Boolean);
-
-    //     const uniqueNames = [...new Map(
-    //         cleanedNames.map(name => [name.toLowerCase(), name])
-    //     ).values()];
-
-    //     const titleCasedNames = uniqueNames.map(str =>
-    //         str.replace(/\b\w/g, char => char.toUpperCase())
-    //     );
-
-    //     return titleCasedNames.join('; ');
-    // };
-
-
     // ------------------ Relevant -------------------------
 
     const handleFetchPatentData = async () => {
@@ -800,213 +751,6 @@ const MappingProjectCreation = () => {
 
     const { title, publicationUrl, googlePublicationUrl, abstractData, aplDate, pubDate, priorityDates, inventorNames, applicantNames,
         classificationsSymbol, classData, familyMemData, formattedDescriptions, ipcClass, cpcClass } = usePatentData(data, "relevant", relevantForm.patentNumber);
-
-    // function getEnglishAbstract(biblio) {
-    //     const abstractArray = biblio?.['world-patent-data']?.['exchange-documents']?.['exchange-document']?.abstract;
-    //     if (Array.isArray(abstractArray)) {
-    //         const englishEntry = abstractArray.find(entry => entry?.$?.lang === 'en');
-    //         return englishEntry?.p || 'No English abstract found.';
-    //     } else if (typeof abstractArray === 'object') {
-    //         return abstractArray.p;
-    //     }
-
-    //     return null;
-    // }
-    // const abstractData = getEnglishAbstract(data.biblio);
-
-    // function convertDescriptionToKeyValue(descriptionText) {
-    //     const result = {};
-    //     const text = descriptionText || '';
-
-    //     const matches = text.matchAll(/\[\d{4}\][\s\S]*?(?=\[\d{4}\]|$)/g);
-
-    //     for (const match of matches) {
-    //         const entry = match[0].trim();
-    //         const keyMatch = entry.match(/^\[(\d{4})\]/);
-    //         if (keyMatch) {
-    //             const key = keyMatch[1];
-    //             const value = entry.replace(/^\[\d{4}\]/, '').trim();
-    //             result[key] = value;
-    //         }
-    //     }
-
-    //     return result;
-    // };
-    // const descArray = data.descriptionData?.['world-patent-data']?.['fulltext-documents']?.['fulltext-document']?.description.p;
-
-    // const descriptionText = descArray?.join('\n') || '';
-    // const formattedDescriptions = convertDescriptionToKeyValue(descriptionText);
-
-    // const famFilterFunction = () => {
-    //     if (data?.patentNumber !== undefined) {
-    //         let familyIDs = [];
-    //         const familyMember = data.familyData?.["world-patent-data"]?.["patent-family"]?.["family-member"];
-    //         if (Array.isArray(familyMember)) {
-    //             familyIDs = data.familyData["world-patent-data"]?.["patent-family"]?.["family-member"][0]?.["$"]?.["family-id"];
-    //         } else if (typeof familyMember === 'object') {
-    //             familyIDs = data.familyData["world-patent-data"]?.["patent-family"]?.["family-member"]?.["$"]?.["family-id"];
-    //         }
-    //         return `https://worldwide.espacenet.com/patent/search/family/0${familyIDs}/publication/${data?.patentNumber}?q=${data?.patentNumber}`;
-    //     }
-    // };
-
-    // const publicationUrl = famFilterFunction();
-
-    // const biblioData = data?.biblio?.['world-patent-data']?.['exchange-documents']?.['exchange-document']?.['bibliographic-data'];
-    // const inventorsData = biblioData?.parties?.inventors?.inventor;
-
-    // const inventorNames = useMemo(() => {
-    //     const inventorsArray = Array.isArray(inventorsData) ? inventorsData : inventorsData ? [inventorsData] : [];
-    //     return getCleanPartyNames(inventorsArray, 'inventor-name.name');
-    // }, [inventorsData]);
-
-    // const applicantsData = biblioData?.parties?.applicants?.applicant
-
-    // const applicantNames = useMemo(() => {
-    //     const applicantsArray = Array.isArray(applicantsData) ? applicantsData : applicantsData ? [applicantsData] : [];
-
-    //     return getCleanPartyNames(applicantsArray, 'applicant-name.name');
-    // }, [applicantsData]);
-
-
-    // const inventionTitle = () => {
-    //     const titleData = biblioData?.['invention-title'];
-
-    //     if (Array.isArray(titleData)) {
-    //         const enTitle = titleData.find(t => t?.$?.lang === 'en');
-    //         if (enTitle) {
-    //             return enTitle._ || '';
-    //         }
-    //         return titleData[0]._ || '';
-    //     }
-    //     else if (titleData?.$?.lang === 'en') {
-    //         return titleData._ || '';
-    //     }
-    //     return titleData?._ || '';
-    // }
-
-    // const title = inventionTitle();
-
-    // const applicationDate = () => {
-    //     const docIds = biblioData?.['application-reference']?.['document-id'];
-
-    //     const epodocDate = Array.isArray(docIds)
-    //         ? docIds.find(doc => doc?.$?.['document-id-type'] === 'epodoc')?.date
-    //         : docIds?.$?.['document-id-type'] === 'epodoc'
-    //             ? docIds.date
-    //             : null;
-
-    //     const formatDate = (dateStr) =>
-    //         dateStr && /^\d{8}$/.test(dateStr)
-    //             ? `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6)}`
-    //             : '';
-
-    //     return formatDate(epodocDate);
-    // }
-
-    // const aplDate = applicationDate();
-
-    // const publicationDate = () => {
-    //     const docIds = biblioData?.['publication-reference']?.['document-id'];
-
-    //     const epodocDate = Array.isArray(docIds)
-    //         ? docIds.find(doc => doc?.$?.['document-id-type'] === 'epodoc')?.date
-    //         : docIds?.$?.['document-id-type'] === 'epodoc'
-    //             ? docIds.date
-    //             : null;
-
-    //     const formatDate = (dateStr) =>
-    //         dateStr && /^\d{8}$/.test(dateStr)
-    //             ? `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6)}`
-    //             : '';
-
-    //     return formatDate(epodocDate);
-    // }
-
-    // const pubDate = publicationDate();
-
-
-    // const getPriorityDates = (biblioData) => {
-    //     let claims = biblioData?.['priority-claims']?.['priority-claim'];
-    //     if (!claims) return '';
-
-    //     if (!Array.isArray(claims)) claims = [claims];
-
-    //     for (const claim of claims) {
-    //         let doc = claim?.['document-id'];
-    //         if (!doc) continue;
-
-    //         if (!Array.isArray(doc)) doc = [doc];
-
-    //         const epodoc = doc.find(d => d?.$?.['document-id-type'] === 'epodoc');
-    //         const rawDate = epodoc?.date?.trim();
-
-    //         if (rawDate && /^\d{8}$/.test(rawDate)) {
-    //             return `${rawDate.slice(0, 4)}-${rawDate.slice(4, 6)}-${rawDate.slice(6, 8)}`;
-    //         }
-    //     }
-    //     return '';
-    // };
-
-    // const priorityDates = getPriorityDates(biblioData);
-
-    // const classifications = () => {
-    //     const patentClassifications = biblioData?.['patent-classifications']?.['patent-classification'];
-
-    //     if (!Array.isArray(patentClassifications)) {
-    //         return { cpc: '', US_Classification: '' };
-    //     }
-
-    //     const cpcSet = new Set();
-    //     const usSet = new Set();
-
-    //     patentClassifications.forEach((item) => {
-    //         const { 'classification-scheme': scheme, section, class: classValue, subclass, 'main-group': mainGroup, subgroup } = item;
-
-    //         if (scheme?.$?.scheme === 'CPCI' && section && classValue && subclass && mainGroup && subgroup) {
-    //             const cpcCode = `${section}${classValue}${subclass}${mainGroup}/${subgroup}`;
-    //             cpcSet.add(cpcCode);
-    //         }
-
-    //         if (scheme?.$?.scheme === 'UC') {
-    //             const classificationSymbol = item['classification-symbol'];
-    //             if (classificationSymbol) {
-    //                 usSet.add(classificationSymbol);
-    //             }
-    //         }
-    //     });
-
-    //     return {
-    //         cpc: cpcSet.size ? Array.from(cpcSet).join(', ') : '',
-    //         US_Classification: usSet.size ? Array.from(usSet).join(', ') : ''
-    //     };
-    // };
-
-    // const classData = classifications();
-
-    // const ipcrRaw = biblioData?.['classifications-ipcr']?.['classification-ipcr'];
-    // const ipc = biblioData?.['classification-ipc']?.text || '';
-
-    // const extractIPCCode = (text) => {
-    //     const match = text?.match(/[A-H][0-9]{2}[A-Z]\s*\d+\/\s*\d+/);
-    //     return match ? match[0].replace(/\s+/g, '') : '';
-    // };
-
-    // const ipcrText = Array.isArray(ipcrRaw)
-    //     ? ipcrRaw.map(item => extractIPCCode(item?.text)).filter(Boolean).join(', ')
-    //     : extractIPCCode(ipcrRaw?.text) || '';
-
-    // const ipcFormatted = ipc ? `${ipc}, ` : '';
-    // const ipcrFormatted = ipcrText ? `${ipcrText}, ` : '';
-
-    // const classificationsSymbol = `${ipcrFormatted}${ipcFormatted}${classData.cpc}`;
-
-    // const famData = mapFamilyMemberData(data);
-
-    // const familyMemData = famData?.map(f => f?.familyPatent).join(', ');
-
-
-
 
     useEffect(() => {
         const isAnyMissing = [
@@ -1081,108 +825,6 @@ const MappingProjectCreation = () => {
             setRelatedLoading(false);
         }
     };
-
-
-
-
-
-
-    // const relatedFamilyFilterFunction = () => {
-    //     if (relatedData?.patentNumber) {
-    //         const familyMember = relatedData.familyData?.["world-patent-data"]?.["patent-family"]?.["family-member"];
-    //         const firstFamily = Array.isArray(familyMember) ? familyMember[0] : familyMember;
-    //         const familyId = firstFamily?.["$"]?.["family-id"];
-    //         if (familyId) {
-    //             return `https://worldwide.espacenet.com/patent/search/family/0${familyId}/publication/${relatedData?.patentNumber}?q=${relatedData?.patentNumber}`;
-    //         }
-    //     }
-    // }
-
-    // const relatedPublicationUrl = relatedFamilyFilterFunction();
-
-
-
-    // const relatedBiblioData = relatedData?.biblio?.['world-patent-data']?.['exchange-documents']?.['exchange-document']?.['bibliographic-data'];
-
-
-    // const relatedPriority = getPriorityDates(relatedBiblioData);
-
-
-
-
-    // const relatedInventorNames = useMemo(() => {
-    //     const inventors = relatedBiblioData?.parties?.inventors?.inventor;
-    //     const array = Array.isArray(inventors) ? inventors : inventors ? [inventors] : [];
-    //     return getCleanPartyNames(array, 'inventor-name.name');
-    // }, [relatedBiblioData]);
-
-
-
-    // const relatedApplicantNames = useMemo(() => {
-    //     const applicants = relatedBiblioData?.parties?.applicants?.applicant;
-    //     const array = Array.isArray(applicants) ? applicants : applicants ? [applicants] : [];
-    //     return getCleanPartyNames(array, 'applicant-name.name');
-    // }, [relatedBiblioData]);
-
-
-    // const assigneeAndInventorsName = useMemo(() => {
-    //     return relatedApplicantNames && relatedInventorNames ? `${relatedApplicantNames} / ${relatedInventorNames}` : '';
-    // }, [relatedApplicantNames, relatedInventorNames]);
-
-
-    // console.log('relatedApplicantNames', relatedApplicantNames);
-    // console.log('relatedInventorNames', relatedInventorNames)
-
-
-
-    // const glAssigneesAndInventor = useMemo(() => {
-    //     return relatedBiblioGoogleData.intentor && relatedBiblioGoogleData.assignees ? ` ${relatedBiblioGoogleData.assignees} / ${relatedBiblioGoogleData.inventors}` : ''
-
-    // }, [relatedBiblioGoogleData.intentors, relatedBiblioGoogleData.assignees]);
-
-    // console.log('glAssigneesAndInventor', glAssigneesAndInventor);
-
-    // const relatedInventionTitle = () => {
-    //     const titleData = relatedBiblioData?.['invention-title'];
-    //     if (Array.isArray(titleData)) {
-    //         const enTitle = titleData.find(t => t?.$?.lang === 'en');
-    //         return enTitle?._ || titleData[0]?._ || '';
-    //     }
-    //     return titleData?._ || '';
-    // };
-
-    // const relatedPublicationDate = () => {
-    //     const docIds = relatedBiblioData?.['publication-reference']?.['document-id'];
-    //     const date =
-    //         Array.isArray(docIds)
-    //             ? docIds.find(doc => doc?.$?.['document-id-type'] === 'epodoc')?.date
-    //             : docIds?.$?.['document-id-type'] === 'epodoc'
-    //                 ? docIds.date
-    //                 : null;
-    //     return date && /^\d{8}$/.test(date) ? `${date.slice(0, 4)}-${date.slice(4, 6)}-${date.slice(6)}` : '';
-    // };
-
-    // const relatedFamData = useMemo(() => {
-    //     const familyMembers = relatedData.familyData?.["world-patent-data"]?.["patent-family"]?.["family-member"];
-    //     const familyArray = Array.isArray(familyMembers) ? familyMembers : familyMembers ? [familyMembers] : [];
-    //     return familyArray.map(member => {
-    //         const docs = member?.["publication-reference"]?.["document-id"] || [];
-    //         const publicationInfo = (Array.isArray(docs) ? docs : [docs])
-    //             .filter(doc => doc?.["$"]?.["document-id-type"] === "docdb")
-    //             .map(doc => `${doc?.["country"]}${doc?.["doc-number"]}${doc?.["kind"]}`)
-    //             .join('');
-    //         return {
-    //             familyId: member?.["$"]?.["family-id"],
-    //             familyPatent: publicationInfo
-    //         };
-    //     });
-    // }, [relatedBiblioData]);
-
-    // const relatedFamilyData = relatedFamData?.map(f => f?.familyPatent).join(', ') || '';
-
-
-    // const memoInventionTitle = useMemo(() => relatedInventionTitle(), [relatedBiblioData]);
-    // const memoPubDate = useMemo(() => relatedPublicationDate(), [relatedBiblioData]);
 
     const relatedApiData = usePatentData(relatedData, "related");
 
@@ -1385,29 +1027,6 @@ const MappingProjectCreation = () => {
         }
     };
 
-    // const handleRelevantAndNplCombinedSubmit = async (e) => {
-    //     e.preventDefault();
-
-    //     console.log('relevantAndNplUpdatedData', relevantAndNplUpdatedData)
-
-    //     try {
-    //         const response = await axios.post(
-    //             `http://localhost:8080/live/projectname/add-relevantandnpl-data/${id}`, relevantAndNplUpdatedData,
-    //             { headers: { "Content-Type": "application/json" } }
-    //         );
-    //         if (response.status === 200) {
-    //             const updatedDetails = response.data.stages.relevantReferences.relevantAndNplCombined;
-    //             setRelevantAndNplUpdatedData(updatedDetails);
-
-    //         }
-
-    //     } catch (error) {
-    //         console.error("Error saving publication detail:", error);
-    //     } finally {
-    //         // dispatch(setRelevantApiTrue(false));
-    //     }
-    // };
-
     const handleNplSubmit = async (e) => {
         e.preventDefault();
         if (!nplPatentFormData.nplTitle.trim()) return;
@@ -1557,43 +1176,8 @@ const MappingProjectCreation = () => {
     const handleReportDownload = async () => {
         try {
             const getProjectValue = await fetchProjectById(id);
-            console.log('getProjectValue', getProjectValue);
-            // const payload = {
-            //     id: id,
-            //     projectTitle: getProjectValue.stages.introduction[0]?.projectTitle || "",
-            //     projectSubTitle: getProjectValue.stages.introduction[0]?.projectSubTitle || "",
-            //     searchFeatures: getProjectValue.stages.introduction[0]?.searchFeatures || [],
-            //     relevantReferences: getProjectValue.stages.relevantReferences.publicationDetails || [],
-            //     nonPatentLiteratures: getProjectValue.stages.relevantReferences.nonPatentLiteratures || [],
-            //     relatedReferences: getProjectValue.stages.relatedReferences || [],
-            //     appendix1: getProjectValue.stages.appendix1[0] || [],
-            //     appendix2: getProjectValue.stages.appendix2[0] || [],
-            //     overallSummary: getProjectValue.stages.relevantReferences.overallSummary || "",
-            //     getProjectValue: getProjectValue,
-            //     relevantAndNplCombined: getProjectValue.stages.relevantReferences.relevantAndNplCombined || [],
-            // };
-
-            // Dispatch the thunk and handle promise
-            // dispatch(handleWordDownloadFrontend(id))
-            //     .then((res) => {
-            //         console.log("Download completed:", res);
-            //     })
-            //     .catch((err) => {
-            //         console.error("Download error:", err);
-            //     });
-
-
-
-
-
-
             handleWordReportDownload({
-                // projectTitle: getProjectValue.stages.introduction[0]?.projectTitle || "",
-                // projectSubTitle: getProjectValue.stages.introduction[0]?.projectSubTitle || "",
-                // searchFeatures: getProjectValue.stages.introduction[0]?.searchFeatures || [],
                 introduction: getProjectValue.stages.introduction[0] || [],
-
-
                 relevantReferences: getProjectValue.stages.relevantReferences.publicationDetails || [],
                 nonPatentLiteratures: getProjectValue.stages.relevantReferences.nonPatentLiteratures || [],
                 relatedReferences: getProjectValue.stages.relatedReferences || [],
@@ -1897,7 +1481,7 @@ const MappingProjectCreation = () => {
                                                 </li>
                                                 {
                                                     activeTab === 5 ? (
-                                                        <button style={{ height: '33.75px' }} onClick={handleReportDownload} className="btn btn-sm btn-outline-primary">
+                                                        <button disabled={false} style={{ height: '33.75px' }} onClick={handleReportDownload} className="btn btn-sm btn-outline-primary">
                                                             <FaFileWord size={15} /> Download
                                                         </button>
                                                     ) : (
