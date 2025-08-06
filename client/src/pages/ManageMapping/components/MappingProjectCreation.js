@@ -69,7 +69,7 @@ const MappingProjectCreation = () => {
     });
 
     const [relevantRefSaved, setRelevantRefSaved] = useState(false);
-    
+
 
     const resetRelevantForm = () => {
         setRelevantForm({
@@ -310,21 +310,21 @@ const MappingProjectCreation = () => {
 
 
 
-   const handleNonPatentDelete = async () => {
-  try {
-    const response = await handleNonPatentDeleteSlice(id, selectedRow._id);
+    const handleNonPatentDelete = async () => {
+        try {
+            const response = await handleNonPatentDeleteSlice(id, selectedRow._id);
 
-    if (response.status === 200) {
-      const updatedNPLs = response.data.stages.relevantReferences.nonPatentLiteratures;
-      setNonPatentFormData(updatedNPLs);
-    }
-  } catch (error) {
-    console.error("Error deleting NPL:", error);
-  } finally {
-    setActiveModal(null);
-    setSelectedRow(null);
-  }
-};
+            if (response.status === 200) {
+                const updatedNPLs = response.data.stages.relevantReferences.nonPatentLiteratures;
+                setNonPatentFormData(updatedNPLs);
+            }
+        } catch (error) {
+            console.error("Error deleting NPL:", error);
+        } finally {
+            setActiveModal(null);
+            setSelectedRow(null);
+        }
+    };
 
 
 
@@ -472,7 +472,6 @@ const MappingProjectCreation = () => {
         }
     };
 
-
     const handleRelevantWordsDelete = async () => {
         try {
             const response = await axios.delete(
@@ -489,8 +488,6 @@ const MappingProjectCreation = () => {
             setSelectedRow(null);
         }
     };
-
-
 
     const handleSearchTermDelete = async () => {
         try {
@@ -581,7 +578,6 @@ const MappingProjectCreation = () => {
         }
     };
 
-
     const handleSaveKeyStringAdditional = async () => {
         if (!keyStringAdditional.trim()) return;
 
@@ -618,7 +614,6 @@ const MappingProjectCreation = () => {
         }
     };
 
-
     const handleSaveDataAvailability = async () => {
         if (!dataAvailability.trim()) return;
 
@@ -636,7 +631,6 @@ const MappingProjectCreation = () => {
             console.error("Error saving dataAvailability:", err);
         }
     };
-
 
     const handleDeleteDataAvailability = async () => {
         try {
@@ -736,12 +730,12 @@ const MappingProjectCreation = () => {
             try {
                 // setErrorValidation(false);
                 await GOOGLE_API_DATA(trimmedNumber, dispatch, 'relevant');
-                
+
             } catch (googleError) {
                 setErrorValidation(true);
                 console.error("Google fallback failed:", googleError);
             }
-            
+
             console.error("Espacenet fetch error:", error);
         } finally {
             setLoading(false);
@@ -750,7 +744,8 @@ const MappingProjectCreation = () => {
 
 
     const { title, publicationUrl, googlePublicationUrl, abstractData, aplDate, pubDate, priorityDates, inventorNames, applicantNames,
-        classificationsSymbol, classData, familyMemData, formattedDescriptions, ipcClass, cpcClass } = usePatentData(data, "relevant", relevantForm.patentNumber);
+        classificationsSymbol, classData, familyMemData, formattedDescriptions, ipcClass, cpcClass
+    } = usePatentData(data, "relevant", relevantForm.patentNumber);
 
     useEffect(() => {
         const isAnyMissing = [
@@ -965,21 +960,21 @@ const MappingProjectCreation = () => {
                     .map(c => c.trim())
                     .filter(Boolean),
 
-                            ipcClassifications: ( 
-                                ipcClass ||
-                            googleClassCPC ||
-                            "")
-                            .split(",")
-                            .map(c => c.trim())
-                            .filter(Boolean),
+                ipcClassifications: (
+                    ipcClass ||
+                    googleClassCPC ||
+                    "")
+                    .split(",")
+                    .map(c => c.trim())
+                    .filter(Boolean),
 
-                            cpcClassifications: ( 
-                                cpcClass ||
-                            googleClassCPC ||
-                            "")
-                            .split(",")
-                            .map(c => c.trim())
-                            .filter(Boolean),
+                cpcClassifications: (
+                    cpcClass ||
+                    googleClassCPC ||
+                    "")
+                    .split(",")
+                    .map(c => c.trim())
+                    .filter(Boolean),
 
                 usClassification: (classData?.US_Classification ||
                     releventBiblioGoogleData?.usClassification ||
@@ -1087,6 +1082,7 @@ const MappingProjectCreation = () => {
             [id]: value
         }));
     };
+
 
     useEffect(() => {
         const allFieldsExceptPatentEmpty = Object.entries(relatedForm).every(

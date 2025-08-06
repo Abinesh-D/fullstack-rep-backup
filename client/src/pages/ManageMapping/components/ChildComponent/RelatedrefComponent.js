@@ -2,15 +2,14 @@ import React, { useMemo, useState, useEffect } from "react";
 import { Row, Col, Button, Card, Nav, NavLink, NavItem, TabContent, TabPane, Label, Spinner } from "reactstrap";
 import TableContainer from "../../ReusableComponents/TableContainer";
 import { isEmptyArray } from "formik";
-import { Link } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { setRelatedApiTrue, fetchBulkESPData, bulkBiblioApiCall, saveExcelRelatedReferences } from "../../../ManageEmployees/ManageBibliography/BibliographySLice/BibliographySlice";
+import { setRelatedApiTrue, fetchBulkESPData, saveExcelRelatedReferences } from "../../../ManageEmployees/ManageBibliography/BibliographySLice/BibliographySlice";
 import FeedbackModal from "../../ReusableComponents/FeedbackModal";
 import ExcelPatentUploader from "../../../ManageBulkUpload/Components/BulkPatentExcel";
 import classnames from "classnames";
 import RelatedReferenceForm from "./RelatedReferenceForm";
 import { computeFamId, mappedValue, mapRelatedData } from "../../../ManageBulkUpload/Components/BulkResponseMap";
-
+import { generateTableColumns } from "../../../../components/Common/commonReport/columnUtils";
 
 
 const RelatedRefComponent = ({
@@ -49,9 +48,6 @@ const RelatedRefComponent = ({
         setfamId(famIdResult);
     }, [patentSlice.multiRelated]);
 
-
-
-
     const bulkBiblioApiCall = async (patentNumbers) => {
         try {
             setGenerateLoading(true);
@@ -63,11 +59,6 @@ const RelatedRefComponent = ({
             setGenerateLoading(false);
         }
     };
-
-
-
-
-
 
     const handleSubmitPatentNumbers = async () => {
         setSubmitLoading(true);
@@ -81,11 +72,6 @@ const RelatedRefComponent = ({
         } finally {
             setSubmitLoading(false);
             setPatentNumbers("");
-            //   setFileName(null);
-
-            //   if (fileInputRef.current) {
-            // fileInputRef.current.value = "";
-            //   }
         }
     };
 
@@ -101,75 +87,69 @@ const RelatedRefComponent = ({
         await bulkBiblioApiCall(commaSeparated);
     };
 
-
-    const relatedAssigneeOrIntentor = (relatedForm.relatedAssignee && relatedForm.relatedInventor) ?
-        `${relatedForm.relatedAssignee} / ${relatedForm.relatedInventor}` : "";
-
-
-    const relatedColumns = useMemo(() => [
-        {
-            header: "S. No.",
-            accessorKey: "serial_number",
-            cell: ({ row }) => <span>{row.index + 1}</span>,
-            enableColumnFilter: false,
-            enableSorting: false,
-        },
-        {
-            header: "Publication Number",
-            accessorKey: "publicationNumber",
-            enableColumnFilter: false,
-            enableSorting: true,
-        },
-        {
-            header: "Priority Date",
-            accessorKey: "relatedPriorityDate",
-            enableColumnFilter: false,
-            enableSorting: true,
-        },
-        {
-            header: "Publication Date",
-            accessorKey: "relatedPublicationDate",
-            enableColumnFilter: false,
-            enableSorting: true,
-        },
-
-        {
-            header: "Actions",
-            cell: ({ row }) => {
-                const rowData = row.original;
-                return (
-                    <div className="d-flex justify-content-center align-items-center gap-3">
-                        <Link
-                            to="#"
-                            data-bs-toggle="tooltip"
-                            data-bs-placement="top"
-                            title="Delete Publication"
-                            onClick={() => onRelatedDelete(rowData)}
-                        >
-                            <i className="mdi mdi-delete text-danger font-size-18"></i>
-                        </Link>
-                    </div>
-                );
-            },
-        },
-    ], [relatedFormData]);
+    const relatedColumns = useMemo(() => {
+        return generateTableColumns({
+            columnsConfig: [
+                { header: "Publication Number", accessorKey: "publicationNumber" },
+                { header: "Priority Date", accessorKey: "relatedPriorityDate" },
+                { header: "Publication Date", accessorKey: "relatedPublicationDate" },
+            ],
+            includeSerialNo: true,
+            includeActions: true,
+            onDeleteClick: onRelatedDelete,
+            deleteTooltip: "Delete Publication",
+        });
+    }, [relatedFormData]);
 
 
 
-    // const handleBulkRelatedApiPatentData = async (patentNumbers) => {
-    //     try {
-    //         const ptnNumbers = patentNumbers.split(",").map(s => s.trim()).join(",")
-    //         //   setLoading(true);
-    //         fetchBulkESPData(ptnNumbers, dispatch, "related");
-    //     } catch (error) {
-    //         console.error("❌ Error fetching data:", error);
-    //     } finally {
-    //         //   setLoading(false);
-    //         //   setSubmitDisable(true);
-    //     }
-    // };
+    // const relatedColumns = useMemo(() => [
+    //     {
+    //         header: "S. No.",
+    //         accessorKey: "serial_number",
+    //         cell: ({ row }) => <span>{row.index + 1}</span>,
+    //         enableColumnFilter: false,
+    //         enableSorting: false,
+    //     },
+    //     {
+    //         header: "Publication Number",
+    //         accessorKey: "publicationNumber",
+    //         enableColumnFilter: false,
+    //         enableSorting: true,
+    //     },
+    //     {
+    //         header: "Priority Date",
+    //         accessorKey: "relatedPriorityDate",
+    //         enableColumnFilter: false,
+    //         enableSorting: true,
+    //     },
+    //     {
+    //         header: "Publication Date",
+    //         accessorKey: "relatedPublicationDate",
+    //         enableColumnFilter: false,
+    //         enableSorting: true,
+    //     },
 
-
+    //     {
+    //         header: "Actions",
+    //         cell: ({ row }) => {
+    //             const rowData = row.original;
+    //             return (
+    //                 <div className="d-flex justify-content-center align-items-center gap-3">
+    //                     <Link
+    //                         to="#"
+    //                         data-bs-toggle="tooltip"
+    //                         data-bs-placement="top"
+    //                         title="Delete Publication"
+    //                         onClick={() => onRelatedDelete(rowData)}
+    //                     >
+    //                         <i className="mdi mdi-delete text-danger font-size-18"></i>
+    //                     </Link>
+    //                 </div>
+    //             );
+    //         },
+    //     },
+    // ], [relatedFormData]);
 
 const bulkmappedValue = mappedValue(patentSlice.multiRelated, famId);
 
@@ -339,13 +319,6 @@ const bulkmappedValue = mappedValue(patentSlice.multiRelated, famId);
                     </Col>
                 </Row>
             </div>
-
-
-
-
-
-
-
 
             {
                 !isEmptyArray(relatedFormData) && (

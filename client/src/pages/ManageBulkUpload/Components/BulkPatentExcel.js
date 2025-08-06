@@ -2,15 +2,11 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { useSelector, useDispatch } from 'react-redux';
 import * as XLSX from 'xlsx';
 import sampleExcelImage from "../../../assets/images/bulk_patent_sample_image.png";
-
 import { Modal, ModalBody, ModalHeader, Button } from "reactstrap";
 import { fetchBulkESPData, saveExcelRelatedReferences } from '../../ManageEmployees/ManageBibliography/BibliographySLice/BibliographySlice';
 import { FaFileExcel } from 'react-icons/fa';
 import { downloadSampleExcel } from './sampleBulkPatentDownload';
-import {
-  extractAbstractText, inventionTitle, publicationDateFunction, applicationDateFunction, getPriorityDates, classifications,
-  normalizeText, computeFamId, mapRelatedData, mappedValue, 
-} from "./BulkResponseMap";
+import { computeFamId, mapRelatedData, mappedValue, } from "./BulkResponseMap";
 import debounce from 'lodash/debounce';
 
 
@@ -31,8 +27,6 @@ const ExcelPatentUploader = ({ setRelatedFormData }) => {
   const [submitLoading, setSubmitLoading] = useState(false);
   const [submitDisable, setSubmitDisable] = useState(false);
   const [showSampleModal, setShowSampleModal] = useState(false);
-
-
 
   useEffect(() => {
     if (!Array.isArray(espData)) return;
