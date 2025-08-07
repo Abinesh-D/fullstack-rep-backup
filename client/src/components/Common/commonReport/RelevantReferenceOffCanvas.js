@@ -8,6 +8,7 @@ import {
 } from 'reactstrap';
 import DraggableTable from './DraggableTable';
 
+
 const RelevantReferenceOffCanvas = ({
   isOpen,
   toggle,
@@ -71,12 +72,13 @@ const RelevantReferenceOffCanvas = ({
         </div>
 
         <div className="d-flex justify-content-end mt-3">
-          <Button color="success" onClick={handleUpdate}>
+          <Button disabled={data.length === 0} color="success" onClick={handleUpdate}>
             Save Order
           </Button>
         </div>
       </OffcanvasBody>
     </Offcanvas>
+    
   );
 };
 

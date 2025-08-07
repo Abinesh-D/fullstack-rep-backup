@@ -1,7 +1,7 @@
 import {
     AlignmentType, VerticalAlign, ShadingType, InternalHyperlink, Table, Footer, Header,
     BorderStyle, UnderlineType, WidthType, TabStopPosition, TabStopType,
-    ExternalHyperlink, Bookmark,
+    ExternalHyperlink, Bookmark, HeadingLevel,
     TextRun,
     TableRow,
     TableCell,
@@ -70,6 +70,7 @@ export const formatAssigneeOrInventor = (str) => {
 };
 
 /* ---------------------------------- Word Utilities ---------------------------------- */
+
 export const createTextRun = (text, style = textStyle.arial11, overrides = {}) =>
     new TextRun({ text, ...style, ...overrides });
 
@@ -938,10 +939,10 @@ export const generateBibliographicSection = ({
 
 
 export const createTwoColumnTickTable = ({
-    leftTitle = "Patents",
-    rightTitle = "Non-patent Literature",
-    leftData = [],
-    rightData = [],
+    leftTitle,
+    rightTitle,
+    leftData,
+    rightData,
     indentLeft = 880,
     spacingAfter = 20,
     textStyle: runStyle = textStyle.arial10,
@@ -991,4 +992,218 @@ export const createTwoColumnTickTable = ({
             }),
         ],
     });
+};
+
+
+// ------------------------------- Appendix 1--------------------------------------------- 
+
+
+
+
+// ============ Helper Generators ============
+
+const createHeading = (text, level = HeadingLevel.HEADING_1, indent = 600, bookmarkId = null) => {
+    const content = bookmarkId
+        ? [new Bookmark({ id: bookmarkId, children: [createTextRun(text, textStyle.arial14, { bold: true, color: "000000" })] })]
+        : [createTextRun(text, textStyle.arial14, { bold: true, color: "000000" })];
+
+    return new Paragraph({
+        children: content,
+        heading: level,
+        alignment: AlignmentType.START,
+        spacing: { after: 50 },
+        indent: { left: indent },
+    });
+};
+
+// const createSubheading = (text, bookmarkId = null, indent = 720, spacing = { before: 50, after: 20 }) => {
+//     return new Paragraph({
+//         children: [
+//             new Bookmark({
+//                 id: bookmarkId,
+//                 children: [createTextRun(text, textStyle.arial11, { bold: true, color: "000000" })],
+//             }),
+//         ],
+//         heading: HeadingLevel.HEADING_2,
+//         alignment: AlignmentType.START,
+//         spacing,
+//         indent: { left: indent },
+//     });
+// };
+
+
+
+const createSubheading = (
+    text,
+    bookmarkId = null,
+    indent = 720,
+    spacing = { before: 50, after: 20 }
+) => {
+    const applyHeading =
+        bookmarkId === "typeID2-search-terms" ||
+        bookmarkId === "typeID2-data-availability";
+
+    return new Paragraph({
+        children: [
+            new Bookmark({
+                id: bookmarkId,
+                children: [createTextRun(text, textStyle.arial11, { bold: true, color: "000000" })],
+            }),
+        ],
+        ...(applyHeading && { heading: HeadingLevel.HEADING_2 }),
+        alignment: AlignmentType.START,
+        spacing,
+        indent: { left: indent },
+    });
+};
+
+
+const createBulletParagraph = (text, indent = 880) => new Paragraph({
+    children: [createTextRun(`●    ${text}`, textStyle.arial10)],
+    alignment: AlignmentType.START,
+    spacing: { before: 20, after: 20 },
+    indent: { left: indent },
+});
+
+const createDataAvailableParagraph = (text, indent = 720) => new Paragraph({
+    children: [createTextRun(`✓ ${text.trim()}`, textStyle.arial10)],
+    alignment: AlignmentType.START,
+    spacing: { after: 50 },
+    indent: { left: indent },
+});
+
+const createHyperlinkBackToTOC = () =>
+    new Paragraph({
+        alignment: AlignmentType.RIGHT,
+        children: [
+            new InternalHyperlink({
+                anchor: "back-to-table-of-content",
+                children: [
+                    createTextRun("Back to Table of Contents", {
+                        color: "0000FF",
+                        underline: true,
+                        size: 16,
+                        font: "Arial",
+                    }),
+                ],
+            }),
+        ],
+        spacing: { before: 50, after: 0 },
+    });
+
+// ============ Table Generator ============
+
+const createSearchStringsTable = (keyStrings = []) => {
+    const headerRow = new TableRow({
+        children: [
+            "S. No.", "Key Strings (Orbit, Google Patents, Google Scholar, etc.)", "Database", "Hits"
+        ].map((text, i) =>
+            new TableCell({
+                borders: commonBorders,
+                width: [{ size: 5 }, { size: 80 }, { size: 10 }, { size: 5 }][i],
+                verticalAlign: VerticalAlign.CENTER,
+                shading: { fill: "353839" },
+                children: [
+                    new Paragraph({
+                        alignment: AlignmentType.CENTER,
+                        spacing: { before: 30, after: 30 },
+                        children: [
+                            createTextRun(text, textStyle.arial10, { bold: true, color: "FFFFFF" }),
+                        ],
+                    }),
+                ],
+            })
+        ),
+    });
+
+    const dataRows = keyStrings.map((item, index) =>
+        new TableRow({
+            children: [
+                new TableCell({
+                    borders: commonBorders,
+                    width: { size: 5, type: WidthType.PERCENTAGE },
+                    verticalAlign: VerticalAlign.CENTER,
+                    children: [
+                        new Paragraph({
+                            alignment: AlignmentType.CENTER,
+                            children: [createTextRun(`${index + 1}.`, textStyle.arial10)],
+                        }),
+                    ],
+                }),
+                new TableCell({
+                    borders: commonBorders,
+                    width: { size: 80, type: WidthType.PERCENTAGE },
+                    verticalAlign: VerticalAlign.CENTER,
+                    children: [
+                        new Paragraph({
+                            alignment: AlignmentType.LEFT,
+                            spacing: { before: 20, after: 20 },
+                            indent: { left: 80 },
+                            children: [createTextRun(item.keyStringsText, textStyle.arial10)],
+                        }),
+                    ],
+                }),
+                ...[10, 5].map(size =>
+                    new TableCell({
+                        borders: commonBorders,
+                        width: { size, type: WidthType.PERCENTAGE },
+                        verticalAlign: VerticalAlign.CENTER,
+                        children: [
+                            new Paragraph({
+                                alignment: AlignmentType.CENTER,
+                                children: [createTextRun("", textStyle.arial10)],
+                            }),
+                        ],
+                    })
+                ),
+            ],
+        })
+    );
+
+    return new Table({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        borders: commonBorders,
+        rows: [headerRow, ...dataRows],
+    });
+};
+
+// ============ Assembling Appendix 1 Dynamically ============
+
+export const buildAppendix1 = ({ typeId1, typeId2, appendix1 }) => {
+    const appendixChildren = [];
+
+    // Heading
+    appendixChildren.push(createHeading(typeId2 ? "Appendix 2" : typeId1 ? "Appendix 1" : "", HeadingLevel.HEADING_1, 600, typeId2 ? "typeID2-appendix2" : "typeID1-appendix1"));
+
+    // Search Terms
+    appendixChildren.push(createSubheading("Search Terms & Search Strings", "typeID2-search-terms", 920, { after: 30 }));
+    appendixChildren.push(new Paragraph({
+        children: [
+            createTextRun("The search terms and key strings to extract relevant patent publications and non-patent literature are provided below.", textStyle.arial10)
+        ],
+        alignment: AlignmentType.START,
+        spacing: { after: 30 },
+        indent: { left: 600 },
+    }));
+
+    // Base Search Terms
+    appendixChildren.push(createSubheading("Base Search Terms", null, 720, { before: 50, after: 20 }));
+    appendixChildren.push(...(appendix1?.baseSearchTerms || []).map(term =>
+        createBulletParagraph(`${term.searchTermText} – ${term.relevantWords}`)
+    ));
+
+    // Key Strings Table
+    appendixChildren.push(createSubheading("Search Strings", null, 720, { before: 200, after: 20 }));
+    appendixChildren.push(createSearchStringsTable(appendix1?.keyStrings || []));
+
+    // TOC Link
+    appendixChildren.push(createHyperlinkBackToTOC());
+
+    // Data Availability
+    appendixChildren.push(createSubheading("Data Availability", "typeID2-data-availability", 720, { before: 200, after: 100 }));
+    appendixChildren.push(...(appendix1?.dataAvailability || []).map(data =>
+        createDataAvailableParagraph(data.dataAvailableText)
+    ));
+
+    return appendixChildren;
 };

@@ -12,6 +12,10 @@ import axios from "axios";
 import SavedSuccess from "../../../../components/Common/SavedSuccess";
 import PatentBibliographicForm from "./PatentBibliographicForm";
 import { generateTableColumns } from "../../../../components/Common/commonReport/columnUtils";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+
 
 
 const RelevantRefComponent = ({
@@ -102,7 +106,7 @@ const RelevantRefComponent = ({
                 const updatedDetails = response.data.stages.relevantReferences.relevantAndNplCombined;
                 setTableData(updatedDetails);
                 toggleCanvas();
-                // showSuccessToast("Order Saved !");
+                toast.success("Order Saved");
             }
 
         } catch (error) {
@@ -295,6 +299,19 @@ const RelevantRefComponent = ({
 
     return (
         <>
+            <>
+                <ToastContainer
+                    position="top-right"
+                    autoClose={3000}
+                    hideProgressBar={false}
+                    newestOnTop
+                    closeOnClick
+                    rtl={false}
+                    pauseOnFocusLoss
+                    draggable
+                    pauseOnHover
+                />
+            </>
             <Row className="align-items-center mb-4">
                 <Col className="d-flex align-items-center">
                     <h4 className="fw-bold m-0">Publication Details</h4>
@@ -597,7 +614,7 @@ const RelevantRefComponent = ({
                 />)
             }
 
-            {(relevantFormData.length > 0 && nonPatentFormData.length > 0 && patentSlice.singleProject.projectTypeId === "0002") && (
+            {(patentSlice.singleProject.projectTypeId === "0002") && (
 
                 <>
                     <Row style={{

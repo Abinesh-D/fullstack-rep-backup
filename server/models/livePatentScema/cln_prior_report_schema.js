@@ -139,6 +139,11 @@ const appendix2 = new Schema({
   nonPatentLiterature: { type: String, default: "" }
 });
 
+
+
+
+
+
 const fullProjectSchema = new Schema({
   projectName: { type: String, required: false },
   projectType: String,
@@ -167,6 +172,7 @@ const fullProjectSchema = new Schema({
     appendix2: [appendix2],
   }
 }, { collection: "cln_prior_report_schema", timestamps: true });
+
 
 const cln_prior_report_schema = mongoose.model("cln_prior_report_schema", fullProjectSchema);
 module.exports = cln_prior_report_schema;

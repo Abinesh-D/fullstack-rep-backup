@@ -30,7 +30,7 @@ router.post("/", async (req, res) => {
 
 router.get("/", async (req, res) => {
   try {
-    const projects = await cln_prior_report_schema.find().sort({ createdOn: -1 });
+    const projects = await cln_prior_report_schema.find().sort({ createdOn: -1 }).lean(); 
     res.json(projects);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -74,7 +74,7 @@ router.get("/single-report/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
-    const project = await cln_prior_report_schema.findById(id);
+    const project = await cln_prior_report_schema.findById(id).lean(); 
 
     if (!project) {
       return res.status(404).json({ message: " Project not found" });

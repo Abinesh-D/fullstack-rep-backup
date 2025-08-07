@@ -1,66 +1,97 @@
 import React, { useState } from "react";
 
 const CPCParser = () => {
-  const [definitions, setDefinitions] = useState([]);
-  const [error, setError] = useState("");
 
-  const handleFileUpload = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      try {
-        const textContent = event.target.result;
-        const parsedData = extractCPCDefinitionsFromText(textContent);
-        setDefinitions(parsedData);
-        setError("");
-      } catch (err) {
-        setError("Failed to parse text file.");
-        console.error(err);
-      }
-    };
-    reader.readAsText(file);
-  };
-
-  const extractCPCDefinitionsFromText = (text) => {
-    const lines = text.trim().split(/\r?\n/);
-
-    return lines
-      .map((line) => line.split("\t").filter(Boolean))
-      .filter((parts) => parts.length >= 3)
-      .map(([code, level, title]) => ({
-        code: code.trim(),
-        level: level.trim(),
-        title: title.trim(),
-      }));
-  };
 
   return (
     <div className="container mt-4">
-      <h5>📄 CPC Text File Parser</h5>
-      <input
-        type="file"
-        accept=".txt"
-        onChange={handleFileUpload}
-        className="form-control my-3"
-      />
-      {error && <div className="text-danger">{error}</div>}
-      <div className="mt-4">
-        {definitions.map((item, idx) => (
-          <div key={idx} className="card mb-2 shadow-sm">
-            <div className="card-body">
-              <h6 className="text-primary mb-1">{item.code} <small className="text-muted">(Level {item.level})</small></h6>
-              <p className="mb-1">{item.title}</p>
-            </div>
-          </div>
-        ))}
-      </div>
+      
     </div>
   );
 };
 
 export default CPCParser;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// import React, { useState } from "react";
+
+// const CPCParser = () => {
+//   const [definitions, setDefinitions] = useState([]);
+//   const [error, setError] = useState("");
+
+//   const handleFileUpload = (e) => {
+//     const file = e.target.files[0];
+//     if (!file) return;
+
+//     const reader = new FileReader();
+//     reader.onload = (event) => {
+//       try {
+//         const textContent = event.target.result;
+//         const parsedData = extractCPCDefinitionsFromText(textContent);
+//         setDefinitions(parsedData);
+//         setError("");
+//       } catch (err) {
+//         setError("Failed to parse text file.");
+//         console.error(err);
+//       }
+//     };
+//     reader.readAsText(file);
+//   };
+
+//   const extractCPCDefinitionsFromText = (text) => {
+//     const lines = text.trim().split(/\r?\n/);
+
+//     return lines
+//       .map((line) => line.split("\t").filter(Boolean))
+//       .filter((parts) => parts.length >= 3)
+//       .map(([code, level, title]) => ({
+//         code: code.trim(),
+//         level: level.trim(),
+//         title: title.trim(),
+//       }));
+//   };
+
+//   return (
+//     <div className="container mt-4">
+//       <h5>📄 CPC Text File Parser</h5>
+//       <input
+//         type="file"
+//         accept=".txt"
+//         onChange={handleFileUpload}
+//         className="form-control my-3"
+//       />
+//       {error && <div className="text-danger">{error}</div>}
+//       <div className="mt-4">
+//         {definitions.map((item, idx) => (
+//           <div key={idx} className="card mb-2 shadow-sm">
+//             <div className="card-body">
+//               <h6 className="text-primary mb-1">{item.code} <small className="text-muted">(Level {item.level})</small></h6>
+//               <p className="mb-1">{item.title}</p>
+//             </div>
+//           </div>
+//         ))}
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default CPCParser;
 
 
 

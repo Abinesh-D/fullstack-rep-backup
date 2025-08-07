@@ -4,10 +4,9 @@ import {
 } from "docx";
 import { saveAs } from "file-saver";
 import { getSearchMethodology } from "./searchMethodology";
-import { generateAppendixSection } from "./generateAppendixSection";
 import {
     blackBorders,
-    borderNone,
+    buildAppendix1,
     commonBorders,
     createExecutiveSummaryParagraphs,
     createExecutiveSummaryTable,
@@ -79,260 +78,8 @@ export const handleWordReportDownload = async ({
     const appendix1Childern = [];
 
     if (typeId2) {
-        appendix1Childern.push(
-            new Paragraph({
-                children: [
-                    new Bookmark({
-                        id: typeId2 ? "typeID2-appendix2" : "typeID1-appendix1",
-                        children: [
-                            createTextRun(typeId2 ? "Appendix 2" : typeId1 ? "Appendix 1" : "", textStyle.arial14, { bold: true, color: "000000" }),
-                        ],
-                    }),
-                ],
-                heading: HeadingLevel.HEADING_1,
-                alignment: AlignmentType.START,
-                spacing: { after: 50 },
-                indent: { left: 600 },
-            }),
+        appendix1Childern.push(...buildAppendix1({ typeId1, typeId2, appendix1 }));
 
-            new Paragraph({
-                children: [
-                    new Bookmark({
-                        id: "typeID2-search-terms",
-                        children: [
-                            createTextRun("Search Terms & Search Strings", textStyle.arial11, { bold: true, color: "000000" }),
-                        ]
-                    }),
-                ],
-                heading: HeadingLevel.HEADING_2,
-                alignment: AlignmentType.START,
-                spacing: { after: 30 },
-                indent: { left: 920 },
-            }),
-
-            new Paragraph({
-                children: [
-                    createTextRun(
-                        "The search terms and key strings to extract relevant patent publications and non-patent literature are provided below.",
-                        textStyle.arial10
-                    ),
-                ],
-                alignment: AlignmentType.START,
-                spacing: { after: 30 },
-                indent: { left: 600 },
-            }),
-
-            // baseSearchTerms
-            new Paragraph({
-                children: [
-                    createTextRun("Base Search Terms", textStyle.arial11, { bold: true }),
-                ],
-                alignment: AlignmentType.START,
-                spacing: { before: 50, after: 20 },
-                indent: { left: 720 },
-            }),
-            ...(appendix1?.baseSearchTerms ?
-                appendix1?.baseSearchTerms?.map(term =>
-                    new Paragraph({
-                        children: [
-                            createTextRun(`●    ${term.searchTermText} – ${term.relevantWords}`, textStyle.arial10),
-                        ],
-                        alignment: AlignmentType.START,
-                        spacing: { before: 20, after: 20 },
-                        indent: { left: 880 },
-                    })
-                ) : []),
-
-            // Search Strings
-            new Paragraph({
-                children: [
-                    createTextRun("Search Strings", textStyle.arial11, { bold: true }),
-                ],
-                alignment: AlignmentType.START,
-                spacing: { before: 200, after: 20 },
-                indent: { left: 720 },
-            }),
-            // Key Search Strings
-            new Table({
-                width: {
-                    size: 100,
-                    type: WidthType.PERCENTAGE,
-                },
-                borders: commonBorders,
-                rows: [
-                    new TableRow({
-                        children: [
-                            new TableCell({
-                                borders: commonBorders,
-                                width: { size: 5, type: WidthType.PERCENTAGE },
-                                verticalAlign: VerticalAlign.CENTER,
-                                shading: { fill: "353839" },
-                                children: [
-                                    new Paragraph({
-                                        spacing: { before: 30, after: 30 },
-                                        alignment: AlignmentType.CENTER,
-                                        children: [
-                                            createTextRun("S. No.", textStyle.arial10, { bold: true, color: "FFFFFF" }),
-                                        ],
-                                    }),
-                                ],
-                            }),
-                            new TableCell({
-                                borders: commonBorders,
-                                width: { size: 80, type: WidthType.PERCENTAGE },
-                                verticalAlign: VerticalAlign.CENTER,
-                                shading: { fill: "353839" },
-                                children: [
-                                    new Paragraph({
-                                        alignment: AlignmentType.CENTER,
-                                        spacing: { before: 30, after: 30 },
-                                        children: [
-                                            createTextRun("Key Strings (Orbit, Google Patents, Google Scholar, etc.)", textStyle.arial10, { bold: true, color: "FFFFFF" }),
-                                        ],
-                                    }),
-                                ],
-                            }),
-                            new TableCell({
-                                borders: commonBorders,
-                                width: { size: 10, type: WidthType.PERCENTAGE },
-                                verticalAlign: VerticalAlign.CENTER,
-                                shading: { fill: "353839" },
-                                children: [
-                                    new Paragraph({
-                                        alignment: AlignmentType.CENTER,
-                                        spacing: { before: 30, after: 30 },
-                                        children: [
-                                            createTextRun("Database", textStyle.arial10, { bold: true, color: "FFFFFF" }),
-                                        ],
-                                    }),
-                                ],
-                            }),
-                            new TableCell({
-                                borders: commonBorders,
-                                width: { size: 5, type: WidthType.PERCENTAGE },
-                                verticalAlign: VerticalAlign.CENTER,
-                                shading: { fill: "353839" },
-                                children: [
-                                    new Paragraph({
-                                        alignment: AlignmentType.CENTER,
-                                        spacing: { before: 30, after: 30 },
-                                        children: [
-                                            createTextRun("Hits", textStyle.arial10, { bold: true, color: "FFFFFF" }),
-                                        ],
-                                    }),
-                                ],
-                            }),
-                        ],
-                    }),
-                    // Data Rows
-                    ...( appendix1?.keyStrings ? appendix1?.keyStrings?.map((keyStr, index) =>
-                        new TableRow({
-                            children: [
-                                new TableCell({
-                                    borders: commonBorders,
-                                    width: { size: 5, type: WidthType.PERCENTAGE },
-                                    verticalAlign: VerticalAlign.CENTER,
-                                    children: [
-                                        new Paragraph({
-                                            alignment: AlignmentType.CENTER,
-                                            children: [
-                                                createTextRun(`${index + 1}.`, textStyle.arial10),
-                                            ],
-                                        }),
-                                    ],
-                                }),
-                                new TableCell({
-                                    borders: commonBorders,
-                                    width: { size: 80, type: WidthType.PERCENTAGE },
-                                    verticalAlign: VerticalAlign.CENTER,
-                                    children: [
-                                        new Paragraph({
-                                            alignment: AlignmentType.LEFT,
-                                            spacing: { before: 20, after: 20 },
-                                            indent: { left: 80 },
-                                            children: [
-                                                createTextRun(keyStr.keyStringsText, textStyle.arial10),
-                                            ],
-                                        }),
-                                    ],
-                                }),
-                                new TableCell({
-                                    borders: commonBorders,
-                                    width: { size: 10, type: WidthType.PERCENTAGE },
-                                    verticalAlign: VerticalAlign.CENTER,
-                                    children: [
-                                        new Paragraph({
-                                            alignment: AlignmentType.CENTER,
-                                            children: [
-                                                createTextRun("", textStyle.arial10),
-                                            ],
-                                        }),
-                                    ],
-                                }),
-                                new TableCell({
-                                    borders: commonBorders,
-                                    width: { size: 5, type: WidthType.PERCENTAGE },
-                                    verticalAlign: VerticalAlign.CENTER,
-                                    children: [
-                                        new Paragraph({
-                                            alignment: AlignmentType.CENTER,
-                                            children: [
-                                                createTextRun("", textStyle.arial10),
-                                            ],
-                                        }),
-                                    ],
-                                }),
-                            ],
-                        })
-                    ) : []),
-                ],
-            }),
-            new Paragraph({
-                alignment: AlignmentType.RIGHT,
-                children: [
-                    new InternalHyperlink({
-                        anchor: "back-to-table-of-content",
-                        children: [
-                            createTextRun("Back to Table of Contents", {
-                                color: "0000FF",
-                                underline: true,
-                                size: 16,
-                                font: "Arial",
-                            }),
-                        ],
-                    }),
-                ],
-                spacing: { before: 50, after: 0 },
-            }),
-
-            // Data Availability
-            new Paragraph({
-                children: [
-                    new Bookmark({
-                        id: "typeID2-data-availability",
-                        children: [
-                            createTextRun("Data Availability", textStyle.arial11, { bold: true, color: "000000" }),
-                        ]
-                    })
-                ],
-                alignment: AlignmentType.START,
-                spacing: { before: 200, after: 100 },
-                indent: { left: 720 },
-                heading: HeadingLevel.HEADING_2,
-            }),
-
-            ...(appendix1?.dataAvailability ?
-                appendix1?.dataAvailability?.map(mapData =>
-                    new Paragraph({
-                        children: [
-                            createTextRun(`✓ ${mapData.dataAvailableText.trim()}`, textStyle.arial10),
-                        ],
-                        alignment: AlignmentType.START,
-                        spacing: { after: 50 },
-                        indent: { left: 720 },
-                    })
-                ) : [])
-        );
     } else if
         (typeId1) {
         appendix1Childern.push(
@@ -754,33 +501,13 @@ export const handleWordReportDownload = async ({
         )
     };
 
-    // if (typeId2) {
-    //     appendix1Childern.push(
-    //         ...generateAppendixSection({
-    //             appendixNumber: 2,
-    //             appendixData: appendix1,
-    //             typeIdKey: "typeID2",
-    //             isType1: false
-    //         })
-    //     );
-    // } else if (typeId1) {
-    //     appendix1Childern.push(
-    //         ...generateAppendixSection({
-    //             appendixNumber: 1,
-    //             appendixData: appendix1,
-    //             typeIdKey: "typeID1",
-    //             isType1: true
-    //         })
-    //     );
-    // }
-
     const publications = typeId2 ? relevantAndNplCombined : relevantReferences;
 
     const appendixTable = createTwoColumnTickTable({
-        leftTitle: "Patents",
-        rightTitle: "Non-patent Literature",
-        leftData: appendix2?.patents || [],
-        rightData: appendix2?.nonPatentLiterature || [],
+        leftTitle: "Patents" || "",
+        rightTitle: "Non-patent Literature" || "",
+        leftData: appendix2?.patents || "",
+        rightData: appendix2?.nonPatentLiterature || "",
         textStyle: textStyle.arial10,
     });
 
