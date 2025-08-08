@@ -160,40 +160,77 @@ export const createFooter = () =>
 
 
 /* ---------------------------------- Table Row Builders ---------------------------------- */
-export const createSingleColumnTableRows = (rows) =>
-    rows.map(({ label, value, isParagraphChildren }) =>
-        new TableRow({
+// export const createSingleColumnTableRows = (rows) =>
+//     rows.map(({ label, value, isParagraphChildren }) =>
+//         new TableRow({
+//             children: [
+//                 new TableCell({
+//                     verticalAlign: AlignmentType.CENTER,
+//                     children: [
+//                         new Paragraph({
+//                             children: [
+//                                 new TextRun({ text: `${label}:`, bold: true }),
+//                             ],
+//                         }),
+//                     ],
+//                     borders: borderNone,
+//                 }),
+//                 new TableCell({
+//                     verticalAlign: AlignmentType.CENTER,
+//                     children: [
+//                         isParagraphChildren
+//                             ? new Paragraph({ children: value })
+//                             : new Paragraph({
+//                                 children: [new TextRun({ text: value })],
+//                             }),
+//                     ],
+//                     borders: borderNone,
+//                 }),
+//             ],
+//         })
+//     );
+
+
+export const createSingleColumnTableRows = (rows) => {
+    return rows.map(({ label, value, isParagraphChildren }) => {
+        let children = [];
+
+        children.push(
+            new TextRun({
+                text: `${label} – `, 
+                bold: true
+            })
+        );
+
+        if (isParagraphChildren && Array.isArray(value)) {
+            children.push(...value);
+        } else {
+            children.push(new TextRun({ text: String(value || "N/A") }));
+        }
+
+        return new TableRow({
             children: [
                 new TableCell({
-                    verticalAlign: AlignmentType.CENTER,
+                    borders: borderNone,
+                    // margins: { left: 20, right: 20 },
                     children: [
                         new Paragraph({
-                            children: [
-                                new TextRun({ text: `${label}:`, bold: true }),
-                            ],
+                            // spacing: { after: 100 },
+                            indent: { left: 50 },
+                            children
                         }),
-                    ],
-                    borders: borderNone,
+                    ]
                 }),
-                new TableCell({
-                    verticalAlign: AlignmentType.CENTER,
-                    children: [
-                        isParagraphChildren
-                            ? new Paragraph({ children: value })
-                            : new Paragraph({
-                                children: [new TextRun({ text: value })],
-                            }),
-                    ],
-                    borders: borderNone,
-                }),
-            ],
-        })
-    );
+            ]
+        });
+    });
+};
+
 
 /* ---------------------------------- Family Member Utility ---------------------------------- */
 export const getFamilyMembersParagraphChildren = (data) => {
     const familyMembers = data.FamilyMembers || [];
-    const displayLimit = 4;
+    const displayLimit = 3;
     const totalCount = familyMembers.length;
 
     const displayedMembers = familyMembers.slice(0, displayLimit).join(", ");
@@ -375,7 +412,7 @@ const createCellWithLink = (url, number, width) => new TableCell({
                 new ExternalHyperlink({
                     link: url,
                     children: [
-                        createTextRun(sanitizeText((number || "").toUpperCase()), textStyle.arial10),
+                        createTextRun(sanitizeText((number || "").toUpperCase()), textStyle.arial10BoldBlue, { underline: true },)
                     ],
                 }),
             ],
@@ -709,6 +746,7 @@ export const generateBibliographicSection = ({
     rightTableRows,
     createSingleColumnTableRows,
 }) => {
+
     const headerShading = {
         fill: "A7C7E7",
         type: ShadingType.CLEAR,
@@ -749,7 +787,7 @@ export const generateBibliographicSection = ({
                                 color: "FFFFFF",
                             },
                         },
-                        margins: marginsStyle.margins,
+                        // margins: marginsStyle.margins,
                         children: [
                             new Paragraph({
                                 children: [
@@ -779,7 +817,7 @@ export const generateBibliographicSection = ({
                             right: commonBorders.right,
                             bottom: commonBorders.bottom
                         },
-                        margins: marginsStyle.margins,
+                        // margins: marginsStyle.margins,
                         children: [
                             new Paragraph({
                                 children: [
@@ -804,7 +842,7 @@ export const generateBibliographicSection = ({
                     new TableCell({
                         width: { size: 50, type: "pct" },
                         borders: commonBorders,
-                        margins: marginsStyle.margins,
+                        // margins: marginsStyle.margins,
                         children: [
                             new Table({
                                 width: { size: 100, type: "pct" },
@@ -815,7 +853,7 @@ export const generateBibliographicSection = ({
                     new TableCell({
                         width: { size: 50, type: "pct" },
                         borders: commonBorders,
-                        margins: marginsStyle.margins,
+                        // margins: marginsStyle.margins,
                         children: [
                             new Table({
                                 width: { size: 100, type: "pct" },

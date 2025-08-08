@@ -743,20 +743,27 @@ export const handleWordReportDownload = async ({
                                                 }),
                                             ],
                                         }),
-                                        new TextRun({ text: "  " }),
-                                        new TextRun({ text: "[Google Patents Link: ", bold: true }),
-                                        new ExternalHyperlink({
-                                            link: pub.googlePublicationUrl || "",
-                                            children: [
-                                                new TextRun({
-                                                    text: pub.patentNumber?.toUpperCase() || "N/A",
-                                                    style: "Hyperlink",
-                                                    color: "0000FF",
-                                                    underline: { type: UnderlineType.SINGLE },
+
+                                        ...(typeId1
+                                            ? [
+                                                new TextRun({ text: "  " }),
+                                                new TextRun({ text: "[Google Patents Link: ", bold: true }),
+                                                new ExternalHyperlink({
+                                                    link: pub.googlePublicationUrl || "",
+                                                    children: [
+                                                        new TextRun({
+                                                            text: pub.patentNumber?.toUpperCase() || "N/A",
+                                                            style: "Hyperlink",
+                                                            color: "0000FF",
+                                                            underline: { type: UnderlineType.SINGLE },
+                                                        }),
+                                                    ],
                                                 }),
-                                            ],
-                                        }),
-                                        new TextRun({ text: "]", bold: true }),
+                                                new TextRun({ text: "]", bold: true }),
+                                            ]
+                                            : []),
+
+
                                     ],
                                     isParagraphChildren: true,
                                 },
@@ -774,7 +781,7 @@ export const handleWordReportDownload = async ({
                                     ),
                                     isParagraphChildren: true,
                                 },
-                                usClass,
+                                // usClass,
                             ];
                             const rightTableRows = [
                                 { label: "Grant/Publication Date", value: sanitizeText(pub.grantDate) },
@@ -802,6 +809,7 @@ export const handleWordReportDownload = async ({
                                     ),
                                     isParagraphChildren: true,
                                 },
+                                usClass,
                             ];
 
                             return [
@@ -834,7 +842,7 @@ export const handleWordReportDownload = async ({
                                     createSingleColumnTableRows,
                                 }),
 
-                                new Paragraph({ children: [], spacing: { after: 200 } }),
+                                // new Paragraph({ children: [], spacing: { after: 200 } }),
                             ];
                         })
                         : []),

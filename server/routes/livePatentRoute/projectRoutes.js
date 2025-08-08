@@ -30,7 +30,7 @@ router.post("/", async (req, res) => {
 
 router.get("/", async (req, res) => {
   try {
-    const projects = await cln_prior_report_schema.find().sort({ createdOn: -1 }).lean(); 
+    const projects = await cln_prior_report_schema.find().sort({ createdAt: -1 }).lean(); 
     res.json(projects);
   } catch (err) {
     res.status(500).json({ error: err.message });

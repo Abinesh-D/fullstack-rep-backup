@@ -19,11 +19,12 @@ const ClassifySearch = (activeTab) => {
   const [customAlertMessage, setCustomAlertMessage] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
-    const [customActiveTab, setcustomActiveTab] = useState("1");
-  
+  const [customActiveTab, setcustomActiveTab] = useState("1");
+
 
   const dispatch = useDispatch();
   const classifyData = useSelector((state) => state.patentSlice.classifyData);
+  console.log('classifyData', classifyData)
 
   const classificationItem =
     classifyData?.classifyData?.["world-patent-data"]?.["classification-scheme"]?.["cpc"]?.["class-scheme"]?.["classification-item"];
@@ -42,39 +43,39 @@ const ClassifySearch = (activeTab) => {
     const result = [];
 
     const extractTitlePart = (titlePart) => {
-  if (!titlePart) return '';
+      if (!titlePart) return '';
 
-  if (Array.isArray(titlePart)) {
-    return titlePart
-      .map(part => {
-        if (typeof part === 'string') return part;
-        if (part?.text) return part.text;
-        if (part?.comment?.text) return part.comment.text;
-        if (Array.isArray(part['class-ref'])) {
-          return part['class-ref'].map(ref => ref._).join(', ');
-        }
-        if (part['class-ref']?._) {
-          return part['class-ref']._;
-        }
-        return '';
-      })
-      .filter(Boolean)
-      .join('; ');
-  }
+      if (Array.isArray(titlePart)) {
+        return titlePart
+          .map(part => {
+            if (typeof part === 'string') return part;
+            if (part?.text) return part.text;
+            if (part?.comment?.text) return part.comment.text;
+            if (Array.isArray(part['class-ref'])) {
+              return part['class-ref'].map(ref => ref._).join(', ');
+            }
+            if (part['class-ref']?._) {
+              return part['class-ref']._;
+            }
+            return '';
+          })
+          .filter(Boolean)
+          .join('; ');
+      }
 
-  if (typeof titlePart === 'object') {
-    const val =
-      titlePart.text ||
-      titlePart?.comment?.text ||
-      (Array.isArray(titlePart['class-ref'])
-        ? titlePart['class-ref'].map(ref => ref._).join(', ')
-        : titlePart['class-ref']?._);
+      if (typeof titlePart === 'object') {
+        const val =
+          titlePart.text ||
+          titlePart?.comment?.text ||
+          (Array.isArray(titlePart['class-ref'])
+            ? titlePart['class-ref'].map(ref => ref._).join(', ')
+            : titlePart['class-ref']?._);
 
-    return typeof val === 'string' ? val.trim() : '';
-  }
+        return typeof val === 'string' ? val.trim() : '';
+      }
 
-  return typeof titlePart === 'string' ? titlePart.trim() : '';
-};
+      return typeof titlePart === 'string' ? titlePart.trim() : '';
+    };
 
 
     const traverse = (item) => {
@@ -160,7 +161,7 @@ const ClassifySearch = (activeTab) => {
 
   return (
     <div>
-       <Nav tabs className="nav-tabs-custom nav-justified mb-4">
+      <Nav tabs className="nav-tabs-custom nav-justified mb-4">
         <NavItem>
           <NavLink
             style={{ cursor: "pointer" }}
@@ -186,10 +187,6 @@ const ClassifySearch = (activeTab) => {
 
       <TabContent activeTab={customActiveTab}>
         <TabPane tabId="1">
-          <IPCDefinition />
-        </TabPane>
-
-        <TabPane tabId="2">
           <div className="p-3 bg-white rounded-3 shadow-sm border border-light mb-3">
             <form onSubmit={handleClassifySubmit}>
               <div className="mb-3">
@@ -204,7 +201,7 @@ const ClassifySearch = (activeTab) => {
                   placeholder="E.g., A01B 1/00"
                 />
                 <small className="text-muted" style={{ fontSize: "0.75rem" }}>
-                  Enter a valid Cooperative Patent Classification number (CPC).
+                  Enter a valid Cooperative Patent Classification symbol (CPC).
                 </small>
               </div>
 
@@ -239,84 +236,90 @@ const ClassifySearch = (activeTab) => {
             </form>
           </div>
           {!submitted ? null : loading ? (
-          <div style={{ position: 'relative', height: '100%', width: '100%' }}>
-            <Spinner size="md" color="primary" style={{ position: 'absolute', top: '50%', left: '50%', }} />
-          </div>
-        ) : cpcItems && cpcItems.length > 0 ? (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            style={{
-              backgroundColor: "#f9f9f9",
-              border: "1px solid #ccc",
-              borderRadius: "10px",
-              padding: "1.5rem",
-              marginTop: "1rem",
-              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.05)",
-            }}
-          >
-            {classificationSymbol && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="mt-4"
-              >
-                <div className="row align-items-center justify-content-between mb-3">
-                  <ClassifyWindowModal cpcItems={cpcItems} classificationSymbol={classificationSymbol} />
-                </div>
+            <div style={{ position: 'relative', height: '100%', width: '100%' }}>
+              <Spinner size="md" color="primary" style={{ position: 'absolute', top: '50%', left: '50%', }} />
+            </div>
+          ) : cpcItems && cpcItems.length > 0 ? (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              style={{
+                backgroundColor: "#f9f9f9",
+                border: "1px solid #ccc",
+                borderRadius: "10px",
+                padding: "1.5rem",
+                marginTop: "1rem",
+                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.05)",
+              }}
+            >
+              {classificationSymbol && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                  className="mt-4"
+                >
+                  <div className="row align-items-center justify-content-between mb-3">
+                    <ClassifyWindowModal cpcItems={cpcItems} classificationSymbol={classificationSymbol} />
+                  </div>
 
-                <Card className="mb-3 shadow-sm border-start border-primary border-4">
-                  <CardBody>
-                    <h6 className="fw-semibold text-primary d-flex align-items-center">
-                      <FaCode className="me-2" /> Classification Symbol
-                    </h6>
-                    <p className="mb-0 text-muted">{classificationSymbol || "N/A"}</p>
-                  </CardBody>
-                </Card>
+                  <Card className="mb-3 shadow-sm border-start border-primary border-4">
+                    <CardBody>
+                      <h6 className="fw-semibold text-primary d-flex align-items-center">
+                        <FaCode className="me-2" /> Classification Symbol
+                      </h6>
+                      <p className="mb-0 text-muted">{classificationSymbol || "N/A"}</p>
+                    </CardBody>
+                  </Card>
 
-                <Card className="mb-3 shadow-sm border-start border-success border-4">
-                  <CardBody>
-                    <h6 className="fw-semibold text-success d-flex align-items-center">
-                      <FaBook className="me-2" /> Title Text
-                    </h6>
-                    <p className="mb-0 text-muted">{classTitle || "N/A"}</p>
-                  </CardBody>
-                </Card>
+                  <Card className="mb-3 shadow-sm border-start border-success border-4">
+                    <CardBody>
+                      <h6 className="fw-semibold text-success d-flex align-items-center">
+                        <FaBook className="me-2" /> Title Text
+                      </h6>
+                      <p className="mb-0 text-muted">{classTitle || "N/A"}</p>
+                    </CardBody>
+                  </Card>
 
-                <Card className="mb-3 shadow-sm border-start border-warning border-4">
-                  <CardBody>
-                    <h6 className="fw-semibold text-warning d-flex align-items-center">
-                      <FaCalendarAlt className="me-2" /> Date Revised
-                    </h6>
-                    <p className="mb-0 text-muted">{dateRevised || "N/A"}</p>
-                  </CardBody>
-                </Card>
+                  <Card className="mb-3 shadow-sm border-start border-warning border-4">
+                    <CardBody>
+                      <h6 className="fw-semibold text-warning d-flex align-items-center">
+                        <FaCalendarAlt className="me-2" /> Date Revised
+                      </h6>
+                      <p className="mb-0 text-muted">{dateRevised || "N/A"}</p>
+                    </CardBody>
+                  </Card>
 
-                <Card className="mb-3 shadow-sm border-start border-danger border-4">
-                  <CardBody>
-                    <h6 className="fw-semibold text-danger d-flex align-items-center">
-                      <FaInfoCircle className="me-2" /> Status
-                    </h6>
-                    <p className="mb-0">
-                      <span
-                        className={`badge px-3 py-1 ${status === "published"
-                          ? "bg-success"
-                          : status === "Inactive"
-                            ? "bg-secondary"
-                            : "bg-dark"
-                          }`}
-                      >
-                        {status || "N/A"}
-                      </span>
-                    </p>
-                  </CardBody>
-                </Card>
-              </motion.div>
-            )}  </motion.div>
-        ) : null}
-        </TabPane>        
+                  <Card className="mb-3 shadow-sm border-start border-danger border-4">
+                    <CardBody>
+                      <h6 className="fw-semibold text-danger d-flex align-items-center">
+                        <FaInfoCircle className="me-2" /> Status
+                      </h6>
+                      <p className="mb-0">
+                        <span
+                          className={`badge px-3 py-1 ${status === "published"
+                            ? "bg-success"
+                            : status === "Inactive"
+                              ? "bg-secondary"
+                              : "bg-dark"
+                            }`}
+                        >
+                          {status || "N/A"}
+                        </span>
+                      </p>
+                    </CardBody>
+                  </Card>
+                </motion.div>
+              )}  </motion.div>
+          ) : null}
+        </TabPane>
+
+        <TabPane tabId="2">
+
+          <IPCDefinition />
+
+        </TabPane>
       </TabContent>
 
       

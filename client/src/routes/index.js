@@ -43,7 +43,7 @@ import Dashboard from "../pages/Dashboard/index";
 // import CreateIncentive from '../pages/ManageIncentive/CreateIncentive'
 
 /// manage employee
-import ManageEmployees from '../pages/ManageEmployees/index';
+import ManagePatents from '../pages/ManageEmployees/index';
 import ManagePrior from '../pages/ManagePriorFormat/index';
 
 // Manage Mapping
@@ -99,7 +99,7 @@ const authProtectedRoutes = [
 
 
   // Manage Employees
-  { path: "/manage-patent", component: <ManageEmployees /> },
+  { path: "/manage-patent", component: <ManagePatents /> },
   { path: "/manage-prior-format", component: <ManagePrior /> },
 
   // Manage Mapping
