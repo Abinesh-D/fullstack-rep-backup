@@ -53,6 +53,11 @@ import ManageMapping from "../pages/ManageMapping/index";
 import ManageBulkUpload from "../pages/ManageBulkUpload/index";
 
 
+// manage Template
+import ManageTemplate from "../pages/ManageTemplate/index";
+
+
+
 ///manage report
 // import ReportTemplate from "../pages/ReportD3";
 // import PageTree from "../pages/ReportD3/PageTree";
@@ -109,6 +114,9 @@ const authProtectedRoutes = [
 
   // Manage Bulk Upload
   { path: "/manage-bulk-upload", component: <ManageBulkUpload /> },
+
+  // Manage Template
+  { path: "/manage-template", component: <ManageTemplate /> },
 
   
   // Manage Conversation

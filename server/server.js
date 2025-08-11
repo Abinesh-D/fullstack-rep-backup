@@ -107,9 +107,6 @@ app.use("/live/projectname", cln_project_schema);
 const feedbackPatentNumber = require("./routes/livePatentRoute/feedbackRoute");
 app.use("/live/feedback", feedbackPatentNumber);
 
-const reportDownloadRoute = require("./routes/livePatentRoute/reportDownloadRoute");
-app.use("/live/report", reportDownloadRoute);
-
 
 
 

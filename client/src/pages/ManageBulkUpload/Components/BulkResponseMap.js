@@ -1,21 +1,57 @@
-export const mapRelatedData =  (mappedValue =[]) => {
-    return mappedValue?.map((item) => ({
-        publicationNumber: item.patentNumber || "",
-        relatedPublicationUrl: item.publicationUrl || "",
-        relatedTitle: item.invention || "",
-        relatedAssignee: item.applicantNames
-            ? item.applicantNames.split(";").map((name) => name.trim())
-            : [],
-        relatedInventor: item.inventorNames
-            ? item.inventorNames.split(";").map((name) => name.trim())
-            : [],
-        relatedFamilyMembers: item.familyMembersData
-            ? item.familyMembersData.map((f) => f.familyPatent)
-            : [],
-        relatedPublicationDate: item.publicationDate || "",
-        relatedPriorityDate: item.priorityDates || "",
-    }));
+const safeSplit = (value, delimiter = ";") =>
+    typeof value === "string"
+        ? value.split(delimiter).map((v) => v.trim()).filter(Boolean)
+        : [];
+
+const safeArray = (value) => (Array.isArray(value) ? value : value ? [value] : []);
+
+const safeText = (value) => (typeof value === "string" ? value.trim() : "");
+
+// ---- Main Mapper ----
+export const mapRelatedData = (mappedValue = []) => {
+    return mappedValue.map((item) => {
+        try {
+            return {
+                publicationNumber: safeText(item.patentNumber),
+                relatedPublicationUrl: safeText(item.publicationUrl),
+                relatedTitle: safeText(item.invention),
+                relatedAssignee: safeSplit(item.applicantNames),
+                relatedInventor: safeSplit(item.inventorNames),
+                relatedFamilyMembers: safeArray(item.familyMembersData).map(
+                    (f) => safeText(f.familyPatent)
+                ),
+                relatedPublicationDate: safeText(item.publicationDate),
+                relatedPriorityDate: safeText(item.priorityDates),
+            };
+        } catch (err) {
+            console.error("Error mapping related data:", err, item);
+            return {};
+        }
+    });
 };
+
+
+
+
+
+// export const mapRelatedData =  (mappedValue =[]) => {
+//     return mappedValue?.map((item) => ({
+//         publicationNumber: item.patentNumber || "",
+//         relatedPublicationUrl: item.publicationUrl || "",
+//         relatedTitle: item.invention || "",
+//         relatedAssignee: item.applicantNames
+//             ? item.applicantNames.split(";").map((name) => name.trim())
+//             : [],
+//         relatedInventor: item.inventorNames
+//             ? item.inventorNames.split(";").map((name) => name.trim())
+//             : [],
+//         relatedFamilyMembers: item.familyMembersData
+//             ? item.familyMembersData.map((f) => f.familyPatent)
+//             : [],
+//         relatedPublicationDate: item.publicationDate || "",
+//         relatedPriorityDate: item.priorityDates || "",
+//     }));
+// };
 
 
 
@@ -151,96 +187,174 @@ export const computeFamId = (espData = []) => {
     return result;
 };
 
+
 export const mappedValue = (espData = [], famId = []) => {
-    return espData?.map((map) => {
-        const biblioArray = map?.biblio?.['world-patent-data']?.['exchange-documents']?.['exchange-document']?.['bibliographic-data'];
+    return espData.map((map) => {
+        try {
+            const biblioArray =
+                map?.biblio?.["world-patent-data"]?.["exchange-documents"]?.["exchange-document"]?.[
+                "bibliographic-data"
+                ] ?? {};
 
-        const ipcrRaw = biblioArray?.['classifications-ipcr']?.['classification-ipcr'];
-        const ipcrText = Array.isArray(ipcrRaw)
-            ? ipcrRaw.map(item => normalizeText(item?.text)).filter(Boolean).join('; ')
-            : normalizeText(ipcrRaw?.text) || '';
+            const ipcrRaw = biblioArray?.["classifications-ipcr"]?.["classification-ipcr"];
+            const ipcrText = safeArray(ipcrRaw)
+                .map((item) => normalizeText(item?.text))
+                .filter(Boolean)
+                .join("; ");
 
-        const abstractData = map?.biblio?.['world-patent-data']?.['exchange-documents']?.['exchange-document']?.abstract;
-        const abstractText = extractAbstractText(abstractData);
+            const abstractData =
+                map?.biblio?.["world-patent-data"]?.["exchange-documents"]?.["exchange-document"]
+                    ?.abstract;
+            const abstractText = extractAbstractText(abstractData);
 
-        const invention = inventionTitle(biblioArray);
+            const invention = inventionTitle(biblioArray);
 
-        const inventorsData = biblioArray?.parties?.inventors?.inventor;
-        const inventorNames = (() => {
-            if (!Array.isArray(inventorsData)) return '';
+            const inventorsData = safeArray(biblioArray?.parties?.inventors?.inventor);
+            const inventorNames = inventorsData
+                .filter((i) => i?.$?.["data-format"] === "epodoc" || i?.$?.["data-format"] === "original")
+                .map((i) => safeText(i?.["inventor-name"]?.name))
+                .join("; ");
 
-            const epodocInventors = inventorsData
-                .filter(item => item?.$?.['data-format'] === 'epodoc')
-                .map(item => item?.['inventor-name']?.name?.trim())
-                .filter(Boolean);
+            const applicantsData = safeArray(biblioArray?.parties?.applicants?.applicant);
+            const applicantNames = applicantsData
+                .filter((a) => a?.$?.["data-format"] === "epodoc" || a?.$?.["data-format"] === "original")
+                .map((a) => safeText(a?.["applicant-name"]?.name))
+                .join("; ");
 
-            if (epodocInventors.length > 0) return epodocInventors.join('; ');
+            const publicationDate = publicationDateFunction(biblioArray);
+            const applicationDate = applicationDateFunction(biblioArray);
+            const priorityDates = getPriorityDates(biblioArray);
+            const cpcClass = classifications(biblioArray);
 
-            const originalInventors = inventorsData
-                .filter(item => item?.$?.['data-format'] === 'original')
-                .map(item => item?.['inventor-name']?.name?.trim())
-                .filter(Boolean);
-
-            return originalInventors.join('; ');
-        })();
-
-        const applicantsData = biblioArray?.parties?.applicants?.applicant;
-        const applicantNames = (() => {
-            if (!applicantsData) return '';
-
-            const applicantArray = Array.isArray(applicantsData) ? applicantsData : [applicantsData];
-
-            const epodocApplicants = applicantArray
-                .filter(app => app?.$?.['data-format'] === 'epodoc')
-                .map(app => app?.['applicant-name']?.name?.trim())
-                .filter(Boolean);
-
-            if (epodocApplicants.length > 0) return epodocApplicants.join('; ');
-
-            const originalApplicants = applicantArray
-                .filter(app => app?.$?.['data-format'] === 'original')
-                .map(app => app?.['applicant-name']?.name?.trim())
-                .filter(Boolean);
-
-            return originalApplicants.join('; ');
-        })();
-
-        const publicationDate = publicationDateFunction(biblioArray);
-        const applicationDate = applicationDateFunction(biblioArray);
-        const priorityDates = getPriorityDates(biblioArray);
-        const cpcClass = classifications(biblioArray);
-
-        const familyMembers = map.family?.["world-patent-data"]?.["patent-family"]?.["family-member"];
-        const familyMembersArray = Array.isArray(familyMembers) ? familyMembers : [familyMembers];
-        const familyMembersData = familyMembersArray.map((familyMember) => {
-            const publications = familyMember?.["publication-reference"]?.["document-id"] || [];
-            const publicationInfo = (Array.isArray(publications) ? publications : [publications])
-                .filter((doc) => doc?.["$"]?.["document-id-type"] === "docdb")
-                .map((doc) => `${doc["country"]}${doc["doc-number"]}${doc["kind"]}`)
-                .join('');
+            const familyMembers = safeArray(
+                map?.family?.["world-patent-data"]?.["patent-family"]?.["family-member"]
+            );
+            const familyMembersData = familyMembers.map((fm) => {
+                const publications = safeArray(fm?.["publication-reference"]?.["document-id"]);
+                const publicationInfo = publications
+                    .filter((doc) => doc?.["$"]?.["document-id-type"] === "docdb")
+                    .map((doc) => `${doc["country"]}${doc["doc-number"]}${doc["kind"]}`)
+                    .join("");
+                return {
+                    familyId: fm?.["$"]?.["family-id"] || "",
+                    familyPatent: publicationInfo,
+                };
+            });
 
             return {
-                familyId: familyMember?.["$"]?.["family-id"],
-                familyPatent: publicationInfo,
+                patentNumber: safeText(map.patentNumber),
+                publicationUrl: famId.find((obj) => obj[map.patentNumber])?.[map.patentNumber] || "",
+                familyMembersData,
+                abstractText,
+                ipcrText,
+                cpcClass,
+                invention,
+                inventorNames,
+                applicantNames,
+                publicationDate,
+                applicationDate,
+                priorityDates,
             };
-        });
-
-        return {
-            patentNumber: map.patentNumber,
-            publicationUrl: (() => {
-                const item = famId.find(obj => obj[map.patentNumber]);
-                return item ? item[map.patentNumber] : '';
-            })(),
-            familyMembersData: familyMembersData,
-            abstractText: abstractText,
-            ipcrText: ipcrText,
-            cpcClass: cpcClass,
-            invention: invention,
-            inventorNames: inventorNames,
-            applicantNames: applicantNames,
-            publicationDate: publicationDate,
-            applicationDate: applicationDate,
-            priorityDates: priorityDates,
-        };
+        } catch (err) {
+            console.error("Error mapping espData:", err, map);
+            return {};
+        }
     });
 };
+
+
+
+
+// export const mappedValue = (espData = [], famId = []) => {
+//     return espData?.map((map) => {
+//         const biblioArray = map?.biblio?.['world-patent-data']?.['exchange-documents']?.['exchange-document']?.['bibliographic-data'];
+
+//         const ipcrRaw = biblioArray?.['classifications-ipcr']?.['classification-ipcr'];
+//         const ipcrText = Array.isArray(ipcrRaw)
+//             ? ipcrRaw.map(item => normalizeText(item?.text)).filter(Boolean).join('; ')
+//             : normalizeText(ipcrRaw?.text) || '';
+
+//         const abstractData = map?.biblio?.['world-patent-data']?.['exchange-documents']?.['exchange-document']?.abstract;
+//         const abstractText = extractAbstractText(abstractData);
+
+//         const invention = inventionTitle(biblioArray);
+
+//         const inventorsData = biblioArray?.parties?.inventors?.inventor;
+//         const inventorNames = (() => {
+//             if (!Array.isArray(inventorsData)) return '';
+
+//             const epodocInventors = inventorsData
+//                 .filter(item => item?.$?.['data-format'] === 'epodoc')
+//                 .map(item => item?.['inventor-name']?.name?.trim())
+//                 .filter(Boolean);
+
+//             if (epodocInventors.length > 0) return epodocInventors.join('; ');
+
+//             const originalInventors = inventorsData
+//                 .filter(item => item?.$?.['data-format'] === 'original')
+//                 .map(item => item?.['inventor-name']?.name?.trim())
+//                 .filter(Boolean);
+
+//             return originalInventors.join('; ');
+//         })();
+
+//         const applicantsData = biblioArray?.parties?.applicants?.applicant;
+//         const applicantNames = (() => {
+//             if (!applicantsData) return '';
+
+//             const applicantArray = Array.isArray(applicantsData) ? applicantsData : [applicantsData];
+
+//             const epodocApplicants = applicantArray
+//                 .filter(app => app?.$?.['data-format'] === 'epodoc')
+//                 .map(app => app?.['applicant-name']?.name?.trim())
+//                 .filter(Boolean);
+
+//             if (epodocApplicants.length > 0) return epodocApplicants.join('; ');
+
+//             const originalApplicants = applicantArray
+//                 .filter(app => app?.$?.['data-format'] === 'original')
+//                 .map(app => app?.['applicant-name']?.name?.trim())
+//                 .filter(Boolean);
+
+//             return originalApplicants.join('; ');
+//         })();
+
+//         const publicationDate = publicationDateFunction(biblioArray);
+//         const applicationDate = applicationDateFunction(biblioArray);
+//         const priorityDates = getPriorityDates(biblioArray);
+//         const cpcClass = classifications(biblioArray);
+
+//         const familyMembers = map.family?.["world-patent-data"]?.["patent-family"]?.["family-member"];
+//         const familyMembersArray = Array.isArray(familyMembers) ? familyMembers : [familyMembers];
+//         const familyMembersData = familyMembersArray.map((familyMember) => {
+//             const publications = familyMember?.["publication-reference"]?.["document-id"] || [];
+//             const publicationInfo = (Array.isArray(publications) ? publications : [publications])
+//                 .filter((doc) => doc?.["$"]?.["document-id-type"] === "docdb")
+//                 .map((doc) => `${doc["country"]}${doc["doc-number"]}${doc["kind"]}`)
+//                 .join('');
+
+//             return {
+//                 familyId: familyMember?.["$"]?.["family-id"],
+//                 familyPatent: publicationInfo,
+//             };
+//         });
+
+//         return {
+//             patentNumber: map.patentNumber,
+//             publicationUrl: (() => {
+//                 const item = famId.find(obj => obj[map.patentNumber]);
+//                 return item ? item[map.patentNumber] : '';
+//             })(),
+//             familyMembersData: familyMembersData,
+//             abstractText: abstractText,
+//             ipcrText: ipcrText,
+//             cpcClass: cpcClass,
+//             invention: invention,
+//             inventorNames: inventorNames,
+//             applicantNames: applicantNames,
+//             publicationDate: publicationDate,
+//             applicationDate: applicationDate,
+//             priorityDates: priorityDates,
+//         };
+//     });
+// };

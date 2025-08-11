@@ -1,6 +1,6 @@
 import {
     Document, Packer, InternalHyperlink, Paragraph, TextRun, AlignmentType, ExternalHyperlink, HeadingLevel, Bookmark, UnderlineType,
-    TableCell, VerticalAlign, TableRow, Table, WidthType,
+    TableCell, VerticalAlign, TableRow, Table, WidthType, TableOfContents,
 } from "docx";
 import { saveAs } from "file-saver";
 import { getSearchMethodology } from "./searchMethodology";
@@ -74,6 +74,14 @@ export const handleWordReportDownload = async ({
     const tocItems = (typeId2 && tocConfigSummary) || (typeId1 && tocConfig);
     const tocTable = createTocTable(tocItems);
     const relevantReferencesTable = createRelevantReferencesTable(relevantReferences, typeId1 ? "typeId1" : "typeId2");
+
+
+    const autoToc = new TableOfContents("Table of Contents", {
+        hyperlink: true,
+        headingStyleRange: "1-3",
+    });
+
+
 
     const appendix1Childern = [];
 
@@ -502,6 +510,7 @@ export const handleWordReportDownload = async ({
     };
 
     const publications = typeId2 ? relevantAndNplCombined : relevantReferences;
+    console.log('publications', publications)
 
     const appendixTable = createTwoColumnTickTable({
         leftTitle: "Patents" || "",
@@ -510,6 +519,7 @@ export const handleWordReportDownload = async ({
         rightData: appendix2?.nonPatentLiterature || "",
         textStyle: textStyle.arial10,
     });
+
 
     const doc = new Document({
         styles: {
@@ -524,6 +534,7 @@ export const handleWordReportDownload = async ({
                             after: 120,
                         },
                     },
+                    
                 },
             },
         },
@@ -551,7 +562,9 @@ export const handleWordReportDownload = async ({
                 footers: { default: footer },
                 children: [
                     tocTitle,
-                    tocTable,
+                    // tocTable,
+                    // tocTitle,
+                    autoToc,
                     createParagraph([
                         new ExternalHyperlink({
                             link: "https://par.molecularconnections.com/mc-review/form/IDF-34131Top%20Load%20Washer%20with%20Flexible%20Dispenser%20and%20Serviceable%20Dosing%20System",
@@ -595,16 +608,37 @@ export const handleWordReportDownload = async ({
                         }
                     ),
 
+                    // ...(introduction.searchFeatures || [])
+                    //     .filter((p) => p.trim() !== "")
+                    //     .map((para) =>
+                    //         createParagraph(sanitizeText(`${para.trim()}.`), {
+                    //             alignment: AlignmentType.JUSTIFIED,
+                    //             spacing: { before: 200, after: 200 },
+                    //             indent: { left: 380, right: 380 },
+                    //             textStyleOverride: { ...textStyle.arial10 }
+                    //         })
+                    //     ),
+
                     ...(introduction.searchFeatures || [])
                         .filter((p) => p.trim() !== "")
-                        .map((para) =>
-                            createParagraph(sanitizeText(`${para.trim()}.`), {
-                                alignment: AlignmentType.JUSTIFIED,
-                                spacing: { before: 200, after: 200 },
-                                indent: { left: 380, right: 380 },
-                                textStyleOverride: { ...textStyle.arial10 }
-                            })
+                        .flatMap((para) =>
+                            para.split("\n").map(line =>
+                                createParagraph(
+                                    new TextRun({
+                                        text: sanitizeText(line),
+                                        preserveLeadingSpaces: true,
+                                        preserveTrailingSpaces: true,
+                                    }),
+                                    {
+                                        alignment: AlignmentType.LEFT,
+                                        spacing: { before: 20, after: 20 },
+                                        indent: { left: 380, right: 380 },
+                                        textStyleOverride: { ...textStyle.arial10 },
+                                    }
+                                )
+                            )
                         ),
+
                 ],
             },
             // Search Mathedology
@@ -653,11 +687,39 @@ export const handleWordReportDownload = async ({
                         },
                     }),
 
-                    createParagraph(overallSummary, {
-                        indent: { left: 520 },
-                        spacing: { after: 200 },
-                        textStyleOverride: textStyle.arial10,
-                    }),
+                    ...(overallSummary && overallSummary.length
+                        ? overallSummary.flatMap(item =>
+                            item.split("\n").map(line =>
+                                new Paragraph({
+                                    indent: { left: 520 },
+                                    spacing: { after: 20 },
+                                    alignment: AlignmentType.LEFT,
+                                    children: [
+                                        new TextRun({
+                                            text: sanitizeText(line),
+                                            preserveLeadingSpaces: true,
+                                            preserveTrailingSpaces: true,
+                                            ...textStyle.arial10,
+                                        }),
+                                    ],
+                                })
+                            )
+                        )
+                        : [
+                            new Paragraph({
+                                indent: { left: 520 },
+                                spacing: { after: 20 },
+                                alignment: AlignmentType.LEFT,
+                                children: [
+                                    new TextRun({
+                                        text: "*No summary available",
+                                        color: "FF0000",
+                                        ...textStyle.arial10,
+                                    }),
+                                ],
+                            }),
+                        ]
+                    ),
                 ],
             },
             typeId2 && {
@@ -733,7 +795,7 @@ export const handleWordReportDownload = async ({
                                     label: "Publication No",
                                     value: [
                                         new ExternalHyperlink({
-                                            link: pub.nplPublicationUrl || "",
+                                            link: pub.publicationUrl || "",
                                             children: [
                                                 new TextRun({
                                                     text: pub.patentNumber?.toUpperCase() || "N/A",
@@ -986,6 +1048,7 @@ export const handleWordReportDownload = async ({
                     ),
                 ],
             },
+            
         ].filter(Boolean),
     });
 

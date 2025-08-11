@@ -1,12 +1,14 @@
 import {
     AlignmentType, VerticalAlign, ShadingType, InternalHyperlink, Table, Footer, Header,
     BorderStyle, UnderlineType, WidthType, TabStopPosition, TabStopType,
-    ExternalHyperlink, Bookmark, HeadingLevel,
+    ExternalHyperlink, Bookmark, HeadingLevel, SimpleField,
     TextRun,
     TableRow,
     TableCell,
     Paragraph,
+    PageReference,
 } from "docx";
+
 
 /* ---------------------------------- Text Styles ---------------------------------- */
 export const textStyle = {
@@ -16,7 +18,7 @@ export const textStyle = {
     arial10: { font: "Arial", size: 20 },
     arial13: { font: "Arial", size: 26 },
     arial8: { font: "Arial", size: 16 },
-    arial10BoldBlue: { font: "Arial", size: 20, bold: true, color: "0000FF" },
+    arial10BoldBlue: { font: "Arial", size: 20, color: "0000FF" },
 };
 
 /* ---------------------------------- Borders ---------------------------------- */
@@ -282,24 +284,54 @@ export const getTocConfig = (relevantReferences = []) => [
     { label: "Disclaimer", anchor: "typeID1-disclaimer", isBold: true },
 ];
 
+
+
+
 export const getTocConfigSummary = (relevantAndNplCombined = []) => [
-    { label: "1.   Search Features", anchor: "typeID2-search-features", isBold: true },
-    { label: "2.   Executive Summary", anchor: "typeID2-executive-summary", isBold: true },
-    { label: "3.   Potentially Relevant References", anchor: "typeID2-potentially-relevant-references", isBold: true },
-    ...relevantAndNplCombined.map((map, index) => ({
-        label: `${index + 1}.    ${map.patentNumber}`,
-        anchor: `typeID2-${index + 1}`,
-        indent: 360,
-    })),
-    { label: "4.   Related References", anchor: "typeID2-related-references", isBold: true },
-    { label: "Appendix 1", anchor: "typeID2-appendix1", isBold: true },
-    { label: "Appendix 2", anchor: "typeID2-appendix2", isBold: true },
-    { label: "Search Terms & Search Strings", anchor: "typeID2-search-terms", indent: 720, font13: true },
-    { label: "Data Availability", anchor: "typeID2-data-availability", indent: 720, font13: true },
-    { label: "Appendix", anchor: "typeID2-appendix", isBold: true },
-    { label: "Databases", anchor: "typeID2-databases", indent: 720, font13: true },
-    { label: "Disclaimer", anchor: "typeID2-disclaimer", isBold: true },
+    { label: "1.   Search Features", anchor: "typeID2-search-features", bookmark: "typeID2-search-features", isBold: true },
+    { label: "2.   Executive Summary", anchor: "typeID2-executive-summary", bookmark: "typeID2-executive-summary", isBold: true },
+    { label: "3.   Potentially Relevant References", anchor: "typeID2-potentially-relevant-references", bookmark: "typeID2-potentially-relevant-references", isBold: true },
+    ...relevantAndNplCombined.map((map, index) => {
+        const anchor = `typeID2-${index + 1}`;
+        return {
+            label: `${index + 1}.    ${map.patentNumber}`,
+            anchor,
+            bookmark: anchor,
+            indent: 360,
+        };
+    }),
+    { label: "4.   Related References", anchor: "typeID2-related-references", bookmark: "typeID2-related-references", isBold: true },
+    { label: "Appendix 1", anchor: "typeID2-appendix1", bookmark: "typeID2-appendix1", isBold: true },
+    { label: "Appendix 2", anchor: "typeID2-appendix2", bookmark: "typeID2-appendix2", isBold: true },
+    { label: "Search Terms & Search Strings", anchor: "typeID2-search-terms", bookmark: "typeID2-search-terms", indent: 720, font13: true },
+    { label: "Data Availability", anchor: "typeID2-data-availability", bookmark: "typeID2-data-availability", indent: 720, font13: true },
+    { label: "Appendix", anchor: "typeID2-appendix", bookmark: "typeID2-appendix", isBold: true },
+    { label: "Databases", anchor: "typeID2-databases", bookmark: "typeID2-databases", indent: 720, font13: true },
+    { label: "Disclaimer", anchor: "typeID2-disclaimer", bookmark: "typeID2-disclaimer", isBold: true },
 ];
+
+
+
+
+
+// export const getTocConfigSummary = (relevantAndNplCombined = []) => [
+//     { label: "1.   Search Features", anchor: "typeID2-search-features", isBold: true },
+//     { label: "2.   Executive Summary", anchor: "typeID2-executive-summary", isBold: true },
+//     { label: "3.   Potentially Relevant References", anchor: "typeID2-potentially-relevant-references", isBold: true },
+//     ...relevantAndNplCombined.map((map, index) => ({
+//         label: `${index + 1}.    ${map.patentNumber}`,
+//         anchor: `typeID2-${index + 1}`,
+//         indent: 360,
+//     })),
+//     { label: "4.   Related References", anchor: "typeID2-related-references", isBold: true },
+//     { label: "Appendix 1", anchor: "typeID2-appendix1", isBold: true },
+//     { label: "Appendix 2", anchor: "typeID2-appendix2", isBold: true },
+//     { label: "Search Terms & Search Strings", anchor: "typeID2-search-terms", indent: 720, font13: true },
+//     { label: "Data Availability", anchor: "typeID2-data-availability", indent: 720, font13: true },
+//     { label: "Appendix", anchor: "typeID2-appendix", isBold: true },
+//     { label: "Databases", anchor: "typeID2-databases", indent: 720, font13: true },
+//     { label: "Disclaimer", anchor: "typeID2-disclaimer", isBold: true },
+// ];
 
 
 export const createRelatedReferencesTable = (relatedReferences = []) => {
@@ -571,7 +603,7 @@ export function createExecutiveSummaryTable({ data, dynamicHeadings }) {
     });
 
     return new Table({
-        width: { size: 80, type: WidthType.PERCENTAGE },
+        width: { size: 93, type: WidthType.PERCENTAGE },
         alignment: AlignmentType.CENTER,
         rows: [headerRow, ...dataRows],
     });
@@ -604,6 +636,7 @@ export const createTocTable = (tocItems = []) => {
         rows: tocItems.map(item =>
             new TableRow({
                 children: [
+                    // Left cell: clickable label
                     new TableCell({
                         children: [
                             new Paragraph({
@@ -629,6 +662,8 @@ export const createTocTable = (tocItems = []) => {
                         ],
                         borders: borderNone,
                     }),
+
+                    // Right cell: dynamic page number from bookmark
                     new TableCell({
                         children: [
                             new Paragraph({
@@ -638,7 +673,11 @@ export const createTocTable = (tocItems = []) => {
                                     position: TabStopPosition.MAX,
                                     leader: "dot",
                                 }],
-                                children: [createTextRun("0", textStyle.arial10)],
+                                children: [
+                                    new SimpleField({
+                                        instruction: `PAGEREF ${item.bookmark} \\h`,
+                                    }),
+                                ],
                             }),
                         ],
                         borders: borderNone,
@@ -648,6 +687,62 @@ export const createTocTable = (tocItems = []) => {
         ),
     });
 };
+
+
+
+// export const createTocTable = (tocItems = []) => {
+//     return new Table({
+//         width: { size: 95, type: "pct" },
+//         alignment: AlignmentType.CENTER,
+//         indent: { size: 0, type: "dxa" },
+//         borders: borderNone,
+//         rows: tocItems.map(item =>
+//             new TableRow({
+//                 children: [
+//                     new TableCell({
+//                         children: [
+//                             new Paragraph({
+//                                 spacing: { before: 0, after: 0 },
+//                                 indent: item.indent ? { left: item.indent } : undefined,
+//                                 tabStops: [{
+//                                     type: TabStopType.RIGHT,
+//                                     position: TabStopPosition.MAX,
+//                                     leader: "dot",
+//                                 }],
+//                                 children: [
+//                                     new InternalHyperlink({
+//                                         anchor: item.anchor,
+//                                         children: [
+//                                             createTextRun(item.label, textStyle.arial10, {
+//                                                 bold: item.isBold || false,
+//                                                 size: item.font13 ? 26 : 22,
+//                                             }),
+//                                         ],
+//                                     }),
+//                                 ],
+//                             }),
+//                         ],
+//                         borders: borderNone,
+//                     }),
+//                     new TableCell({
+//                         children: [
+//                             new Paragraph({
+//                                 alignment: AlignmentType.RIGHT,
+//                                 tabStops: [{
+//                                     type: TabStopType.RIGHT,
+//                                     position: TabStopPosition.MAX,
+//                                     leader: "dot",
+//                                 }],
+//                                 children: [createTextRun("0", textStyle.arial10)],
+//                             }),
+//                         ],
+//                         borders: borderNone,
+//                     }),
+//                 ],
+//             })
+//         ),
+//     });
+// };
 
 export const createRelevantReferencesTable = (relevantReferences = [], anchorPrefix = "typeId1") => {
     return new Table({
@@ -747,6 +842,7 @@ export const generateBibliographicSection = ({
     createSingleColumnTableRows,
 }) => {
 
+    console.log(pub, "pub")
     const headerShading = {
         fill: "A7C7E7",
         type: ShadingType.CLEAR,
@@ -865,6 +961,47 @@ export const generateBibliographicSection = ({
             }),
         ];
 
+
+    // Alayst COmments
+    function createLabelledParagraphs(label, value, defaultText, textStyle) {
+        const lines = Array.isArray(value)
+            ? value.flatMap(v => v.split("\n")) 
+            : (typeof value === "string" ? value.split("\n") : []);
+
+        if (lines.length && lines.some(line => line.trim() !== "")) {
+            return lines.map((line, index) =>
+                new Paragraph({
+                    spacing: { before: 0, after: 0 },
+                    alignment: AlignmentType.LEFT,
+                    children: [
+                        ...(index === 0
+                            ? [createTextRun(`${label} `, textStyle, { bold: true })]
+                            : []),
+                        new TextRun({
+                            text: sanitizeText(line),
+                            preserveLeadingSpaces: true,
+                            preserveTrailingSpaces: true,
+                            ...textStyle,
+                        }),
+                    ],
+                })
+            );
+        } else {
+            return [
+                new Paragraph({
+                    spacing: { before: 0, after: 0 },
+                    alignment: AlignmentType.LEFT,
+                    children: [
+                        createTextRun(`${label} `, textStyle, { bold: true }),
+                        createTextRun(defaultText, textStyle, { color: "FF0000" }),
+                    ],
+                }),
+            ];
+        }
+    }
+
+
+
     const analystCommentsRow = new Table({
         width: { size: 100, type: "pct" },
         rows: [
@@ -874,20 +1011,30 @@ export const generateBibliographicSection = ({
                         columnSpan: 2,
                         borders: commonBorders,
                         margins: marginsStyle.margins,
+                        // children: [
+                        //     new Paragraph({
+                        //         spacing: { before: 0, after: 0 },
+                        //         alignment: AlignmentType.LEFT,
+                        //         children: [
+                        //             createTextRun("Analyst Comments – ", textStyle.arial10, { bold: true }),
+                        //             createTextRun(
+                        //                 pub.analystComments
+                        //                     ? pub.analystComments
+                        //                     : "*No analyst comments available",
+                        //                 textStyle.arial10
+                        //             ),
+                        //         ],
+                        //     }),
+                        // ],
+
+
                         children: [
-                            new Paragraph({
-                                spacing: { before: 0, after: 0 },
-                                alignment: AlignmentType.LEFT,
-                                children: [
-                                    createTextRun("Analyst Comments – ", textStyle.arial10, { bold: true }),
-                                    createTextRun(
-                                        pub.analystComments
-                                            ? pub.analystComments
-                                            : "*No analyst comments available",
-                                        textStyle.arial10
-                                    ),
-                                ],
-                            }),
+                            ...createLabelledParagraphs(
+                                "Analyst Comments –",
+                                pub.analystComments,
+                                "*No analyst comments provided",
+                                textStyle.arial10
+                            )
                         ],
                     }),
                 ],
@@ -928,27 +1075,98 @@ export const generateBibliographicSection = ({
                         columnSpan: 2,
                         borders: commonBorders,
                         margins: marginsStyle.margins,
+                        // children: [
+                        //     isNpl
+                        //         ? createParagraph("Relevant Excerpts add here....!", {
+                        //             alignment: AlignmentType.CENTER,
+                        //             spacing: { after: 100 },
+                        //             textStyleOverride: { ...textStyle.arial13, bold: true, color: "FF0000" },
+                        //         })
+                        //         :
+                        //          createParagraph(
+                        //             pub.relevantExcerpts
+                        //                 ? pub.relevantExcerpts
+                        //                 : "*Abstract is not available, please fill it yourself",
+                        //             {
+                        //                 alignment: AlignmentType.LEFT,
+                        //                 spacing: { before: 0, after: 0 },
+                        //                 textStyleOverride: {
+                        //                     ...textStyle.arial10,
+                        //                     color: pub.relevantExcerpts ? "000000" : "FF0000",
+                        //                 },
+                        //             }
+                        //         ),
+                        // ],
+
+
                         children: [
                             isNpl
                                 ? createParagraph("Relevant Excerpts add here....!", {
                                     alignment: AlignmentType.CENTER,
                                     spacing: { after: 100 },
-                                    textStyleOverride: { ...textStyle.arial13, bold: true, color: "FF0000" },
+                                    textStyleOverride: {
+                                        ...textStyle.arial13,
+                                        bold: true,
+                                        color: "FF0000",
+                                    },
                                 })
-                                : createParagraph(
-                                    pub.relevantExcerpts
-                                        ? pub.relevantExcerpts
-                                        : "*Abstract is not available, please fill it yourself",
-                                    {
-                                        alignment: AlignmentType.LEFT,
-                                        spacing: { before: 0, after: 0 },
-                                        textStyleOverride: {
-                                            ...textStyle.arial10,
-                                            color: pub.relevantExcerpts ? "000000" : "FF0000",
-                                        },
-                                    }
+                                : (
+                                    Array.isArray(pub.relevantExcerpts) && pub.relevantExcerpts.length
+                                        ? pub.relevantExcerpts.flatMap(excerpt =>
+                                            String(excerpt || "")
+                                                .split("\n")
+                                                .map(line =>
+                                                    createParagraph(
+                                                        new TextRun({
+                                                            text: sanitizeText(line),
+                                                            preserveLeadingSpaces: true,
+                                                            preserveTrailingSpaces: true,
+                                                        }),
+                                                        {
+                                                            alignment: AlignmentType.LEFT,
+                                                            spacing: { before: 0, after: 0 },
+                                                            textStyleOverride: {
+                                                                ...textStyle.arial10,
+                                                                color: "000000",
+                                                            },
+                                                        }
+                                                    )
+                                                )
+                                        )
+                                        : typeof pub.relevantExcerpts === "string" && pub.relevantExcerpts.trim()
+                                            ? pub.relevantExcerpts.split("\n").map(line =>
+                                                createParagraph(
+                                                    new TextRun({
+                                                        text: sanitizeText(line),
+                                                        preserveLeadingSpaces: true,
+                                                        preserveTrailingSpaces: true,
+                                                    }),
+                                                    {
+                                                        alignment: AlignmentType.LEFT,
+                                                        spacing: { before: 0, after: 0 },
+                                                        textStyleOverride: {
+                                                            ...textStyle.arial10,
+                                                            color: "000000",
+                                                        },
+                                                    }
+                                                )
+                                            )
+                                            : [
+                                                createParagraph(
+                                                    "*Abstract is not available, please fill it yourself",
+                                                    {
+                                                        alignment: AlignmentType.LEFT,
+                                                        spacing: { before: 0, after: 0 },
+                                                        textStyleOverride: {
+                                                            ...textStyle.arial10,
+                                                            color: "FF0000",
+                                                        },
+                                                    }
+                                                )
+                                            ]
                                 ),
-                        ],
+                        ].flat(),
+
                     }),
                 ],
             }),
@@ -963,7 +1181,7 @@ export const generateBibliographicSection = ({
         analystCommentsRow,
         relevantExcerptsRow,
     ];
-};
+}
 
 
 

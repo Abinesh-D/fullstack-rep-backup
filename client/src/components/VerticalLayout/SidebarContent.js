@@ -130,10 +130,15 @@ const SidebarContent = (props) => {
       iconClass: "bx bx-chat font-size-20 text-white",
     },
 
-     {
+    {
       path: "/classify-menu",
       label: props.t("Classifications"),
       iconClass: "mdi mdi-file-tree font-size-20 text-white",
+    },
+    {
+      path: "/manage-template",
+      label: props.t("Template"),
+      iconClass: "mdi mdi-microsoft-powerpoint",
     },
 
 

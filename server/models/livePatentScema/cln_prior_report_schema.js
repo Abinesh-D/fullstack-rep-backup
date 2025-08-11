@@ -19,8 +19,8 @@ const publicationDetailsSchema = new Schema({
   cpcClassifications: { type: [String], default: [] },
   usClassification: { type: [String], default: [] },
   familyMembers: { type: [String], default: [] },
-  analystComments: { type: String, default: "" },
-  relevantExcerpts: { type: String, default: "" },
+  analystComments: { type: [String], default: [] },
+  relevantExcerpts: { type: [String], default: [] },
 });
 
 const relevantAndNplCombined = new Schema({
@@ -41,8 +41,8 @@ const relevantAndNplCombined = new Schema({
   cpcClassifications: { type: [String], default: [] },
   usClassification: { type: [String], default: [] },
   familyMembers: { type: [String], default: [] },
-  analystComments: { type: String, default: "" },
-  relevantExcerpts: { type: String, default: "" },
+  analystComments: { type: [String], default: [] },
+  relevantExcerpts: { type: [String], default: [] },
 });
 
 
@@ -53,8 +53,8 @@ const nonPatentLiteratureSchema = new Schema({
   url: String,
   nplPublicationDate: { type: String, default: "" },
   nplPublicationUrl: { type: String, default: "" },
-  comments: String,
-  excerpts: String
+  comments: [String],
+  excerpts: [String]
 });
 
 const relatedReferenceSchema = new Schema({
@@ -165,7 +165,7 @@ const fullProjectSchema = new Schema({
       publicationDetails: { type: [publicationDetailsSchema], default: [] },
       nonPatentLiteratures: { type: [nonPatentLiteratureSchema], default: [] },
       relevantAndNplCombined: {type: [relevantAndNplCombined], default: [] },
-      overallSummary: String
+      overallSummary: { type: [String], default: [] },
     },
     relatedReferences: { type: [relatedReferenceSchema], default: [] },
     appendix1: { type: [appendix1Schema], default: [] },

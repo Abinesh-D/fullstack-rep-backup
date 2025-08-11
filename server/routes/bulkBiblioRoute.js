@@ -4,6 +4,10 @@ const axios = require("axios");
 const qs = require("qs");
 const xml2js = require("xml2js");
 require("dotenv").config();
+const pLimit = require("p-limit"); // npm install p-limit
+
+
+
 
 const CONSUMER_KEY = process.env.CLIENT_KEY;
 const CONSUMER_SECRET = process.env.CLIENT_SECRET_KEY;
@@ -76,60 +80,179 @@ function formatPatentNumberWithDot(patentNumber) {
     return formatted;
 };
 
+
+
 router.get("/:patentNumber", async (req, res) => {
     const { patentNumber } = req.params;
-
     const patentList = patentNumber.split(",").map(p => p.trim()).filter(Boolean);
 
-    if (!patentList) {
+    if (!patentList.length) {
         return res.status(400).json({ error: "Patent number is required" });
     }
 
-    const results = await Promise.all(patentList.map(async (pn) => {
-        try {
-            const formattedNumber = formatPatentNumberWithDot(pn);
+    const token = await getAccessToken();
 
-            const token = await getAccessToken(0, true);
+    const headers = {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/xml",
+    };
 
-            const headers = {
-                Authorization: `Bearer ${token}`,
-                Accept: "application/xml",
-            };
+    const parser = new xml2js.Parser({
+        explicitArray: false,
+        tagNameProcessors: [xml2js.processors.stripPrefix],
+    });
 
-            const biblioUrl = `https://ops.epo.org/3.2/rest-services/published-data/publication/docdb/${formattedNumber}/biblio`;
-            const familyUrl = `https://ops.epo.org/3.2/rest-services/family/publication/docdb/${formattedNumber}`;
+    const results = await Promise.allSettled(
+        patentList.map(async (pn) => {
+            try {
+                const formattedNumber = formatPatentNumberWithDot(pn);
 
-            const [biblioResponse, familyResponse] = await Promise.all([
-                axios.get(biblioUrl, { headers }),
-                axios.get(familyUrl, { headers }),
-            ]);
+                const biblioUrl = `https://ops.epo.org/3.2/rest-services/published-data/publication/docdb/${formattedNumber}/biblio`;
+                const familyUrl = `https://ops.epo.org/3.2/rest-services/family/publication/docdb/${formattedNumber}`;
 
-            const parser = new xml2js.Parser({
-                explicitArray: false,
-                tagNameProcessors: [xml2js.processors.stripPrefix],
-            });
+                const [biblioResponse, familyResponse] = await Promise.all([
+                    axios.get(biblioUrl, { headers }),
+                    axios.get(familyUrl, { headers }),
+                ]);
 
-            const biblioData = await parser.parseStringPromise(biblioResponse.data);
-            const familyData = await parser.parseStringPromise(familyResponse.data);
+                const biblioData = await parser.parseStringPromise(biblioResponse.data);
+                const familyData = await parser.parseStringPromise(familyResponse.data);
 
-            return Promise.resolve({
-                patentNumber: pn,
-                success: true,
-                biblio: biblioData,
-                family: familyData,
-            });
+                return {
+                    patentNumber: pn,
+                    success: true,
+                    biblio: biblioData,
+                    family: familyData,
+                };
+            } catch (error) {
+                console.error(`Error fetching for ${pn}`, error?.response?.status || error.message);
+                return {
+                    patentNumber: pn,
+                    success: false,
+                    error: error?.response?.data || error.message,
+                };
+            }
+        })
+    );
 
-
-        } catch (error) {
-            console.error(`Error fetching for ${pn}`, error?.response?.status || error.message);
-            return {
-                patentNumber: pn,
-                success: false,
-                error: error?.response?.data || error.message,
-            };
-        }
-    }));
-    res.json(results);
+    res.json(results.map(r => r.value || r.reason));
 });
 
+
+// router.get("/:patentNumber", async (req, res) => {
+//     const { patentNumber } = req.params;
+
+//     const patentList = patentNumber.split(",").map(p => p.trim()).filter(Boolean);
+
+//     if (!patentList) {
+//         return res.status(400).json({ error: "Patent number is required" });
+//     }
+
+//     const results = await Promise.all(patentList.map(async (pn) => {
+//         try {
+//             const formattedNumber = formatPatentNumberWithDot(pn);
+
+//             const token = await getAccessToken(0, true);
+
+//             const headers = {
+//                 Authorization: `Bearer ${token}`,
+//                 Accept: "application/xml",
+//             };
+
+//             const biblioUrl = `https://ops.epo.org/3.2/rest-services/published-data/publication/docdb/${formattedNumber}/biblio`;
+//             const familyUrl = `https://ops.epo.org/3.2/rest-services/family/publication/docdb/${formattedNumber}`;
+
+//             const [biblioResponse, familyResponse] = await Promise.all([
+//                 axios.get(biblioUrl, { headers }),
+//                 axios.get(familyUrl, { headers }),
+//             ]);
+
+//             const parser = new xml2js.Parser({
+//                 explicitArray: false,
+//                 tagNameProcessors: [xml2js.processors.stripPrefix],
+//             });
+
+//             const biblioData = await parser.parseStringPromise(biblioResponse.data);
+//             const familyData = await parser.parseStringPromise(familyResponse.data);
+
+//             return Promise.resolve({
+//                 patentNumber: pn,
+//                 success: true,
+//                 biblio: biblioData,
+//                 family: familyData,
+//             });
+
+
+//         } catch (error) {
+//             console.error(`Error fetching for ${pn}`, error?.response?.status || error.message);
+//             return {
+//                 patentNumber: pn,
+//                 success: false,
+//                 error: error?.response?.data || error.message,
+//             };
+//         }
+//     }));
+//     res.json(results);
+// });
+
 module.exports = router;
+
+
+
+
+// router.get("/:patentNumber", async (req, res) => {
+//     const { patentNumber } = req.params;
+//     const patentList = patentNumber.split(",").map(p => p.trim()).filter(Boolean);
+
+//     if (!patentList.length) {
+//         return res.status(400).json({ error: "Patent number is required" });
+//     }
+
+//     const token = await getAccessToken();
+
+//     const headers = {
+//         Authorization: `Bearer ${token}`,
+//         Accept: "application/xml",
+//     };
+
+//     const parser = new xml2js.Parser({
+//         explicitArray: false,
+//         tagNameProcessors: [xml2js.processors.stripPrefix],
+//     });
+
+//     const results = await Promise.allSettled(
+//         patentList.map(async (pn) => {
+//             try {
+//                 const formattedNumber = formatPatentNumberWithDot(pn);
+
+//                 const biblioUrl = `https://ops.epo.org/3.2/rest-services/published-data/publication/docdb/${formattedNumber}/biblio`;
+//                 const familyUrl = `https://ops.epo.org/3.2/rest-services/family/publication/docdb/${formattedNumber}`;
+
+//                 const [biblioResponse, familyResponse] = await Promise.all([
+//                     axios.get(biblioUrl, { headers }),
+//                     axios.get(familyUrl, { headers }),
+//                 ]);
+
+//                 const biblioData = await parser.parseStringPromise(biblioResponse.data);
+//                 const familyData = await parser.parseStringPromise(familyResponse.data);
+
+//                 return {
+//                     patentNumber: pn,
+//                     success: true,
+//                     biblio: biblioData,
+//                     family: familyData,
+//                 };
+//             } catch (error) {
+//                 console.error(`Error fetching for ${pn}`, error?.response?.status || error.message);
+//                 return {
+//                     patentNumber: pn,
+//                     success: false,
+//                     error: error?.response?.data || error.message,
+//                 };
+//             }
+//         })
+//     );
+
+//     res.json(results.map(r => r.value || r.reason));
+// });
+
