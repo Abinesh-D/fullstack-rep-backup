@@ -38,126 +38,45 @@ async function getAccessToken() {
 
 
 
-router.get("/:classifyNumbers", async (req, res) => {
-  const { classifyNumbers } = req.params;
+router.get("/:classifyNumber", async (req, res) => {
+  const { classifyNumber } = req.params;
 
-  const classifyList = classifyNumbers
-    .split(/[, ]+/)
-    .map(c => c.trim())
-    .filter(Boolean);
-
-  if (!classifyList.length) {
-    return res.status(400).json({ error: "Classification number(s) are required" });
+  if (!classifyNumber) {
+    return res.status(400).json({ error: "Classification number is required" });
   }
 
   try {
     const token = await getAccessToken();
+    
+    const ClassifyUrl = `https://ops.epo.org/3.2/rest-services/classification/cpc/${classifyNumber}`;
+    const cpcFullDataUrl = `https://ops.epo.org/3.2/rest-services/classification/cpc/${classifyNumber}?ancestors=true&navigation=true&depth=all`
 
     const headers = {
       Authorization: `Bearer ${token}`,
       Accept: "application/xml"
     };
 
+
+    const [classify, cpcFullData] = await Promise.all([
+      axios.get(ClassifyUrl, { headers }),
+      axios.get(cpcFullDataUrl, { headers }),
+
+    ])
     const parser = new xml2js.Parser({
       explicitArray: false,
       tagNameProcessors: [xml2js.processors.stripPrefix]
     });
 
-    const results = await Promise.all(
-      classifyList.map(async (symbol) => {
-        try {
-          const section = symbol.charAt(0); 
-          const rest = symbol.slice(1);
+    const parsedData = await parser.parseStringPromise(classify.data);
+    const cpcFullConvertedData = await parser.parseStringPromise(cpcFullData.data);
 
-          // const classifyUrl = `https://ops.epo.org/3.2/rest-services/classification/cpc/${section}/${rest}`;
-          const classificationDefUrl = `https://ops.epo.org/3.2/rest-services/classification/cpc/%${symbol}`
-          console.log('classificationDefUrl', classificationDefUrl)
-          // const cpcFullDataUrl = `https://ops.epo.org/3.2/rest-services/classification/cpc/${section}/${rest}?ancestors=true&navigation=true&depth=all`;
-
-          const [ 
-            // classifyRes,
-            //  cpcFullRes,
-            cpcResponse
-
-          ] = await Promise.all([
-            axios.get(classificationDefUrl, { headers })
-            // axios.get(classifyUrl, { headers }),
-            // axios.get(cpcFullDataUrl, { headers })
-          ]);
-
-          // const parsedClassify = await parser.parseStringPromise(classifyRes.data);
-          // const parsedFullData = await parser.parseStringPromise(cpcFullRes.data);
-          const parsedCpcDefinition = await parser.parseStringPromise(cpcResponse.data);
-
-          return {
-            classificationSymbol: symbol,
-            success: true,
-            classifyData: parsedClassify,
-            // cpcFullData: parsedFullData
-            cpcBulkDefiniton : parsedCpcDefinition,
-          };
-        } catch (err) {
-          console.error(`Error fetching classification ${symbol}:`, err?.response?.status || err.message);
-          return {
-            classificationSymbol: symbol,
-            success: false,
-            error: err?.response?.data || err.message
-          };
-        }
-      })
-    );
-
-    res.status(200).json(results);
+    res.status(200).json({ classifyData: parsedData, cpcFullData: cpcFullConvertedData });
 
   } catch (error) {
-    console.error("🔴 Error in bulk classification fetch:", error?.response?.data || error.message);
-    res.status(500).json({ error: "Failed to fetch classification data" });
+    console.error("🔴 Error fetching classification:", error?.response?.data || error.message);
+    res.status(500).json({ error: "Failed to fetch classification data", });
   }
 });
-
-
-
-
-
-// router.get("/:classifyNumber", async (req, res) => {
-//   const { classifyNumber } = req.params;
-
-//   if (!classifyNumber) {
-//     return res.status(400).json({ error: "Classification number is required" });
-//   }
-
-//   try {
-//     const token = await getAccessToken();
-    
-//     const ClassifyUrl = `https://ops.epo.org/3.2/rest-services/classification/cpc/${classifyNumber}`;
-//     const cpcFullDataUrl = `https://ops.epo.org/3.2/rest-services/classification/cpc/${classifyNumber}?ancestors=true&navigation=true&depth=all`
-
-//     const headers = {
-//       Authorization: `Bearer ${token}`,
-//       Accept: "application/xml"
-//     };
-
-
-//     const [classify, cpcFullData] = await Promise.all([
-//       axios.get(ClassifyUrl, { headers }),
-//       axios.get(cpcFullDataUrl, { headers }),
-
-//     ])
-//     const parser = new xml2js.Parser({
-//       explicitArray: false,
-//       tagNameProcessors: [xml2js.processors.stripPrefix]
-//     });
-
-//     const parsedData = await parser.parseStringPromise(classify.data);
-//     const cpcFullConvertedData = await parser.parseStringPromise(cpcFullData.data);
-
-//     res.status(200).json({ classifyData: parsedData, cpcFullData: cpcFullConvertedData });
-
-//   } catch (error) {
-//     console.error("🔴 Error fetching classification:", error?.response?.data || error.message);
-//     res.status(500).json({ error: "Failed to fetch classification data", });
-//   }
-// });
 
 module.exports = router;
 

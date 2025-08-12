@@ -148,39 +148,39 @@ router.get("/:patentNumber", async (req, res) => {
 //         return res.status(400).json({ error: "Patent number is required" });
 //     }
 
-//     const results = await Promise.all(patentList.map(async (pn) => {
-//         try {
-//             const formattedNumber = formatPatentNumberWithDot(pn);
+    // const results = await Promise.all(patentList.map(async (pn) => {
+    //     try {
+    //         const formattedNumber = formatPatentNumberWithDot(pn);
 
-//             const token = await getAccessToken(0, true);
+    //         const token = await getAccessToken(0, true);
 
-//             const headers = {
-//                 Authorization: `Bearer ${token}`,
-//                 Accept: "application/xml",
-//             };
+    //         const headers = {
+    //             Authorization: `Bearer ${token}`,
+    //             Accept: "application/xml",
+    //         };
 
-//             const biblioUrl = `https://ops.epo.org/3.2/rest-services/published-data/publication/docdb/${formattedNumber}/biblio`;
-//             const familyUrl = `https://ops.epo.org/3.2/rest-services/family/publication/docdb/${formattedNumber}`;
+    //         const biblioUrl = `https://ops.epo.org/3.2/rest-services/published-data/publication/docdb/${formattedNumber}/biblio`;
+    //         const familyUrl = `https://ops.epo.org/3.2/rest-services/family/publication/docdb/${formattedNumber}`;
 
-//             const [biblioResponse, familyResponse] = await Promise.all([
-//                 axios.get(biblioUrl, { headers }),
-//                 axios.get(familyUrl, { headers }),
-//             ]);
+    //         const [biblioResponse, familyResponse] = await Promise.all([
+    //             axios.get(biblioUrl, { headers }),
+    //             axios.get(familyUrl, { headers }),
+    //         ]);
 
-//             const parser = new xml2js.Parser({
-//                 explicitArray: false,
-//                 tagNameProcessors: [xml2js.processors.stripPrefix],
-//             });
+    //         const parser = new xml2js.Parser({
+    //             explicitArray: false,
+    //             tagNameProcessors: [xml2js.processors.stripPrefix],
+    //         });
 
-//             const biblioData = await parser.parseStringPromise(biblioResponse.data);
-//             const familyData = await parser.parseStringPromise(familyResponse.data);
+    //         const biblioData = await parser.parseStringPromise(biblioResponse.data);
+    //         const familyData = await parser.parseStringPromise(familyResponse.data);
 
-//             return Promise.resolve({
-//                 patentNumber: pn,
-//                 success: true,
-//                 biblio: biblioData,
-//                 family: familyData,
-//             });
+    //         return Promise.resolve({
+    //             patentNumber: pn,
+    //             success: true,
+    //             biblio: biblioData,
+    //             family: familyData,
+    //         });
 
 
 //         } catch (error) {

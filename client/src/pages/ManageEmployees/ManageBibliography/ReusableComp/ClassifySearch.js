@@ -7,7 +7,7 @@ import ClassifyWindowModal from "../PatentReuseComp/ClassifyWindowModal";
 import { FaCode, FaBook, FaCalendarAlt, FaInfoCircle, FaArrowLeft, FaArrowRight } from "react-icons/fa";
 import IPCDefinition from "../IpcComp/IPCDefinition";
 import classnames from "classnames";
-
+import axios from "axios";
 
 
 
@@ -24,10 +24,13 @@ const ClassifySearch = (activeTab) => {
 
   const dispatch = useDispatch();
   const classifyData = useSelector((state) => state.patentSlice.classifyData);
-  console.log('classifyData', classifyData)
-
   const classificationItem =
     classifyData?.classifyData?.["world-patent-data"]?.["classification-scheme"]?.["cpc"]?.["class-scheme"]?.["classification-item"];
+
+      const classTitle =
+    classificationItem?.["class-title"]?.["title-part"]?.["comment"]?.["text"] ||
+    classificationItem?.["class-title"]?.["title-part"]?.["text"] ||
+    classificationItem?.["class-title"]?.["title-part"]?.map(part => part.text).join('; ');
 
   const cpcStarted = classifyData?.cpcFullData?.["world-patent-data"]?.["classification-scheme"]?.["cpc"];
 
@@ -108,10 +111,6 @@ const ClassifySearch = (activeTab) => {
 
   const cpcItems = getCPCClassificationItems(rootItem);
 
-  const classTitle =
-    classificationItem?.["class-title"]?.["title-part"]?.["comment"]?.["text"] ||
-    classificationItem?.["class-title"]?.["title-part"]?.["text"] ||
-    classificationItem?.["class-title"]?.["title-part"]?.map(part => part.text).join('; ');
 
   const classificationSymbol = classificationItem?.["classification-symbol"];
   const dateRevised = classificationItem?.["$"]?.["date-revised"];
@@ -120,39 +119,68 @@ const ClassifySearch = (activeTab) => {
   const metaData = classificationItem?.["meta-data"];
 
 
-  const handleClassifySubmit = async (e) => {
-    e.preventDefault();
-    setSubmitted(true);
-    dispatch(setClassifyData([]));
-    const trimmedNumber = classifyNumber.trim();
+  const [results, setResults] = useState([]);
+  const [error, setError] = useState("");
 
-    if (trimmedNumber === '') {
-      setAlertType("error");
-      setCustomAlertMessage("CPC number is required.");
-      setShowAlert(true);
-      return;
-    }
 
-    setShowAlert(false);
-    setLoading(true);
-
+    const fetchStaticClassifications = async () => {
     try {
-      await retrieveClassificationData(
-        trimmedNumber,
-        dispatch,
-        setShowAlert,
-        setAlertType,
-        setCustomAlertMessage
-      );
+      setLoading(true);
+      setError("");
+      setResults([]);
 
-      if (!cpcItems || cpcItems.length === 0) {
-      }
-
-    } catch (error) {
-      console.error("Espacenet fetch error:", error);
+      const res = await axios.get("http://localhost:8080/class/static-classifications", {
+        params: { classifyNumber },
+      });
+      console.log("fetchStaticClassifications", res.data.results)
+      setResults(res.data.results || []);
+    } catch (err) {
+      setError(err.response?.data?.error || err.message);
     } finally {
       setLoading(false);
     }
+  };
+
+
+  const handleClassifySubmit = async (e) => {   
+    e.preventDefault();
+    try {
+      await fetchStaticClassifications();
+
+    } catch (error) {
+      console.error("Espacenet fetch error:", error);
+    }
+    // setSubmitted(true);
+    // dispatch(setClassifyData([]));
+    // const trimmedNumber = classifyNumber.trim();
+
+    // if (trimmedNumber === '') {
+    //   setAlertType("error");
+    //   setCustomAlertMessage("CPC number is required.");
+    //   setShowAlert(true);
+    //   return;
+    // }
+
+    // setShowAlert(false);
+    // setLoading(true);
+
+    // try {
+    //   await retrieveClassificationData(
+    //     trimmedNumber,
+    //     dispatch,
+    //     setShowAlert,
+    //     setAlertType,
+    //     setCustomAlertMessage
+    //   );
+
+    //   if (!cpcItems || cpcItems.length === 0) {
+    //   }
+
+    // } catch (error) {
+    //   console.error("Espacenet fetch error:", error);
+    // } finally {
+    //   setLoading(false);
+    // }
 
     setTimeout(() => setShowAlert(false), 3000);
   };

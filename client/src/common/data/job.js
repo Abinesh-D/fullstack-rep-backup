@@ -1,12 +1,12 @@
 //import images
-import avatar1 from "../../assets/images/users/avatar-1.jpg";
-import avatar2 from "../../assets/images/users/avatar-2.jpg";
-import avatar3 from "../../assets/images/users/avatar-3.jpg";
-import avatar4 from "../../assets/images/users/avatar-4.jpg";
-import avatar5 from "../../assets/images/users/avatar-5.jpg";
-import avatar6 from "../../assets/images/users/avatar-6.jpg";
-import avatar7 from "../../assets/images/users/avatar-7.jpg";
-import avatar8 from "../../assets/images/users/avatar-8.jpg";
+// import avatar1 from "../../assets/images/users/avatar-1.jpg";
+// import avatar2 from "../../assets/images/users/avatar-2.jpg";
+// import avatar3 from "../../assets/images/users/avatar-3.jpg";
+// import avatar4 from "../../assets/images/users/avatar-4.jpg";
+// import avatar5 from "../../assets/images/users/avatar-5.jpg";
+// import avatar6 from "../../assets/images/users/avatar-6.jpg";
+// import avatar7 from "../../assets/images/users/avatar-7.jpg";
+// import avatar8 from "../../assets/images/users/avatar-8.jpg";
 
 const jobs = [
     {
@@ -164,7 +164,7 @@ const jobs = [
 const jobListCandidate = [
     {
         id: 1,
-        img: avatar1,
+        // img: avatar1,
         name: "Steven Franklin",
         designation: "UI/UX Designer",
         location: "Louisiana",
@@ -174,7 +174,7 @@ const jobListCandidate = [
     },
     {
         id: 2,
-        img: avatar2,
+        // img: avatar2,
         name: "Dolores Minter",
         designation: "Assistant / Shope Keeper",
         location: "Hong-Kong",
@@ -184,7 +184,7 @@ const jobListCandidate = [
     },
     {
         id: 3,
-        img: avatar3,
+        // img: avatar3,
         name: "Charles Brown",
         designation: "Web Designer",
         location: "Finlande",
@@ -194,7 +194,7 @@ const jobListCandidate = [
     },
     {
         id: 4,
-        img: avatar4,
+        // img: avatar4,
         name: "Bonnie Harney",
         designation: "Web Developer",
         location: "France",
@@ -204,7 +204,7 @@ const jobListCandidate = [
     },
     {
         id: 5,
-        img: avatar5,
+        // img: avatar5,
         name: "Stephen Hadley",
         designation: "Graphic Designer",
         location: "Danemark",
@@ -214,7 +214,7 @@ const jobListCandidate = [
     },
     {
         id: 6,
-        img: avatar6,
+        // img: avatar6,
         name: "Henry Wells",
         designation: "Executive, HR Operations",
         location: "Danemark",
@@ -224,7 +224,7 @@ const jobListCandidate = [
     },
     {
         id: 7,
-        img: avatar7,
+        // img: avatar7,
         name: "Adam Miller",
         designation: "Education Training",
         location: "Colombie",
@@ -234,7 +234,7 @@ const jobListCandidate = [
     },
     {
         id: 8,
-        img: avatar8,
+        // img: avatar8,
         name: "Keith Gonzales",
         designation: "Product Manager",
         location: "Brazil",

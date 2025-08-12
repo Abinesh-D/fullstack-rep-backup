@@ -1,9 +1,12 @@
-import React from 'react'
+import React from 'react';
+import PptTemplate from './Components/PptTemplate';
 
-function index() {
+function Index() {
     return (
-        <div className='page-content'>index</div>
-    )
+        <div className="page-content">
+            <PptTemplate />
+        </div>
+    );
 }
 
-export default index;
+export default Index;

@@ -1,9 +1,9 @@
-import avatar1 from "../../assets/images/users/avatar-1.jpg"
-import avatar2 from "../../assets/images/users/avatar-2.jpg"
-import avatar3 from "../../assets/images/users/avatar-3.jpg"
-import avatar4 from "../../assets/images/users/avatar-4.jpg"
-import avatar5 from "../../assets/images/users/avatar-5.jpg"
-import avatar7 from "../../assets/images/users/avatar-7.jpg"
+// import avatar1 from "../../assets/images/users/avatar-1.jpg"
+// import avatar2 from "../../assets/images/users/avatar-2.jpg"
+// import avatar3 from "../../assets/images/users/avatar-3.jpg"
+// import avatar4 from "../../assets/images/users/avatar-4.jpg"
+// import avatar5 from "../../assets/images/users/avatar-5.jpg"
+// import avatar7 from "../../assets/images/users/avatar-7.jpg"
 
 const users = [
   {
@@ -17,7 +17,7 @@ const users = [
   },
   {
     id: 2,
-    img: avatar2,
+    // img: avatar2,
     name: "Frank Kirk",
     designation: "Frontend Developer",
     email: "frank@mc.com",
@@ -26,7 +26,7 @@ const users = [
   },
   {
     id: 3,
-    img: avatar3,
+    // img: avatar3,
     name: "Rafael Morales",
     designation: "Backend Developer",
     email: "Rafael@mc.com",
@@ -44,7 +44,7 @@ const users = [
   },
   {
     id: 5,
-    img: avatar4,
+    // img: avatar4,
     name: "Minnie Walter",
     designation: "Frontend Developer",
     email: "minnie@mc.com",
@@ -53,7 +53,7 @@ const users = [
   },
   {
     id: 6,
-    img: avatar5,
+    // img: avatar5,
     name: "Shirley Smith",
     designation: "UI/UX Designer",
     email: "shirley@mc.com",
@@ -71,7 +71,7 @@ const users = [
   },
   {
     id: 8,
-    img: avatar7,
+    // img: avatar7,
     name: "Colin Melton",
     designation: "Backend Developer",
     color: "",
@@ -84,7 +84,7 @@ const userProfile = {
   id: 1,
   name: "Cynthia Price",
   designation: "UI/UX Designer",
-  img: avatar1,
+  // img: avatar1,
   projectCount: 125,
   revenue: 1245,
   personalDetail:

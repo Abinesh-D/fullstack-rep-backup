@@ -9,9 +9,9 @@ import { Link } from "react-router-dom";
 import { Row, Col, CardBody, Card, Container, Form, Label, Input, FormFeedback } from "reactstrap";
 
 // import images
-import profileImg from "../../assets/images/profile-img.png";
-import logoImg from "../../assets/images/logo.svg";
-import lightlogo from "../../assets/images/logo-light.svg";
+// import profileImg from "../../assets/images/profile-img.png";
+// import logoImg from "../../assets/images/logo.svg";
+// import lightlogo from "../../assets/images/logo-light.svg";
 
 const Register = () => {
 
@@ -51,7 +51,9 @@ const Register = () => {
                       </div>
                     </Col>
                     <Col className="col-5 align-self-end">
-                      <img src={profileImg} alt="" className="img-fluid" />
+                      <img 
+                      // src={profileImg} 
+                      alt="" className="img-fluid" />
                     </Col>
                   </Row>
                 </div>
@@ -62,7 +64,7 @@ const Register = () => {
                       <div className="avatar-md profile-user-wid mb-4">
                         <span className="avatar-title rounded-circle bg-light">
                           <img
-                            src={lightlogo}
+                            // src={lightlogo}
                             alt=""
                             className="rounded-circle"
                             height="34"
@@ -74,7 +76,7 @@ const Register = () => {
                       <div className="avatar-md profile-user-wid mb-4">
                         <span className="avatar-title rounded-circle bg-light">
                           <img
-                            src={logoImg}
+                            // src={logoImg}
                             alt=""
                             className="rounded-circle"
                             height="34"

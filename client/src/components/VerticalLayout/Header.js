@@ -5,10 +5,10 @@ import { connect, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 
 import ProfileMenu from "../CommonForBoth/TopbarDropdown/ProfileMenu";
-import logo from "../../assets/images/logo.svg";
+// import logo from "../../assets/images/logo.svg";
 
 import MClogotransparent from '../../assets/images/mclogo2016.png'
-import mcLogo from "../../assets/images/mc-logo-sm.png"
+// import mcLogo from "../../assets/images/mc-logo-sm.png"
 
 
 import { withTranslation } from "react-i18next";
@@ -82,7 +82,9 @@ const Header = props => {
             <div className="navbar-brand-box d-lg-none d-md-block">
               <Link to="/dashboard" className="logo logo-dark">
                 <span className="logo-sm">
-                  <img src={logo} alt="" height="22" />
+                  <img 
+                  // src={logo}
+                   alt="" height="22" />
                 </span>
               </Link>
               

@@ -1,20 +1,20 @@
 //Import Images
-import avatar1 from "../../assets/images/users/avatar-1.jpg"
-import avatar2 from "../../assets/images/users/avatar-2.jpg"
-import avatar3 from "../../assets/images/users/avatar-3.jpg"
-import avatar4 from "../../assets/images/users/avatar-4.jpg"
-import avatar5 from "../../assets/images/users/avatar-5.jpg"
-import avatar6 from "../../assets/images/users/avatar-6.jpg"
-import avatar7 from "../../assets/images/users/avatar-7.jpg"
-import avatar8 from "../../assets/images/users/avatar-8.jpg"
+// import avatar1 from "../../assets/images/users/avatar-1.jpg"
+// import avatar2 from "../../assets/images/users/avatar-2.jpg"
+// import avatar3 from "../../assets/images/users/avatar-3.jpg"
+// import avatar4 from "../../assets/images/users/avatar-4.jpg"
+// import avatar5 from "../../assets/images/users/avatar-5.jpg"
+// import avatar6 from "../../assets/images/users/avatar-6.jpg"
+// import avatar7 from "../../assets/images/users/avatar-7.jpg"
+// import avatar8 from "../../assets/images/users/avatar-8.jpg"
 
-import img1 from "../../assets/images/companies/img-1.png";
-import img2 from "../../assets/images/companies/img-2.png";
-import img3 from "../../assets/images/companies/img-3.png";
+// import img1 from "../../assets/images/companies/img-1.png";
+// import img2 from "../../assets/images/companies/img-2.png";
+// import img3 from "../../assets/images/companies/img-3.png";
 
-import img4 from "../../assets/images/small/img-4.jpg";
-import img5 from "../../assets/images/small/img-5.jpg";
-import img6 from "../../assets/images/small/img-6.jpg";
+// import img4 from "../../assets/images/small/img-4.jpg";
+// import img5 from "../../assets/images/small/img-5.jpg";
+// import img6 from "../../assets/images/small/img-6.jpg";
 
 
 const tasks = [
@@ -31,7 +31,7 @@ const tasks = [
         budget: "145",
         kanbanImgtextColor: "bg-info",
         kanbanImgtext: [{ id: 1, imageText: "3+" }],
-        userImages: [{ id: 4, img: avatar4 }, { id: 5, img: avatar5 }, { id: 2, img: avatar2 }],
+        // userImages: [{ id: 4, img: avatar4 }, { id: 5, img: avatar5 }, { id: 2, img: avatar2 }],
         taskdesc: "create banbun board"
       },
       {
@@ -44,7 +44,7 @@ const tasks = [
         taskdesc1: "For music, sport, etc",
         budget: "112",
         imageTextColor: "bg-success",
-        userImages: [{ id: 1, img: avatar1 }, { id: 2, img: avatar2 }, { id: 0, imageText: "A" }, { id: 5, img: avatar5 }],
+        // userImages: [{ id: 1, img: avatar1 }, { id: 2, img: avatar2 }, { id: 0, imageText: "A" }, { id: 5, img: avatar5 }],
         taskdesc: "learning react"
       },
       {
@@ -57,7 +57,7 @@ const tasks = [
         imageTextColor: "bg-warning",
         kanbanImgtextColor: "bg-danger",
         kanbanImgtext: [{ id: 1, imageText: "9+" }],
-        userImages: [{ id: 4, img: avatar4 }, { id: 0, imageText: "R" }, { id: 5, img: avatar5 }],
+        // userImages: [{ id: 4, img: avatar4 }, { id: 0, imageText: "R" }, { id: 5, img: avatar5 }],
         taskdesc: "solved issue"
       },
     ],
@@ -73,8 +73,8 @@ const tasks = [
         badgeText: "Complete",
         badgeColor: "success",
         budget: "132",
-        userImages: [{ id: 7, img: avatar7 }, { id: 8, img: avatar8 }],
-        brandLogo: [{ id: 1, img: img1 }, { id: 2, img: img2 }, { id: 3, img: img3 }],
+        // userImages: [{ id: 7, img: avatar7 }, { id: 8, img: avatar8 }],
+        // brandLogo: [{ id: 1, img: img1 }, { id: 2, img: img2 }, { id: 3, img: img3 }],
         taskdesc: "design logo"
       },
       {
@@ -87,7 +87,7 @@ const tasks = [
         imageTextColor: "bg-success",
         kanbanImgtextColor: "bg-info",
         kanbanImgtext: [{ id: 1, imageText: "3+" }],
-        userImages: [{ id: 0, imageText: "A" }, { id: 6, img: avatar6 }, { id: 4, img: avatar4 }, { id: 7, img: avatar7 }],
+        // userImages: [{ id: 0, imageText: "A" }, { id: 6, img: avatar6 }, { id: 4, img: avatar4 }, { id: 7, img: avatar7 }],
         taskdesc: "Create a Blog "
       },
       {
@@ -100,7 +100,7 @@ const tasks = [
         imageTextColor: "bg-success",
         kanbanImgtextColor: "bg-primary",
         kanbanImgtext: [{ id: 1, imageText: "7+" }],
-        userImages: [{ id: 0, imageText: "A" }, { id: 4, img: avatar4 }, { id: 5, img: avatar5 }],
+        // userImages: [{ id: 0, imageText: "A" }, { id: 4, img: avatar4 }, { id: 5, img: avatar5 }],
         taskdesc: "Create a Blog "
       },
     ],
@@ -118,7 +118,7 @@ const tasks = [
         imageTextColor: "",
         budget: "145",
         imageTextColor: "bg-danger",
-        userImages: [{ id: 1, img: avatar1 }, { id: 2, img: avatar2 }, { id: 0, imageText: "K" }, { id: 3, img: avatar3 }],
+        // userImages: [{ id: 1, img: avatar1 }, { id: 2, img: avatar2 }, { id: 0, imageText: "K" }, { id: 3, img: avatar3 }],
         taskdesc: "Redesign - Landing"
       },
       {
@@ -130,8 +130,8 @@ const tasks = [
         budget: "92",
         kanbanImgtextColor: "bg-pink",
         kanbanImgtext: [{ id: 1, imageText: "5+" }],
-        userImages: [{ id: 4, img: avatar4 }, { id: 5, img: avatar5 }, { id: 6, img: avatar6 }],
-        brandLogo: [{ id: 1, imges: img4 }, { id: 2, imges: img5 }, { id: 3, imges: img6 }],
+        // userImages: [{ id: 4, img: avatar4 }, { id: 5, img: avatar5 }, { id: 6, img: avatar6 }],
+        // brandLogo: [{ id: 1, imges: img4 }, { id: 2, imges: img5 }, { id: 3, imges: img6 }],
         taskdesc: "create a Multipurpose Landing"
       },
       {
@@ -144,7 +144,7 @@ const tasks = [
         imageTextColor: "bg-danger",
         kanbanImgtextColor: "bg-info",
         kanbanImgtext: [{ id: 1, imageText: "2+" }],
-        userImages: [{ id: 7, img: avatar7 }, { id: 8, img: avatar8 }, { id: 0, imageText: "D" },],
+        // userImages: [{ id: 7, img: avatar7 }, { id: 8, img: avatar8 }, { id: 0, imageText: "D" },],
         taskdesc: "testing mc landing"
       },
     ],
@@ -152,14 +152,14 @@ const tasks = [
 ]
 
 const AddTeamMember = [
-  { id: 1, img: avatar1, name: 'Albert Rodarte' },
-  { id: 2, img: avatar2, name: 'Hannah Glover' },
-  { id: 3, img: avatar3, name: 'Adrian Rodarte' },
-  { id: 4, img: avatar4, name: 'Frank Hamilton' },
-  { id: 5, img: avatar5, name: 'Justin Howard' },
-  { id: 6, img: avatar6, name: 'Michael Lawrence' },
-  { id: 7, img: avatar7, name: 'Oliver Sharp' },
-  { id: 8, img: avatar8, name: 'Richard Simpson' }
+  // { id: 1, img: avatar1, name: 'Albert Rodarte' },
+  // { id: 2, img: avatar2, name: 'Hannah Glover' },
+  // { id: 3, img: avatar3, name: 'Adrian Rodarte' },
+  // { id: 4, img: avatar4, name: 'Frank Hamilton' },
+  // { id: 5, img: avatar5, name: 'Justin Howard' },
+  // { id: 6, img: avatar6, name: 'Michael Lawrence' },
+  // { id: 7, img: avatar7, name: 'Oliver Sharp' },
+  // { id: 8, img: avatar8, name: 'Richard Simpson' }
 ]
 
 const series = [
@@ -211,24 +211,24 @@ const recentTasksData = [
   {
     id: 1, taskName: "Brand logo design",
     avatars: [
-      { id: 1, src: avatar4 },
-      { id: 2, src: avatar5 }
+      // { id: 1, src: avatar4 },
+      // { id: 2, src: avatar5 }
     ]
   },
   {
     id: 2, taskName: "Create a Blog Template UI",
     avatars: [
-      { id: 1, src: avatar1 },
-      { id: 2, src: avatar2 },
-      { id: 3, src: avatar3 },
+      // { id: 1, src: avatar1 },
+      // { id: 2, src: avatar2 },
+      // { id: 3, src: avatar3 },
       { id: 4, avatarTitle: "D", bgColor: "bg-info", text: "D" }
     ]
   },
   {
     id: 1, taskName: "Redesign - Landing page",
     avatars: [
-      { id: 1, src: avatar8 },
-      { id: 2, src: avatar7 },
+      // { id: 1, src: avatar8 },
+      // { id: 2, src: avatar7 },
       { id: 3, avatarTitle: "P", bgColor: "bg-danger", text: "P" }
     ]
   }

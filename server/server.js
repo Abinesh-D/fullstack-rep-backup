@@ -50,7 +50,7 @@ const chatRoute = require("./routes/chatRoute");
 const cpcGoogleRoutes = require("./routes/cpcGoogleRoutes");
 const bulkBiblioData = require("./routes/bulkBiblioRoute");
 
-
+const bulkClassificationTEsting = require("./routes/bulkClassificationTEsting");
 
 
 // ipc route
@@ -62,7 +62,10 @@ const descriptionRoute = require("./routes/descriptionRoute");
 
 app.use("/esp/patentdata", espAPiRoutes);
 app.use("/esp/legalStatus", espLegalStatus);
-app.use("/cpc/classify", classifyRoute)
+
+app.use("/cpc/classify", classifyRoute);
+app.use("/class",bulkClassificationTEsting );
+
 app.use("/description/data", descriptionRoute);
 app.use("/api/chatbox", chatRoute);
 app.use("/cpc/google", cpcGoogleRoutes);

@@ -1,16 +1,129 @@
 import React, { useState } from "react";
+import * as XLSX from "xlsx";
+import {
+  Container,
+  Row,
+  Col,
+  Card,
+  CardBody,
+  CardTitle,
+  CardText,
+  Button,
+  Input,
+  Spinner,
+  Alert,
+} from "reactstrap";
+import "bootstrap/dist/css/bootstrap.min.css";
+import axios from "axios";
 
-const CPCParser = () => {
+export default function CPCClassificationParser() {
+  const [classifyNumber, setClassifyNumber] = useState([]);
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      const bstr = evt.target.result;
+      const wb = XLSX.read(bstr, { type: "binary" });
+      const wsname = wb.SheetNames[0];
+      const ws = wb.Sheets[wsname];
+      const data = XLSX.utils.sheet_to_json(ws, { header: 1 });
+
+      const symbols = data.slice(1).map((row) => row[0]).filter(Boolean);
+
+      setClassifyNumber(symbols);
+    };
+    reader.readAsBinaryString(file);
+  };
+
+  const fetchStaticClassifications = async () => {
+    if (!classifyNumber.length) return;
+
+    try {
+      setLoading(true);
+      setError("");
+
+        const res = await axios.get(
+          "http://localhost:8080/class/static-classifications", {
+            params: {classifyNumber},
+            excel: true,
+          }
+        );
+
+        console.log('resclassifyNumber', res.data)
+    
+
+      setResults(res.data);
+    } catch (err) {
+      setError("Failed to fetch classifications. Check the API server.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className="container mt-4">
-      
-    </div>
-  );
-};
+    <Container className="mt-4">
+      <Row className="justify-content-center">
+        <Col md="8" lg="6">
+          <Card className="shadow-sm">
+            <CardBody>
+              <CardTitle tag="h4" className="mb-4">
+                CPC Classification Parser
+              </CardTitle>
 
-export default CPCParser;
+              <Row className="g-2 mb-3 align-items-center">
+                <Col xs="8">
+                  <Input
+                    type="file"
+                    accept=".xlsx, .xls"
+                    onChange={handleFileChange}
+                  />
+                </Col>
+                <Col xs="4" className="text-end">
+                  <Button
+                    color="success"
+                    onClick={fetchStaticClassifications}
+                    disabled={!classifyNumber.length || loading}
+                  >
+                    {loading ? <Spinner size="sm" /> : "Fetch"}
+                  </Button>
+                </Col>
+              </Row>
+
+              {classifyNumber.length > 0 && (
+                <Alert color="info" className="py-2">
+                  <strong>Parsed Symbols:</strong> {classifyNumber.join(", ")}
+                </Alert>
+              )}
+
+              {error && <Alert color="danger">{error}</Alert>}
+
+              {results.length > 0 &&
+                results.map((item, idx) => (
+                  <Card key={idx} className="mb-3 shadow-sm">
+                    <CardBody>
+                      <CardText className="text-muted mb-1">Symbol</CardText>
+                      <CardText tag="h5" className="fw-bold mb-2">
+                        {item.symbol}
+                      </CardText>
+                      <CardText>{item.title}</CardText>
+                    </CardBody>
+                  </Card>
+                ))}
+            </CardBody>
+          </Card>
+        </Col>
+      </Row>
+    </Container>
+  );
+}
+
+
 
 
 

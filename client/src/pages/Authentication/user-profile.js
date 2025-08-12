@@ -25,7 +25,7 @@ import withRouter from "../../components/Common/withRouter";
 //Import Breadcrumb
 import Breadcrumb from "../../components/Common/Breadcrumb";
 
-import avatar from "../../assets/images/users/avatar-1.jpg";
+// import avatar from "../../assets/images/users/avatar-1.jpg";
 // actions
 import { editProfile, resetProfileFlag } from "../../store/actions";
 
@@ -107,7 +107,7 @@ const UserProfile = () => {
                   <div className="d-flex">
                     <div className="ms-3">
                       <img
-                        src={avatar}
+                        // src={avatar}
                         alt=""
                         className="avatar-md rounded-circle img-thumbnail"
                       />

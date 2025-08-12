@@ -13,8 +13,8 @@ import {
 } from "reactstrap"
 
 // import images
-import logodark from "../../assets/images/logo-dark.png"
-import logolight from "../../assets/images/logo-light.png"
+// import logodark from "../../assets/images/logo-dark.png"
+// import logolight from "../../assets/images/logo-light.png"
 
 const TwostepVerification = () => {
 
@@ -30,13 +30,13 @@ const TwostepVerification = () => {
               <div className="text-center mb-5 text-muted">
                 <Link to="/dashboard" className="d-block auth-logo">
                   <img
-                    src={logodark}
+                    // src={logodark}
                     alt=""
                     height="20"
                     className="auth-logo-dark mx-auto"
                   />
                   <img
-                    src={logolight}
+                    // src={logolight}
                     alt=""
                     height="20"
                     className="auth-logo-light mx-auto"

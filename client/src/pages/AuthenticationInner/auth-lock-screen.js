@@ -7,10 +7,10 @@ import { useFormik } from "formik";
 import { Container, Row, Col, CardBody, Card, Button, Form, Label, Input, FormFeedback } from "reactstrap";
 
 // import images
-import profileImg from "../../assets/images/profile-img.png";
-import logoImg from "../../assets/images/logo.svg";
-import lightlogo from "../../assets/images/logo-light.svg";
-import avatar from "../../assets/images/users/avatar-1.jpg";
+// import profileImg from "../../assets/images/profile-img.png";
+// import logoImg from "../../assets/images/logo.svg";
+// import lightlogo from "../../assets/images/logo-light.svg";
+// import avatar from "../../assets/images/users/avatar-1.jpg";
 import { Link } from "react-router-dom";
 
 const LockScreen = () => {
@@ -46,7 +46,9 @@ const LockScreen = () => {
                       </div>
                     </Col>
                     <Col xs="5" className="align-self-end">
-                      <img src={profileImg} alt="" className="img-fluid" />
+                      <img 
+                      // src={profileImg}
+                       alt="" className="img-fluid" />
                     </Col>
                   </Row>
                 </div>
@@ -56,7 +58,7 @@ const LockScreen = () => {
                       <div className="avatar-md profile-user-wid mb-4">
                         <span className="avatar-title rounded-circle bg-light">
                           <img
-                            src={lightlogo}
+                            // src={lightlogo}
                             alt=""
                             className="rounded-circle"
                             height="34"
@@ -68,7 +70,7 @@ const LockScreen = () => {
                       <div className="avatar-md profile-user-wid mb-4">
                         <span className="avatar-title rounded-circle bg-light">
                           <img
-                            src={logoImg}
+                            // src={logoImg}
                             alt=""
                             className="rounded-circle"
                             height="34"
@@ -87,7 +89,7 @@ const LockScreen = () => {
                     >
                       <div className="user-thumb text-center mb-4">
                         <img
-                          src={avatar}
+                          // src={avatar}
                           className="rounded-circle img-thumbnail avatar-md"
                           alt="thumbnail"
                         />

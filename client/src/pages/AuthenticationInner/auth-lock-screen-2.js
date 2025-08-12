@@ -9,9 +9,9 @@ import * as Yup from "yup";
 import { useFormik } from "formik";
 
 // import images
-import logodark from "../../assets/images/logo-dark.png";
-import logolight from "../../assets/images/logo-light.png";
-import user from "../../assets/images/users/avatar-1.jpg";
+// import logodark from "../../assets/images/logo-dark.png";
+// import logolight from "../../assets/images/logo-light.png";
+// import user from "../../assets/images/users/avatar-1.jpg";
 import CarouselPage from "./CarouselPage";
 
 const LockScreen2 = (props) => {
@@ -45,13 +45,13 @@ const LockScreen2 = (props) => {
                       <Link to="/dashboard"
                         className="d-block auth-logo">
                         <img
-                          src={logodark}
+                          // src={logodark}
                           alt=""
                           height="18"
                           className="logo-dark-element"
                         />
                         <img
-                          src={logolight}
+                          // src={logolight}
                           alt=""
                           height="18"
                           className="logo-light-element"
@@ -80,7 +80,7 @@ const LockScreen2 = (props) => {
 
                           <div className="user-thumb text-center mb-4">
                             <img
-                              src={user}
+                              // src={user}
                               className="rounded-circle img-thumbnail avatar-md"
                               alt="thumbnail"
                             />

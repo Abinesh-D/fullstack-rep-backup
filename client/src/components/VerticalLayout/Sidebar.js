@@ -9,13 +9,13 @@ import SidebarContent from "./SidebarContent";
 
 import { Link } from "react-router-dom";
 
-import logo from "../../assets/images/logo.svg";
-import logoLightPng from "../../assets/images/logo-light.png";
-import logoLightSvg from "../../assets/images/logo-light.svg";
-import logoDark from "../../assets/images/logo-dark.png";
+// import logo from "../../assets/images/logo.svg";
+// import logoLightPng from "../../assets/images/logo-light.png";
+// import logoLightSvg from "../../assets/images/logo-light.svg";
+// import logoDark from "../../assets/images/logo-dark.png";
 
 import MClogo from '../../assets/images/mciplogo-1.png'
-import McLogoSm from '../../assets/images/mc-logo-sm.png'
+// import McLogoSm from '../../assets/images/mc-logo-sm.png'
 import mcrpllogosm from "../../assets/images/mcrpl-logo-sm.png"
 
 const Sidebar = props => {

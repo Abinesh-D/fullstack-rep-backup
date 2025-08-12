@@ -11,7 +11,7 @@ import { Row, Col, Dropdown, DropdownToggle, DropdownMenu } from "reactstrap";
 import LanguageDropdown from "../CommonForBoth/TopbarDropdown/LanguageDropdown";
 import ProfileMenu from "../CommonForBoth/TopbarDropdown/ProfileMenu";
 
-import megamenuImg from "../../assets/images/megamenu-img.png";
+// import megamenuImg from "../../assets/images/megamenu-img.png";
 
 // import logo from "../../assets/images/logo.svg";
 // import logoLight from "../../assets/images/logo-light.png";
@@ -19,20 +19,20 @@ import megamenuImg from "../../assets/images/megamenu-img.png";
 // import logoDark from "../../assets/images/logo-dark.png";
 
 
-import logo from "../../assets/images/mc-logo.png";
-import logoLight from "../../assets/images/mc-logo.png";
-import logoLightSvg from "../../assets/images/logo-light.svg";
-import logoDark from "../../assets/images/logo-dark.png";
+// import logo from "../../assets/images/mc-logo.png";
+// import logoLight from "../../assets/images/mc-logo.png";
+// import logoLightSvg from "../../assets/images/logo-light.svg";
+// import logoDark from "../../assets/images/logo-dark.png";
 
 
 
 // import images
-import github from "../../assets/images/brands/github.png";
-import bitbucket from "../../assets/images/brands/bitbucket.png";
-import dribbble from "../../assets/images/brands/dribbble.png";
-import dropbox from "../../assets/images/brands/dropbox.png";
-import mail_chimp from "../../assets/images/brands/mail_chimp.png";
-import slack from "../../assets/images/brands/slack.png";
+// import github from "../../assets/images/brands/github.png";
+// import bitbucket from "../../assets/images/brands/bitbucket.png";
+// import dribbble from "../../assets/images/brands/dribbble.png";
+// import dropbox from "../../assets/images/brands/dropbox.png";
+// import mail_chimp from "../../assets/images/brands/mail_chimp.png";
+// import slack from "../../assets/images/brands/slack.png";
 
 //i18n
 import { withTranslation } from "react-i18next";
@@ -75,19 +75,27 @@ const Header = props => {
             <div className="navbar-brand-box">
               <Link to="/" className="logo logo-dark">
                 <span className="logo-sm">
-                  <img src={logo} alt="mc-logo" height="22" />
+                  <img 
+                  // src={logo}
+                   alt="mc-logo" height="22" />
                 </span>
                 <span className="logo-lg">
-                  <img src={logoDark} alt="" height="17" />
+                  <img 
+                  // src={logoDark}
+                   alt="" height="17" />
                 </span>
               </Link>
 
               <Link to="/" className="logo logo-light">
                 <span className="logo-sm">
-                  <img src={logoLightSvg} alt="" height="22" />
+                  <img
+                  //  src={logoLightSvg}
+                   alt="" height="22" />
                 </span>
                 <span className="logo-lg">
-                  <img src={logoLight} alt="" height="19" />
+                  <img
+                  //  src={logoLight}
+                   alt="" height="19" />
                 </span>
               </Link>
             </div>
@@ -250,7 +258,7 @@ const Header = props => {
                       <Col sm={5}>
                         <div>
                           <img
-                            src={megamenuImg}
+                            // src={megamenuImg}
                             alt=""
                             className="img-fluid mx-auto d-block"
                           />
@@ -322,19 +330,25 @@ const Header = props => {
                   <Row className="no-gutters">
                     <Col>
                       <Link className="dropdown-icon-item" to="#">
-                        <img src={github} alt="Github" />
+                        <img 
+                        // src={github}
+                         alt="Github" />
                         <span>GitHub</span>
                       </Link>
                     </Col>
                     <Col>
                       <Link className="dropdown-icon-item" to="#">
-                        <img src={bitbucket} alt="bitbucket" />
+                        <img 
+                        // src={bitbucket}
+                         alt="bitbucket" />
                         <span>Bitbucket</span>
                       </Link>
                     </Col>
                     <Col>
                       <Link className="dropdown-icon-item" to="#">
-                        <img src={dribbble} alt="dribbble" />
+                        <img
+                        //  src={dribbble}
+                         alt="dribbble" />
                         <span>Dribbble</span>
                       </Link>
                     </Col>
@@ -342,19 +356,25 @@ const Header = props => {
                   <Row className="no-gutters">
                     <Col>
                       <Link className="dropdown-icon-item" to="#">
-                        <img src={dropbox} alt="dropbox" />
+                        <img
+                        //  src={dropbox}
+                         alt="dropbox" />
                         <span>Dropbox</span>
                       </Link>
                     </Col>
                     <Col>
                       <Link className="dropdown-icon-item" to="#">
-                        <img src={mail_chimp} alt="mail_chimp" />
+                        <img
+                        //  src={mail_chimp}
+                         alt="mail_chimp" />
                         <span>Mail Chimp</span>
                       </Link>
                     </Col>
                     <Col>
                       <Link className="dropdown-icon-item" to="#">
-                        <img src={slack} alt="slack" />
+                        <img 
+                        // src={slack} 
+                        alt="slack" />
                         <span>Slack</span>
                       </Link>
                     </Col>

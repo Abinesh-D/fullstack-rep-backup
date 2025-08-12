@@ -7,8 +7,8 @@ import * as Yup from "yup";
 import { useFormik } from "formik";
 
 // import images
-import logodark from "../../assets/images/logo-dark.png";
-import logolight from "../../assets/images/logo-light.png";
+// import logodark from "../../assets/images/logo-dark.png";
+// import logolight from "../../assets/images/logo-light.png";
 import CarouselPage from "./CarouselPage";
 
 const Register2 = () => {
@@ -47,13 +47,13 @@ const Register2 = () => {
                     <div className="mb-4 mb-md-5">
                       <Link to="/dashboard" className="d-block auth-logo">
                         <img
-                          src={logodark}
+                          // src={logodark}
                           alt=""
                           height="18"
                           className="auth-logo-dark"
                         />
                         <img
-                          src={logolight}
+                          // src={logolight}
                           alt=""
                           height="18"
                           className="auth-logo-light"

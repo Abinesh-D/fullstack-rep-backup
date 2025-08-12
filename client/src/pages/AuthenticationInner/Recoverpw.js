@@ -16,9 +16,9 @@ import {
 } from "reactstrap";
 
 // import images
-import profile from "../../assets/images/profile-img.png";
-import logoImg from "../../assets/images/logo.svg";
-import lightlogo from "../../assets/images/logo-light.svg";
+// import profile from "../../assets/images/profile-img.png";
+// import logoImg from "../../assets/images/logo.svg";
+// import lightlogo from "../../assets/images/logo-light.svg";
 
 const Recoverpw = () => {
 
@@ -55,7 +55,7 @@ const Recoverpw = () => {
                     </Col>
                     <Col xs={5} className="align-self-end">
                       <img
-                        src={profile}
+                        // src={profile}
                         alt=""
                         className="img-fluid"
                       />
@@ -69,7 +69,7 @@ const Recoverpw = () => {
                       <div className="avatar-md profile-user-wid mb-4">
                         <span className="avatar-title rounded-circle bg-light">
                           <img
-                            src={lightlogo}
+                            // src={lightlogo}
                             alt=""
                             className="rounded-circle"
                             height="34"
@@ -81,7 +81,7 @@ const Recoverpw = () => {
                       <div className="avatar-md profile-user-wid mb-4">
                         <span className="avatar-title rounded-circle bg-light">
                           <img
-                            src={logoImg}
+                            // src={logoImg}
                             alt=""
                             className="rounded-circle"
                             height="34"

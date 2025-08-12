@@ -3,8 +3,8 @@ import { Link } from "react-router-dom"
 import { Card, CardBody, Col, Container, Row } from "reactstrap"
 
 // import images
-import logodark from "../../assets/images/logo-dark.png"
-import logolight from "../../assets/images/logo-light.png"
+// import logodark from "../../assets/images/logo-dark.png"
+// import logolight from "../../assets/images/logo-light.png"
 
 const ConfirmMail = () => {
 
@@ -21,13 +21,13 @@ const ConfirmMail = () => {
               <div className="d-block text-center mb-5 text-muted">
                 <Link to="/dashboard" className="d-block auth-logo">
                   <img
-                    src={logodark}
+                    // src={logodark}
                     alt=""
                     height="20"
                     className="auth-logo-dark mx-auto"
                   />
                   <img
-                    src={logolight}
+                    // src={logolight}
                     alt=""
                     height="20"
                     className="auth-logo-light mx-auto"

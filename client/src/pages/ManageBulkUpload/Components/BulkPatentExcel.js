@@ -16,6 +16,8 @@ const ExcelPatentUploader = ({ setRelatedFormData }) => {
 
   const espData = useSelector(state => state.patentSlice.espData);
 
+  console.log('espData', espData)
+
   const id = sessionStorage.getItem("_id");
   const fileInputRef = useRef(null);
 

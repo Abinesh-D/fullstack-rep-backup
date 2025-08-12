@@ -6,9 +6,9 @@ import { Container, Row, Col } from "reactstrap"
 import Countdown from "react-countdown"
 
 //Import Images
-import logodark from "../../assets/images/logo-dark.png";
-import logolight from "../../assets/images/logo-light.png";
-import maintanence from "../../assets/images/coming-soon.svg"
+// import logodark from "../../assets/images/logo-dark.png";
+// import logolight from "../../assets/images/logo-light.png";
+// import maintanence from "../../assets/images/coming-soon.svg"
 
 const PagesComingsoon = () => {
   const renderer = ({ days, hours, minutes, seconds, completed }) => {
@@ -52,14 +52,14 @@ const PagesComingsoon = () => {
               <div className="text-center">
                 <Link to="/dashboard" className="d-block auth-logo">
                   <img
-                    src={logodark}
+                    // src={logodark}
                     alt=""
                     height="20"
                     className="logo-dark-element"
                     style={{ display: 'block', margin: '0 auto' }}
                   />
                   <img
-                    src={logolight}
+                    // src={logolight}
                     alt=""
                     height="20"
                     className="logo-light-element"
@@ -69,7 +69,7 @@ const PagesComingsoon = () => {
                   <Col sm="4">
                     <div className="maintenance-img">
                       <img
-                        src={maintanence}
+                        // src={maintanence}
                         alt=""
                         className="img-fluid mx-auto d-block"
                       />

@@ -15,8 +15,8 @@ import { createSelector } from "reselect";
 import { Link, useNavigate } from "react-router-dom";
 
 // import images
-import profileImg from "../../assets/images/profile-img.png";
-import logoImg from "../../assets/images/logo.svg";
+// import profileImg from "../../assets/images/profile-img.png";
+// import logoImg from "../../assets/images/logo.svg";
 
 const Register = props => {
 
@@ -89,7 +89,9 @@ useEffect(() => {
                       </div>
                     </Col>
                     <Col className="col-5 align-self-end">
-                      <img src={profileImg} alt="" className="img-fluid" />
+                      <img 
+                      // src={profileImg}
+                       alt="" className="img-fluid" />
                     </Col>
                   </Row>
                 </div>
@@ -99,7 +101,7 @@ useEffect(() => {
                       <div className="avatar-md profile-user-wid mb-4">
                         <span className="avatar-title rounded-circle bg-light">
                           <img
-                            src={logoImg}
+                            // src={logoImg}
                             alt=""
                             className="rounded-circle"
                             height="34"

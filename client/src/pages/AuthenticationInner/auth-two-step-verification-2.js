@@ -2,8 +2,8 @@ import React from "react"
 import CarouselPage from "./CarouselPage"
 
 // import images
-import logodark from "../../assets/images/logo-dark.png"
-import logolight from "../../assets/images/logo-light.png"
+// import logodark from "../../assets/images/logo-dark.png"
+// import logolight from "../../assets/images/logo-light.png"
 import { Col, Form, Input, Label, Row } from "reactstrap"
 import { Link } from "react-router-dom"
 
@@ -26,13 +26,13 @@ const TwostepVerification2 = () => {
                     <div className="mb-4 mb-md-5">
                       <Link to="/dashboard" className="d-block auth-logo">
                         <img
-                          src={logodark}
+                          // src={logodark}
                           alt=""
                           height="18"
                           className="logo-dark-element"
                         />
                         <img
-                          src={logolight}
+                          // src={logolight}
                           alt=""
                           height="18"
                           className="logo-light-element"

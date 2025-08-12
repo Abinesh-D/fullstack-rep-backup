@@ -3,9 +3,9 @@ import { Link } from "react-router-dom"
 import { Container, Row, Col, Card, CardBody } from "reactstrap"
 
 //Import Images
-import maintenance from "../../assets/images/maintenance.svg"
-import logodark from "../../assets/images/logo-dark.png";
-import logolight from "../../assets/images/logo-light.png";
+// import maintenance from "../../assets/images/maintenance.svg"
+// import logodark from "../../assets/images/logo-dark.png";
+// import logolight from "../../assets/images/logo-light.png";
 
 const PagesMaintenance = () => {
 
@@ -25,7 +25,7 @@ const PagesMaintenance = () => {
                 <div className="mb-5">
                   <Link to="/dashboard" className="d-block auth-logo" >
                     <img
-                      src={logodark}
+                      // src={logodark}
                       alt=""
                       height="20"
                       className="logo-dark-element"
@@ -33,7 +33,7 @@ const PagesMaintenance = () => {
 
                     />
                     <img
-                      src={logolight}
+                      // src={logolight}
                       alt=""
                       height="20"
                       className="logo-light-element"
@@ -44,7 +44,9 @@ const PagesMaintenance = () => {
                 <Row className="justify-content-center">
                   <Col sm={4}>
                     <div className="maintenance-img">
-                      <img src={maintenance} alt="" className="img-fluid mx-auto d-block" />
+                      <img 
+                      // src={maintenance}
+                       alt="" className="img-fluid mx-auto d-block" />
                     </div>
                   </Col>
                 </Row>
