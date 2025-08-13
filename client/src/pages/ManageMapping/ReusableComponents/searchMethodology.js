@@ -10,7 +10,7 @@ const makeIndentedParagraphs = (texts, left = 880) =>
             parts.map((part) => {
                 if (part === "Appendix 1") {
                     return new InternalHyperlink({
-                        anchor: "appendix-1",
+                        anchor: "typeID1-appendix1",
                         children: [
                             createTextRun(part, textStyle.arial10, {
                                 bold: true,
@@ -21,7 +21,7 @@ const makeIndentedParagraphs = (texts, left = 880) =>
                     });
                 } else if (part === "Appendix 2") {
                     return new InternalHyperlink({
-                        anchor: "appendix-2",
+                        anchor: "typeID1-appendix2",
                         children: [
                             createTextRun(part, textStyle.arial10, {
                                 bold: true,

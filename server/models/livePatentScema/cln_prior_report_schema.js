@@ -127,6 +127,8 @@ const introductionSchema = new Schema({
   projectSubTitle: String,
   projectId: { type: String, default: "" },
   searchFeatures: [String],
+  textEditor: [String],
+
   // projectImageUrl: [ImageSchema],
   // createdAt: { type: Date, default: Date.now },
   // updatedAt: { type: Date, default: Date.now },

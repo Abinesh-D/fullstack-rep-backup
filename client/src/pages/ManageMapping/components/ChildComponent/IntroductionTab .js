@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { Row, Col, Label, Input, Button, Spinner, Toast, ToastBody, ToastHeader, } from "reactstrap";
 import axios from "axios";
 import ImageUploader from "../../ReusableComponents/ProjectImageUpload";
+import RichTextEditor from "../../../../components/Common/commonReport/RichTextEditor";
+
 
 const IntroductionTab = ({
     projectFormData,
@@ -25,6 +27,8 @@ const IntroductionTab = ({
             projectSubTitle: projectFormData.projectSubTitle || "",
             projectId: projectFormData.projectId || "",
             searchFeatures: projectFormData.searchFeatures || "",
+            textEditor: [projectFormData.textEditor] || "",
+
         };
 
         try {
@@ -117,9 +121,159 @@ const IntroductionTab = ({
         },
     ];
 
+
+
+    const [content, setContent] = useState("");
+
+    const handleSelectionChange = (range, source, editor) => {
+    console.log("Selection changed:", range, source, editor);
+  };
+
     return (
         <>
             <Row>
+
+                <Row>
+                    <Col lg="12">
+                        <div
+                            style={{
+                                padding: "20px",
+                                backgroundColor: "#ffffff",
+                                borderRadius: "8px",
+                                boxShadow: "0 2px 8px rgba(0, 0, 0, 0.08)",
+                                fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+                            }}
+                        >
+                            <RichTextEditor
+                                value={projectFormData.textEditor}
+                                onChange={(value, delta, source, editor) => {
+                                    setProjectFormData({
+                                        textEditor: value,
+                                    });
+                                }}
+                                onChangeSelection={handleSelectionChange}
+                                onFocus={() => console.log("Editor focused")}
+                                onBlur={() => console.log("Editor blurred")}
+                                style={{
+                                    minHeight: "250px",
+                                }}
+                            />
+
+                            <style>
+                                {`
+                                    .ql-container {
+                                        resize: vertical;
+                                        overflow: auto;
+                                    }
+                                    .ql-editor {
+                                        min-height: 200px;
+                                        max-height: 400px;
+                                    }
+                                    .ql-toolbar {
+                                        border-radius: 6px 6px 0 0;
+                                    }
+                                    .ql-container.ql-snow {
+                                        border: 1px solid #ddd;
+                                        border-radius: 6px;
+                                    }
+                                        .ql-toolbar {
+                                        background-color: #f8f9fa;
+                                        border-radius: 8px 8px 0 0;
+                                        border: none;
+                                        padding: 6px;
+                                        box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.06);
+                                    }
+
+                                    .ql-container {
+                                        border-radius: 0 0 8px 8px;
+                                        border: 1px solid #ddd;
+                                        resize: vertical;
+                                    }
+
+                                    .ql-editor {
+                                        min-height: 250px;
+                                        padding: 12px;
+                                        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                                    }
+
+                                    .ql-container:focus-within {
+                                        border-color: #007bff;
+                                        box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.15);
+                                    }
+                                `}
+                            </style>
+
+                            <button
+                                className="btn btn-primary px-4"
+                                style={{ marginTop: "15px" }}
+                                onClick={() => console.log("Saved HTML:", content)}
+                            >
+                                Save
+                            </button>
+
+                        </div>
+
+                    </Col>
+                </Row>
+
+
+
+
+
+
+
+
+                {/* <div
+                    style={{
+                        maxWidth: "800px",
+                        margin: "40px auto",
+                        padding: "20px",
+                        backgroundColor: "#ffffff",
+                        borderRadius: "8px",
+                        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.08)",
+                        fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+                    }}
+                >
+                    <RichTextEditor
+                        value={content}
+                        onChange={(value, delta, source, editor) => {
+                            setContent(value);
+                            console.log(delta, source, editor, "HTML output:", value);
+                        }}
+                        onChangeSelection={handleSelectionChange}
+                        onFocus={() => console.log("Editor focused")}
+                        onBlur={() => console.log("Editor blurred")}
+                        style={{
+                            minHeight: "250px",
+                            border: "1px solid #ddd",
+                            borderRadius: "6px",
+                            padding: "8px",
+                            backgroundColor: "#fafafa",
+                        }}
+                    />
+
+                    <button
+                        style={{
+                            marginTop: "15px",
+                            padding: "10px 20px",
+                            backgroundColor: "#007bff",
+                            color: "#fff",
+                            border: "none",
+                            borderRadius: "5px",
+                            cursor: "pointer",
+                            fontSize: "14px",
+                            transition: "background-color 0.2s ease",
+                        }}
+                        onMouseOver={(e) => (e.target.style.backgroundColor = "#0056b3")}
+                        onMouseOut={(e) => (e.target.style.backgroundColor = "#007bff")}
+                        onClick={() => console.log("Saved HTML:", content)}
+                    >
+                        Save
+                    </button>
+                </div> */}
+
+
+
                 {formFields.map((field) => (
                     <Col key={field.name} lg={field.lg || 12}>
                         <div className="mb-3">

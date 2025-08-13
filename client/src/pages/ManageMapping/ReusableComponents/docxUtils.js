@@ -921,7 +921,7 @@ export const generateBibliographicSection = ({
                                     new ExternalHyperlink({
                                         link: pub.publicationUrl,
                                         children: [
-                                            createTextRun(pub.publicationUrl, textStyle.arial10),
+                                            createTextRun(pub.source, textStyle.arial10),
                                         ],
                                     }),
                                 ],

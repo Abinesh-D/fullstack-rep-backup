@@ -136,6 +136,7 @@ const MappingProjectCreation = () => {
         projectSubTitle: '',
         projectId: "",
         searchFeatures: "",
+        textEditor: "",
         // projectImageUrl: [],
     });
 
@@ -405,6 +406,7 @@ const MappingProjectCreation = () => {
                         projectSubTitle: singleProject.stages.introduction?.[0]?.projectSubTitle || "",
                         projectId: singleProject.stages.introduction?.[0]?.projectId || "",
                         searchFeatures: singleProject.stages.introduction?.[0]?.searchFeatures || [],
+                        textEditor: singleProject.stages.introduction?.[0]?.textEditor || [],
                         // projectImageUrl: singleProject.stages.introduction?.[0]?.projectImageUrl || [],
                     });
                     setRelevantAndNplUpdatedData(singleProject.stages.relevantReferences?.relevantAndNplCombined);

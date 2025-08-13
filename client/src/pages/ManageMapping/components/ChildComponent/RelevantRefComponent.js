@@ -14,6 +14,7 @@ import PatentBibliographicForm from "./PatentBibliographicForm";
 import { generateTableColumns } from "../../../../components/Common/commonReport/columnUtils";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import FormTextEditor from "../../../../components/Common/commonReport/FormTextEditor";
 
 
 
@@ -348,7 +349,6 @@ const RelevantRefComponent = ({
                     handleValidationError={setErrorValidation}
                     relevantApiTrue={patentSlice.relevantApiTrue}
                 />
-
                 // <Form onSubmit={handleRelevantSubmit}>
                 //     <Row>
                 //         <p className="text-info">
@@ -534,14 +534,14 @@ const RelevantRefComponent = ({
                 //         <Col lg="12">
                 //             <div className="mb-3">
                 //                 <Label for="familyMembers">Family Member(s)</Label>
-                //                 <textarea
-                //                     id="familyMembers"
-                //                     className="form-control"
-                //                     rows="3"
-                //                     placeholder="Enter Family Members: Comma(,) Separated Values"
-                //                     value={relevantForm.familyMembers}
-                //                     onChange={handleRelevatFormInputChange}
-                //                 />
+                                // <textarea
+                                //     id="familyMembers"
+                                //     className="form-control"
+                                //     rows="3"
+                                //     placeholder="Enter Family Members: Comma(,) Separated Values"
+                                //     value={relevantForm.familyMembers}
+                                //     onChange={handleRelevatFormInputChange}
+                                // />
                 //             </div>
                 //         </Col>
                 //     </Row>
@@ -588,6 +588,10 @@ const RelevantRefComponent = ({
                 //     </Row>
                 // </Form>
             )}
+
+
+
+
             {!isEmptyArray(relevantFormData) && (
                 <TableContainer
                     columns={columns}
