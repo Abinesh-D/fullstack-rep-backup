@@ -77,10 +77,19 @@ const SearchItemSchemaAppendix1 = new Schema({
 }, { _id: false });
 
 
-const KeyStringsSchemaAppendix1 = new Schema({
+const SingleKeyStringSchema = new Schema({
   _id: { type: String, default: uuidv4 },
-  keyStringsText: { type: String, required: false },
+  value: { type: String, required: false },
+  fieldName: { type: String, required: false },
 }, { _id: false });
+
+const KeyStringsSchemaAppendix1 = new Schema({
+  keyStringsOrbit: { type: [SingleKeyStringSchema], default: [] },
+  keyStringsGoogle: { type: [SingleKeyStringSchema], default: [] },
+  keyStringsEspacenet: { type: [SingleKeyStringSchema], default: [] },
+  keyStringsUSPTO: { type: [SingleKeyStringSchema], default: [] },
+  keyStringsOthers: { type: [SingleKeyStringSchema], default: [] },
+});
 
 
 const KeyStringsNplSchemaAppendix1 = new Schema({

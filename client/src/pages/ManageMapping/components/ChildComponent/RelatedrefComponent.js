@@ -31,7 +31,6 @@ const RelatedRefComponent = ({
     const id = sessionStorage.getItem("_id");
 
     const patentSlice = useSelector(state => state.patentSlice);
-    console.log('patentSlice', patentSlice)
     const dispatch = useDispatch();
     const [feedbackOpen, setFeedbackOpen] = useState(false);
 

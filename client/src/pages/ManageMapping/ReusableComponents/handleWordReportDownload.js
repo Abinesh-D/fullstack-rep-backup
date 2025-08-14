@@ -510,7 +510,6 @@ export const handleWordReportDownload = async ({
     };
 
     const publications = typeId2 ? relevantAndNplCombined : relevantReferences;
-    console.log('publications', publications)
 
     const appendixTable = createTwoColumnTickTable({
         leftTitle: "Patents" || "",

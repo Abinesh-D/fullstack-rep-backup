@@ -842,7 +842,6 @@ export const generateBibliographicSection = ({
     createSingleColumnTableRows,
 }) => {
 
-    console.log(pub, "pub")
     const headerShading = {
         fill: "A7C7E7",
         type: ShadingType.CLEAR,

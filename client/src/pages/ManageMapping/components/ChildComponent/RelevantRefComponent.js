@@ -315,7 +315,7 @@ const RelevantRefComponent = ({
             </>
             <Row className="align-items-center mb-4">
                 <Col className="d-flex align-items-center">
-                    <h4 className="fw-bold m-0">Publication Details</h4>
+                    <h4 className="fw-bold m-0">Relevant References</h4>
                 </Col>
                 <Col className="d-flex justify-content-end">
                     <Button color="warning" onClick={() => setFeedbackOpen(true)} className="d-flex align-items-center">

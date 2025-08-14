@@ -126,7 +126,6 @@ const IntroductionTab = ({
     const [content, setContent] = useState("");
 
     const handleSelectionChange = (range, source, editor) => {
-    console.log("Selection changed:", range, source, editor);
   };
 
     return (

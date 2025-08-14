@@ -123,15 +123,13 @@ const usePatentData = (data, type, pubNumber) => {
             : extractIPCCode(ipcrRaw?.text) || '';
     }, [ipcrRaw]);
 
-    // const classData = classifications();
     const ipcFormatted = ipc ? `${ipc}, ` : '';
     const ipcrFormatted = ipcrText ? `${ipcrText}, ` : '';
 
     const classificationsSymbol = `${ipcrFormatted}${ipcFormatted}${classifications.cpc}`;
-
     const famData = mapFamilyMemberData(data);
 
-    const familyMemData = famData?.map(f => f?.familyPatent).join(', ');
+    const familyMemData = famData?.filter(ptn=> ptn.familyPatent !== data.patentNumber)?.map(f => f?.familyPatent).join(', ');
 
     if (type === "relevant") {
         return {
@@ -148,7 +146,7 @@ const usePatentData = (data, type, pubNumber) => {
             classData: classifications,
             familyMemData,
             formattedDescriptions,
-            ipcClass: `${ipcrFormatted}${ipcFormatted}`,
+            ipcClass: `${ipcrFormatted}${ipcFormatted},`,
             cpcClass: classifications.cpc,
         };
     } else if (type === "related") {

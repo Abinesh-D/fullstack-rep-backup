@@ -45,7 +45,7 @@ const MappingProjectCreation = () => {
     const releventBiblioGoogleData = useSelector(state => state.patentSlice.liveGoogleRelevantData);
     const relatedBiblioGoogleData = useSelector(state => state.patentSlice.liveGoogleRelatedData);
 
-    const [activeTab, setactiveTab] = useState(1);
+    const [activeTab, setactiveTab] = useState(4);
     const [passedSteps, setPassedSteps] = useState([1]);
 
     const [relevantForm, setRelevantForm] = useState({
@@ -897,12 +897,16 @@ const MappingProjectCreation = () => {
             ([key, value]) => key === "patentNumber" || value === ""
         );
 
+        const cpcArray = cpcClass.split(",").map(item => item.trim()).filter(Boolean);
+        const ipcArray = ipcClass.split(",").map(item => item.trim()).filter(Boolean);
+
+        const filteredCPC = cpcArray.filter(cpc => !ipcArray.includes(cpc))?.join(', ');
+
         if (
             (data?.patentNumber || releventBiblioGoogleData?.patentNumber) &&
             relevantForm.patentNumber &&
             allFieldsExceptPatentEmpty
         ) {
-            console.log('✅ Populating relevantForm from bibliographic sources...');
 
             const combinedForm = {
                 patentNumber: relevantForm.patentNumber.trim(),
@@ -971,7 +975,7 @@ const MappingProjectCreation = () => {
                     .filter(Boolean),
 
                 cpcClassifications: (
-                    cpcClass ||
+                    filteredCPC ||
                     googleClassCPC ||
                     "")
                     .split(",")
@@ -1259,9 +1263,57 @@ const MappingProjectCreation = () => {
                                 <CardBody>
                                     {
                                         reportData && (
-                                            <p style={{ fontSize: "10px", color: "#198754", fontWeight: "600", backgroundColor: "#f1fdf7", padding: "8px 12px", borderRadius: "6px", display: "inline-block", }}>
-                                                {reportData.projectName} /-- {reportData.projectType}
-                                            </p>
+                                            <Row>
+                                                <Col lg="6">
+                                                    <p style={{ fontSize: "10px", color: "#198754", fontWeight: "600", backgroundColor: "#f1fdf7", padding: "8px 12px", borderRadius: "6px", display: "inline-block", }}>
+                                                        {reportData.projectName} /-- {reportData.projectType}
+                                                    </p>
+                                                </Col>
+                                                {relevantFormData.length > 0 && (
+                                                    <Col lg="2" style={{ padding: "0 6px" }}>
+                                                        <div style={{
+                                                            background: "#f3e8ff",
+                                                            color: "#6b21a8",
+                                                            padding: "4px 8px",
+                                                            borderRadius: "4px",
+                                                            fontWeight: 600,
+                                                            textAlign: "center"
+                                                        }}>
+                                                            Relevant Ref - {relevantFormData.length}
+                                                        </div>
+                                                    </Col>
+                                                )}
+
+                                                {nonPatentFormData.length > 0 && (
+                                                    <Col lg="2" style={{ padding: "0 6px" }}>
+                                                        <div style={{
+                                                            background: "#fff4e5",
+                                                            color: "#d97706",
+                                                            padding: "4px 8px",
+                                                            borderRadius: "4px",
+                                                            fontWeight: 600,
+                                                            textAlign: "center"
+                                                        }}>
+                                                            NPL - {nonPatentFormData.length}
+                                                        </div>
+                                                    </Col>
+                                                )}
+
+                                                {relatedFormData.length > 0 && (
+                                                    <Col lg="2" style={{ padding: "0 6px" }}>
+                                                        <div style={{
+                                                            background: "#eef2ff",
+                                                            color: "#4338ca",
+                                                            padding: "4px 8px",
+                                                            borderRadius: "4px",
+                                                            fontWeight: 600,
+                                                            textAlign: "center"
+                                                        }}>
+                                                            Related Ref - {relatedFormData.length}
+                                                        </div>
+                                                    </Col>
+                                                )}
+                                            </Row>
                                         )
                                     }
                                     <div className="wizard clearfix">

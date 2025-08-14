@@ -535,6 +535,53 @@ export const saveExcelRelatedReferences = async (id, relatedData) => {
 };
 
 
+export const refreshData = async ({ projectId, setKeyStringsList }) => {
+  const res = await axios.get(`/api/appendix1/${projectId}`);
+  setKeyStringsList(res.data.keyStrings || []);
+};
+
+
+export const onKeyStringsEdit = async (_id, itemId, fieldName, newValue, setEditingItem, setEditValue) => {
+  try {
+    await axios.put(`/api/appendix1/${_id}/${fieldName}/${itemId}`, {
+      value: newValue
+    });
+    refreshData();
+    setEditingItem(null);
+    setEditValue("");
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+export const handleSaveKeyString = async ({ _id, selectedSource, keyStrings, setKeyStrings, sourceFieldMap }) => {
+
+  const backendField = sourceFieldMap[selectedSource];
+  const value = keyStrings[selectedSource].trim();
+
+  if (!value) {
+    alert("Please enter a key string");
+    return;
+  }
+  if (!backendField) {
+    alert("Invalid source selection");
+    return;
+  }
+
+  try {
+    const res = await urlSocket.post(`/live/projectname/appendix1/${_id}/${backendField}`, { value });
+
+    console.log("Saved:", res.data.keyStrings);
+
+    setKeyStrings({ ...keyStrings, [selectedSource]: "" });
+
+  } catch (err) {
+    console.error("Error saving key string:", err);
+    alert("Failed to save key string");
+  }
+};
+
+
 
 // export const handleRelevantAndNplCombinedSubmit = async (e) => {
 //     e.preventDefault();

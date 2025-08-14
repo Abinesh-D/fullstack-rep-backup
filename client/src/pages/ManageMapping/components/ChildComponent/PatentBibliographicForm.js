@@ -12,6 +12,14 @@ const PatentBibliographicForm = ({
     handleValidationError,
     relevantApiTrue
 }) => {
+
+
+
+    const filteredCPC = (formState?.cpcClassifications || []).filter(
+        cpc => !(formState?.ipcClassifications || []).includes(cpc)
+    );
+
+
     return (
         <Form onSubmit={onSubmit}>
             <Row>
@@ -65,7 +73,7 @@ const PatentBibliographicForm = ({
                 { id: "grantDate", label: "Grant/Publication Date", placeholder: "dd-mm-yyyy" },
                 { id: "inventors", label: "Inventor(s)", placeholder: "Semicolon(;) Separated" },
                 { id: "priorityDate", label: "Priority Date (Optional)", placeholder: "dd-mm-yyyy" },
-                { id: "classifications", label: "IPC/CPC Classification", placeholder: "Comma(,) Separated" },
+                { id: "ipcClassifications", label: "Classification(IPC)", placeholder: "Comma(,) Separated" },
                 { id: "usClassification", label: "US Classification (Optional)", placeholder: "Comma(,) Separated" },
             ].reduce((acc, curr, index, arr) => {
                 if (index % 2 === 0) acc.push(arr.slice(index, index + 2));
@@ -92,6 +100,7 @@ const PatentBibliographicForm = ({
 
 
             {[
+                { id: "cpcClassifications", label: "Classification(CPC)", placeholder: "Comma(,) Separated", rows: 2 },
                 {
                     id: "familyMembers",
                     label: "Family Member(s)",

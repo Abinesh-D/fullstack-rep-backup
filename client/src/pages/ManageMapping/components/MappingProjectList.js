@@ -49,7 +49,6 @@ const MappingProjectList = () => {
     const [selectedProjectId, setSelectedProjectId] = useState(null);
 
 
-console.log('reportData', reportData)
     const toggle = (mode, editRow) => {
         if (mode === '0') {
             setMode(null);

@@ -13,7 +13,6 @@ const FormTextEditor = () => {
                     <Row>
                         <Col xs={12}>
                             <Card>
-                                {console.log('TEXT_EDITOR_API_KEY', TEXT_EDITOR_API_KEY)}
                                 <CardBody>
                                     <h4 className="card-title">Tinymce wysihtml5</h4>
                                     <p className="card-title-desc">Bootstrap-wysihtml5 is a javascript
