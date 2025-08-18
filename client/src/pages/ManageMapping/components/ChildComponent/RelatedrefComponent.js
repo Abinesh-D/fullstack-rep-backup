@@ -151,7 +151,9 @@ const RelatedRefComponent = ({
     //     },
     // ], [relatedFormData]);
 
-const bulkmappedValue = mappedValue(patentSlice.multiRelated, famId);
+
+
+    const bulkmappedValue = mappedValue(patentSlice.multiRelated, famId);
 
 
     const handleClearInputFields = () => {

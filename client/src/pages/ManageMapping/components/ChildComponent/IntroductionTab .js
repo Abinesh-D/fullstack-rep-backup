@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Row, Col, Label, Input, Button, Spinner, Toast, ToastBody, ToastHeader, } from "reactstrap";
 import axios from "axios";
+import { useSelector } from "react-redux";
 import ImageUploader from "../../ReusableComponents/ProjectImageUpload";
 import RichTextEditor from "../../../../components/Common/commonReport/RichTextEditor";
 
@@ -11,6 +12,11 @@ const IntroductionTab = ({
     handleProjectChange,
     id,
 }) => {
+    
+
+    const singleProject = useSelector(state => state.patentSlice.singleProject);
+
+
     const [saveLoading, setSaveLoading] = useState(false);
     const [toast, setToast] = useState({ visible: false, type: "", message: "" });
 
@@ -26,11 +32,11 @@ const IntroductionTab = ({
             projectTitle: projectFormData.projectTitle || "",
             projectSubTitle: projectFormData.projectSubTitle || "",
             projectId: projectFormData.projectId || "",
+            executiveSummaryTotalColumn: projectFormData.executiveSummaryTotalColumn || "",
             searchFeatures: projectFormData.searchFeatures || "",
-            textEditor: [projectFormData.textEditor] || "",
+            textEditor: projectFormData.textEditor || "",
 
         };
-
         try {
             const response = await axios.post(
                 `http://localhost:8080/live/projectname/update-introduction/${id}`,
@@ -112,6 +118,17 @@ const IntroductionTab = ({
             type: "text",
             lg: 2,
         },
+        ...(singleProject?.projectTypeId === "0002"
+            ? [
+                {
+                    label: "ExecutiveSummary Total Column Number", 
+                    name: "executiveSummaryTotalColumn", 
+                    type: "number", 
+                    rows: 10, 
+                    lg: 12,
+                },
+            ]
+            : []),
         {
             label: "Search Features",
             name: "searchFeatures",
@@ -126,7 +143,7 @@ const IntroductionTab = ({
     const [content, setContent] = useState("");
 
     const handleSelectionChange = (range, source, editor) => {
-  };
+    };
 
     return (
         <>
@@ -289,15 +306,32 @@ const IntroductionTab = ({
                                     onChange={handleProjectChange}
                                 />
                             ) : (
-                                <Input
-                                    type={field.type}
-                                    name={field.name}
-                                    id={field.name}
-                                    placeholder={`Enter ${field.label}`}
-                                    className="form-control"
-                                    value={projectFormData[field.name]}
-                                    onChange={handleProjectChange}
-                                />
+                                // <Input
+                                //     type={field.type}
+                                //     name={field.name}
+                                //     id={field.name}
+                                //     placeholder={`Enter ${field.label}`}
+                                //     className="form-control"
+                                //     value={projectFormData[field.name]}
+                                    //     onChange={handleProjectChange}
+                                    // />
+
+                                    <Input
+                                        type={field.type}
+                                        name={field.name}
+                                        id={field.name}
+                                        placeholder={`Enter ${field.label}`}
+                                        className="form-control"
+                                        value={projectFormData[field.name]}
+                                        min={field.type === "number" ? 0 : undefined}
+                                        onChange={(e) => {
+                                            if (field.type === "number" && e.target.value < 0) {
+                                                e.target.value = 0;
+                                            }
+                                            handleProjectChange(e);
+                                        }}
+                                    />
+
                             )}
                         </div>
                     </Col>

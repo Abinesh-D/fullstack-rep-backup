@@ -6,8 +6,9 @@ import {
     TableRow,
     TableCell,
     Paragraph,
-    PageReference,
 } from "docx";
+import HtmlDocx from "html-docx-js/dist/html-docx";
+
 
 
 /* ---------------------------------- Text Styles ---------------------------------- */
@@ -57,6 +58,13 @@ export const sanitizeText = (text) =>
     (text || "").replace(/[&<>"]/g, (c) =>
         ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" }[c])
     );
+
+export function capitalizeEachWord(str) {
+    return str
+        .split(" ")
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(" ");
+}
 
 export const toTitleCase = (str) =>
     (str || "").toLowerCase()
@@ -193,6 +201,12 @@ export const createFooter = () =>
 //     );
 
 
+
+
+
+
+
+
 export const createSingleColumnTableRows = (rows) => {
     return rows.map(({ label, value, isParagraphChildren }) => {
         let children = [];
@@ -214,10 +228,8 @@ export const createSingleColumnTableRows = (rows) => {
             children: [
                 new TableCell({
                     borders: borderNone,
-                    // margins: { left: 20, right: 20 },
                     children: [
                         new Paragraph({
-                            // spacing: { after: 100 },
                             indent: { left: 50 },
                             children
                         }),
@@ -230,6 +242,7 @@ export const createSingleColumnTableRows = (rows) => {
 
 
 /* ---------------------------------- Family Member Utility ---------------------------------- */
+
 export const getFamilyMembersParagraphChildren = (data) => {
     const familyMembers = data.FamilyMembers || [];
     const displayLimit = 3;
@@ -247,6 +260,12 @@ export const getFamilyMembersParagraphChildren = (data) => {
     ];
 
     if (remainingText) {
+         children.push(
+            new TextRun({
+                text: ", ",
+                ...textStyle.arial10,
+            })
+        );
         children.push(
             new ExternalHyperlink({
                 link: data.hyperLink,
@@ -374,9 +393,19 @@ export const createRelatedReferencesTable = (relatedReferences = []) => {
                 createCellCentered(index + 1, 5),
                 createCellWithLink(pub.relatedPublicationUrl, pub.publicationNumber, 15),
                 createCellText(toTitleCase(pub.relatedTitle), 20),
+                // createCellText(
+                //     pub.relatedAssignee?.map(formatAssigneeOrInventor).join('; ') ||
+                //     pub.relatedInventor?.map(formatAssigneeOrInventor).join('; ') || 'N/A',
+                //     20
+                // ),
                 createCellText(
-                    pub.relatedAssignee?.map(formatAssigneeOrInventor).join('; ') ||
-                    pub.relatedInventor?.map(formatAssigneeOrInventor).join('; ') || 'N/A',
+                    (
+                        pub.relatedAssignee?.map(formatAssigneeOrInventor) ||
+                        pub.relatedInventor?.map(formatAssigneeOrInventor) ||
+                        []
+                    )
+                        .filter((value, index, self) => value && self.indexOf(value) === index)
+                        .join('; ') || 'N/A',
                     20
                 ),
                 createCellText(pub.relatedPriorityDate || "N/A", 10),
@@ -461,7 +490,7 @@ const createCellText = (text, width) => new TableCell({
         new Paragraph({
             alignment: AlignmentType.LEFT,
             spacing: { before: 20, after: 0 },
-            children: [createTextRun(sanitizeText(text), textStyle.arial10)],
+            children: [createTextRun(text, textStyle.arial10)],
         }),
     ],
     borders: commonBorders,
@@ -484,8 +513,22 @@ const createCellFamily = (pub) => new TableCell({
     borders: commonBorders,
 });
 
+
 export const createTickedParagraphs = (input) => {
-    const normalized = input?.replace(/\n/g, ',');
+    console.log('input', input);
+
+    let normalized = "";
+
+    if (Array.isArray(input)) {
+        normalized = input.join(", ");
+    } else if (typeof input === "string") {
+        normalized = input;
+    } else {
+        return [];
+    }
+
+    normalized = normalized.replace(/\n/g, ',');
+
     let items = normalized
         .split(',')
         .map(part => part.trim())
@@ -509,6 +552,37 @@ export const createTickedParagraphs = (input) => {
         })
     );
 };
+
+
+
+
+
+// export const createTickedParagraphs = (input) => {
+//     console.log('input', input)
+//     const normalized = input?.replace(/\n/g, ',');
+//     let items = normalized
+//         .split(',')
+//         .map(part => part.trim())
+//         .filter(Boolean);
+
+//     if (items.length > 1) {
+//         const last = items[items.length - 1].toLowerCase();
+//         if (last === 'etc' || last === 'etc.') {
+//             const secondLast = items[items.length - 2];
+//             items = items.slice(0, -2).concat(`${secondLast}, etc.`);
+//         }
+//     }
+
+//     return items.map((item) =>
+//         new Paragraph({
+//             indent: { left: 880 },
+//             spacing: { after: 0 },
+//             children: [
+//                 createTextRun(`✓ ${item}`, textStyle.arial10),
+//             ],
+//         })
+//     );
+// };
 
 export function createExecutiveSummaryTable({ data, dynamicHeadings }) {
     const columnHeaders = ["S. No", "Patents Literatures", ...dynamicHeadings];
@@ -890,7 +964,7 @@ export const generateBibliographicSection = ({
                                     new ExternalHyperlink({
                                         link: pub.publicationUrl,
                                         children: [
-                                            createTextRun(pub.patentNumber, textStyle.arial10, { color: "0000FF" }),
+                                            createTextRun(capitalizeEachWord(pub.patentNumber), textStyle.arial10, { color: "0000FF" }),
                                         ],
                                     }),
                                 ],
@@ -920,7 +994,7 @@ export const generateBibliographicSection = ({
                                     new ExternalHyperlink({
                                         link: pub.publicationUrl,
                                         children: [
-                                            createTextRun(pub.source, textStyle.arial10),
+                                            createTextRun(capitalizeEachWord(pub.source), textStyle.arial10),
                                         ],
                                     }),
                                 ],

@@ -39,13 +39,14 @@ const MappingProjectCreation = () => {
     const relatedData = useSelector(state => state.patentSlice.liveEpoRelatedData);
 
     const fullReportData = useSelector(state => state.patentSlice.fullReportData);
+    console.log('currentReport', fullReportData.filter(fil => fil._id === id)[0]);
 
     const introduction = fullReportData.filter(fil => fil._id === id)[0]?.stages?.introduction || [];
 
     const releventBiblioGoogleData = useSelector(state => state.patentSlice.liveGoogleRelevantData);
     const relatedBiblioGoogleData = useSelector(state => state.patentSlice.liveGoogleRelatedData);
 
-    const [activeTab, setactiveTab] = useState(4);
+    const [activeTab, setactiveTab] = useState(1);
     const [passedSteps, setPassedSteps] = useState([1]);
 
     const [relevantForm, setRelevantForm] = useState({
@@ -124,7 +125,8 @@ const MappingProjectCreation = () => {
     const [dataAvailability, setDataAvailability] = useState("")
     const [dataAvailabilityValue, setDataAvailabilityValue] = useState([]);
 
-    const [appendix2Patents, setAppendix2Patents] = useState("");
+    const [appendix2Patents, setAppendix2Patents] = useState([]);
+
     const [appendix2PatentsSaved, setAppendix2PatentsSaved] = useState("");
 
     const [appendix2NPL, setAppendix2NPL] = useState("");
@@ -137,6 +139,7 @@ const MappingProjectCreation = () => {
         projectId: "",
         searchFeatures: "",
         textEditor: "",
+        executiveSummaryTotalColumn: "",
         // projectImageUrl: [],
     });
 
@@ -405,8 +408,9 @@ const MappingProjectCreation = () => {
                         projectTitle: singleProject.stages.introduction?.[0]?.projectTitle || "",
                         projectSubTitle: singleProject.stages.introduction?.[0]?.projectSubTitle || "",
                         projectId: singleProject.stages.introduction?.[0]?.projectId || "",
+                        executiveSummaryTotalColumn: singleProject.stages.introduction?.[0]?.executiveSummaryTotalColumn || "",
                         searchFeatures: singleProject.stages.introduction?.[0]?.searchFeatures || [],
-                        textEditor: singleProject.stages.introduction?.[0]?.textEditor || [],
+                        textEditor: singleProject.stages.introduction?.[0]?.textEditor || "",
                         // projectImageUrl: singleProject.stages.introduction?.[0]?.projectImageUrl || [],
                     });
                     setRelevantAndNplUpdatedData(singleProject.stages.relevantReferences?.relevantAndNplCombined);
@@ -420,8 +424,8 @@ const MappingProjectCreation = () => {
                     setKeyStringsNplList(singleProject.stages.appendix1?.[0]?.keyStringsNpl || []);
                     setKeyStringsAdditionalList(singleProject.stages.appendix1?.[0]?.keyStringsAdditional || []);
                     setDataAvailabilityValue(singleProject.stages.appendix1?.[0]?.dataAvailability || []);
-                    setAppendix2Patents(singleProject.stages.appendix2?.[0]?.patents || []);
-                    setAppendix2NPL(singleProject.stages.appendix2?.[0]?.nonPatentLiterature || []);
+                    setAppendix2Patents(singleProject.stages.appendix2?.[0]?.patents || appendix2Patents);
+                    setAppendix2NPL(singleProject.stages.appendix2?.[0]?.nonPatentLiterature || appendix2NPL);
                 }
             } catch (error) {
                 console.error("Error fetching project data:", error);
@@ -589,6 +593,7 @@ const MappingProjectCreation = () => {
                 { headers: { "Content-Type": "application/json" } }
 
             );
+            console.log('appendixData', response.data.stages.appendix1[0])
 
             const appendixData = response.data.stages.appendix1[0]?.keyStringsAdditional;
             setKeyStringsAdditionalList(appendixData);
@@ -1150,6 +1155,7 @@ const MappingProjectCreation = () => {
     const handleRelatedSubmit = async (e) => {
         e.preventDefault();
         if (!relatedForm.publicationNumber) return;
+        console.log('relatedForm', relatedForm)
 
         try {
             const response = await axios.post(`http://localhost:8080/live/projectname/add-related/${id}`, relatedForm,
@@ -1178,6 +1184,7 @@ const MappingProjectCreation = () => {
     const handleReportDownload = async () => {
         try {
             const getProjectValue = await fetchProjectById(id);
+            console.log('getProjectValue', getProjectValue)
             handleWordReportDownload({
                 introduction: getProjectValue.stages.introduction[0] || [],
                 relevantReferences: getProjectValue.stages.relevantReferences.publicationDetails || [],

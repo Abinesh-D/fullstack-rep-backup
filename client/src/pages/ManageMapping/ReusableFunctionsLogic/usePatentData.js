@@ -31,9 +31,8 @@ const usePatentData = (data, type, pubNumber) => {
     }, [biblioData]);
 
 
-
-
     const applicantNames = useMemo(() => {
+
         const applicantsArray = Array.isArray(biblioData?.parties?.applicants?.applicant)
             ? biblioData.parties.applicants.applicant
             : biblioData?.parties?.applicants?.applicant
@@ -41,6 +40,7 @@ const usePatentData = (data, type, pubNumber) => {
                 : [];
         return getCleanPartyNames(applicantsArray, 'applicant-name.name');
     }, [biblioData]);
+
 
     const inventionTitle = () => {
         const titleData = biblioData?.['invention-title'];

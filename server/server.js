@@ -111,7 +111,12 @@ const feedbackPatentNumber = require("./routes/livePatentRoute/feedbackRoute");
 app.use("/live/feedback", feedbackPatentNumber);
 
 
+const wordRoute = require("./routes/wordConvertRoute");
 
+app.use(bodyParser.json({ limit: "10mb" }));
+
+// Register route
+app.use("/api/word", wordRoute);
 
 
 

@@ -100,7 +100,13 @@ const KeyStringsNplSchemaAppendix1 = new Schema({
 const KeyStringsAdditionalSchemaAppendix1 = new Schema({
   _id: { type: String, default: uuidv4 },
   keyStringsAdditionalText: { type: String, required: false },
-}, { _id: false });
+});
+
+// const DataAvailabilitySchemaAppendix1 = new Schema({
+//   _id: { type: String, default: uuidv4 },
+//   dataAvailableText: { type: String, required: false }
+// });
+
 
 const DataAvailabilitySchemaAppendix1 = new Schema({
   _id: { type: String, default: uuidv4 },
@@ -108,14 +114,12 @@ const DataAvailabilitySchemaAppendix1 = new Schema({
 }, { _id: false });
 
 const appendix1Schema = new Schema({
-  _id: { type: String, default: uuidv4 },
   baseSearchTerms: { type: [SearchItemSchemaAppendix1], default: [] },
   keyStrings: { type: [KeyStringsSchemaAppendix1], default: [] },
   keyStringsNpl: { type: [KeyStringsNplSchemaAppendix1], default: [] },
   keyStringsAdditional: { type: [KeyStringsAdditionalSchemaAppendix1], default: [] },
   dataAvailability: { type: [DataAvailabilitySchemaAppendix1], default: [] }
 });
-
 
 const ImageSchema = new mongoose.Schema({
   _id: { type: String, default: uuidv4 },
@@ -135,8 +139,9 @@ const introductionSchema = new Schema({
   projectTitle: String,
   projectSubTitle: String,
   projectId: { type: String, default: "" },
+  executiveSummaryTotalColumn: { type: Number, default: "" },
   searchFeatures: [String],
-  textEditor: [String],
+  textEditor: { type: [String], default: "" },
 
   // projectImageUrl: [ImageSchema],
   // createdAt: { type: Date, default: Date.now },
@@ -146,9 +151,10 @@ const introductionSchema = new Schema({
 
 const appendix2 = new Schema({
   _id: { type: String, default: uuidv4 },
-  patents: { type: String, default: "" },
-  nonPatentLiterature: { type: String, default: "" }
+  patents: { type: [String], default: "" },
+  nonPatentLiterature: { type: [String], default: "" }
 });
+
 
 
 
@@ -180,7 +186,7 @@ const fullProjectSchema = new Schema({
     },
     relatedReferences: { type: [relatedReferenceSchema], default: [] },
     appendix1: { type: [appendix1Schema], default: [] },
-    appendix2: [appendix2],
+    appendix2: { type: [appendix2]},
   }
 }, { collection: "cln_prior_report_schema", timestamps: true });
 

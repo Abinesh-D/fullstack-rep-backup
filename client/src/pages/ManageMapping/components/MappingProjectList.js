@@ -7,16 +7,23 @@ import { Card, CardBody, Col, Container, Row } from "reactstrap";
 import DeleteModal from "../ReusableComponents/DeleteModal";
 import { toast } from "react-toastify";
 
-import { useNavigate } from "react-router-dom";
-
-//redux
-import { useSelector, useDispatch } from "react-redux";
+import { useDispatch } from "react-redux";
 
 import { ToastContainer } from "react-toastify";
 import ProjectModal from "../ReusableComponents/ProjectModal ";
 import axios from "axios";
 import { setReportRowData } from "../../ManageEmployees/ManageBibliography/BibliographySLice/BibliographySlice";
-import { stratify } from "d3";
+import {
+    dataAvailability_1,
+    dataAvailability_2,
+    appendix2_Patents,
+    appendi2_Npl,
+    staticSaveDataAvailability,
+    saveAppendix2Patents,
+    saveAppendix2NPL,
+    handleSaveKeyStringAdditional,
+    Additional_Search_Text,
+} from "../StaticValues/StaticData";
 
 
 const projectTypeOptions = [
@@ -33,11 +40,9 @@ export const useProject = () => useContext(ProjectContext);
 
 const MappingProjectList = () => {
 
-    //meta title
     document.title = "Project List | MCRPL";
 
     const dispatch = useDispatch();
-    const navigate = useNavigate();
 
     const [modal, setModal] = useState(false);
     const [projectName, setProjectName] = useState('');
@@ -102,14 +107,13 @@ const MappingProjectList = () => {
     };
 
 
-
     const handleProjectCreate = async () => {
-
         const payload = {
             projectName,
             projectType,
-            projectTypeId
+            projectTypeId,
         };
+
         if (mode === "1") {
             try {
                 await axios.put(
@@ -123,18 +127,86 @@ const MappingProjectList = () => {
             }
         } else {
             try {
-                await axios.post(
+                const response = await axios.post(
                     "http://localhost:8080/live/projectname",
                     payload
                 );
+                const createdProjectId = response.data?._id;
+
+                if (createdProjectId) {
+                    await saveAppendix2Patents(createdProjectId, appendix2_Patents);
+                    await saveAppendix2NPL(createdProjectId, appendi2_Npl);
+
+                    await staticSaveDataAvailability(
+                        createdProjectId,
+                        dataAvailability_1,
+                        () => { },
+                        () => { }
+                    );
+
+                    await staticSaveDataAvailability(
+                        createdProjectId,
+                        dataAvailability_2,
+                        () => { },
+                        () => { }
+                    );
+
+                    projectTypeId === "0001" &&
+                        await handleSaveKeyStringAdditional({
+                            id: createdProjectId,
+                            keyStringAdditional: Additional_Search_Text,
+                            setKeyStringsAdditionalList: () => { },
+                            setKeyStringAdditional: () => { }
+                        });
+                }
+
                 toggle();
                 fetchProjects();
             } catch (err) {
                 console.error("❌ Creation failed:", err);
             }
         }
-
     };
+
+
+
+
+
+    // const handleProjectCreate = async () => {
+
+    //     const payload = {
+    //         projectName,
+    //         projectType,
+    //         projectTypeId
+    //     };
+    //     if (mode === "1") {
+    //         try {
+    //             console.log('Edit', payload);
+
+    //             await axios.put(
+    //                 `http://localhost:8080/live/projectname/${selectedProjectId}`,
+    //                 payload
+    //             );
+    //             toggle();
+    //             fetchProjects();
+    //         } catch (err) {
+    //             console.error("❌ Update failed:", err);
+    //         }
+    //     } else {
+    //         try {
+    //             console.log('create', payload);
+    //             await axios.post(
+    //                 "http://localhost:8080/live/projectname",
+    //                 payload
+    //             );
+    //             toggle();
+    //             fetchProjects();
+    //         } catch (err) {
+    //             console.error("❌ Creation failed:", err);
+    //         }
+    //     }
+
+    // };
 
 
     const handleGo = (rowData) => {
@@ -154,7 +226,9 @@ const MappingProjectList = () => {
         try {
             await axios.delete(`http://localhost:8080/live/projectname/${selectedProject._id}`);
 
-            toast.success("Project deleted successfully!");
+            toast.success("Project deleted successfully!",{
+                position: "top-left",
+            });
             toggleDeleteModal();
             fetchProjects();
         } catch (error) {

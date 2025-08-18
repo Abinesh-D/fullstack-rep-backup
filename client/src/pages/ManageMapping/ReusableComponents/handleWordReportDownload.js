@@ -28,7 +28,10 @@ import {
     indent380,
     sanitizeText,
     textStyle,
+    capitalizeEachWord,
 } from "./docxUtils";
+
+
 
 export const handleWordReportDownload = async ({
     introduction,
@@ -41,6 +44,85 @@ export const handleWordReportDownload = async ({
     relevantAndNplCombined
 }) => {
 
+
+    const htmlToParagraphs = (html) => {
+        const tempDiv = document.createElement("div");
+        tempDiv.innerHTML = html;
+
+        const paragraphs = [];
+        tempDiv.childNodes.forEach(node => {
+            const runs = parseNode(node);
+            paragraphs.push(new Paragraph({ children: runs }));
+        });
+
+        return paragraphs;
+    };
+
+
+    const parseNode = (node) => {
+        if (node.nodeType === 3) {
+            return new TextRun({ text: node.textContent });
+        }
+
+        const options = {};
+        if (node.nodeName === "STRONG") options.bold = true;
+        if (node.nodeName === "EM") options.italics = true;
+        if (node.nodeName === "U") options.underline = {};
+        if (node.nodeName === "SPAN") {
+            const color = node.style.color.replace(/\s/g, "");
+            const background = node.style.backgroundColor.replace(/\s/g, "");
+            if (color) options.color = color.replace("rgb(", "").replace(")", "").split(",").map(c => parseInt(c).toString(16).padStart(2, '0')).join("");
+            if (background) options.highlight = "yellow";
+        }
+        if (node.nodeName === "A") options.style = "Hyperlink";
+
+        const childrenRuns = [];
+        node.childNodes.forEach(child => {
+            childrenRuns.push(...parseNode(child));
+        });
+
+        if (childrenRuns.length > 0) {
+            return childrenRuns.map(run => new TextRun({ ...options, text: run.text }));
+        } else {
+            return [new TextRun({ ...options, text: node.textContent || "" })];
+        }
+    };
+
+
+
+    function downloadWordFile(filename, htmlContent) {
+                const wordHtml = `
+        <html xmlns:o='urn:schemas-microsoft-com:office:office' 
+                xmlns:w='urn:schemas-microsoft-com:office:word' 
+                xmlns='http://www.w3.org/TR/REC-html40'>
+        <head><meta charset='utf-8'><title>Document</title></head>
+        <body>${htmlContent}</body></html>
+        `;
+        const blob = new Blob([wordHtml], { type: "application/msword" });
+
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    const htmlContent = `
+        <p class="ql-align-justify"><br></p>
+        <p class="ql-align-justify">The <a href="https://worldwide.espacenet.com/" target="_blank">objective </a>of the search was to <s>identify</s> prior arts both patents and non-patent literature that top-load washer uses the flexibility of both manual and automatic detergent dosing, providing users with adaptable washing options. It incorporates advanced features such as algorithms, sensors, actuators, and/or mechanical <span style="color: rgb(0, 138, 0);">components to control the automatic dispensing process. The auto-dispensing mechanism is not limited to a</span> <span style="background-color: rgb(230, 0, 0);">traditional pump system but can utilize various technologies, including positive displacement pumps or</span> principles like the Bernoulli effect. Additionally, the washer features a removable detergent reservoir that allows for easy cleaning without impacting the function of the powder detergent dispenser. The search focused on <em><u>identifying prior arts that disclose the following features:</u></em></p>
+        <p><strong>Feature 1</strong>: A top-load washer that comprises the flexibility of using both manual and auto dosing.</p>
+        <p><strong>Feature 1a</strong>: The washer uses an algorithm, sensor, actuator and/or mechanical/ hardware components.</p>
+        <p><strong>Feature 1b</strong>: The auto mechanism to dispense the detergent is not limited to the pump only, it can utilize various technologies, including positive displacement pumps or principles like the Bernoulli effect.</p>
+        <p><strong>Feature 2</strong>: Removable reservoir for easy cleaning without effect on powder detergent dispenser.</p>
+        `;
+
+    downloadWordFile("washer_features.doc", htmlContent);
+
+
+
+
+
     const typeId1 = getProjectValue.projectTypeId === "0001";
     const typeId2 = getProjectValue.projectTypeId === "0002";
 
@@ -52,9 +134,16 @@ export const handleWordReportDownload = async ({
 
     const relatedReferencesTable = createRelatedReferencesTable(relatedReferences);
 
+    const totalColumns = introduction?.executiveSummaryTotalColumn ?? 0;
+
+    const dynamicHeadings = Array.from(
+        { length: totalColumns },
+        (_, i) => `Heading ${i + 1}`
+    );
+
     const ExecutiveSummaryTable = createExecutiveSummaryTable({
         data: relevantAndNplCombined,
-        dynamicHeadings: ["Heading 1", "Heading 2", "Heading 3", "Heading 4", "Heading 5"],
+        dynamicHeadings,
     });
 
     const summaryParagraphs = createExecutiveSummaryParagraphs();
@@ -75,13 +164,10 @@ export const handleWordReportDownload = async ({
     const tocTable = createTocTable(tocItems);
     const relevantReferencesTable = createRelevantReferencesTable(relevantReferences, typeId1 ? "typeId1" : "typeId2");
 
-
     const autoToc = new TableOfContents("Table of Contents", {
         hyperlink: true,
         headingStyleRange: "1-3",
     });
-
-
 
     const appendix1Childern = [];
 
@@ -519,7 +605,6 @@ export const handleWordReportDownload = async ({
         textStyle: textStyle.arial10,
     });
 
-
     const doc = new Document({
         styles: {
             default: {
@@ -581,6 +666,7 @@ export const handleWordReportDownload = async ({
                     }),
                 ],
             },
+           
             // Search Features
             {
                 properties: createPageProperties(920, "portrait"),
@@ -607,6 +693,10 @@ export const handleWordReportDownload = async ({
                         }
                     ),
 
+                     htmlToParagraphs(htmlContent),
+
+
+
                     // ...(introduction.searchFeatures || [])
                     //     .filter((p) => p.trim() !== "")
                     //     .map((para) =>
@@ -617,6 +707,7 @@ export const handleWordReportDownload = async ({
                     //             textStyleOverride: { ...textStyle.arial10 }
                     //         })
                     //     ),
+
 
                     ...(introduction.searchFeatures || [])
                         .filter((p) => p.trim() !== "")
@@ -828,9 +919,9 @@ export const handleWordReportDownload = async ({
                                     ],
                                     isParagraphChildren: true,
                                 },
-                                { label: "Title", value: sanitizeText(pub.title) },
-                                { label: "Inventor", value: sanitizeText((pub.inventors || []).join(", ")) },
-                                { label: "Assignee", value: (pub.assignee || []).join(", ") },
+                                { label: "Title", value: capitalizeEachWord(pub.title) },
+                                { label: "Inventor", value: capitalizeEachWord((pub.inventors || []).join(", ")) },
+                                { label: "Assignee", value: capitalizeEachWord((pub.assignee || []).join(", ")) },
                                 {
                                     label: "Family Member",
                                     value: getFamilyMembersParagraphChildren(

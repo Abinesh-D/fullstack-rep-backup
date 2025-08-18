@@ -209,17 +209,85 @@ export const mappedValue = (espData = [], famId = []) => {
 
             const invention = inventionTitle(biblioArray);
 
+            // const inventorsData = safeArray(biblioArray?.parties?.inventors?.inventor);
+            // const inventorNames = inventorsData
+            //     .filter((i) => i?.$?.["data-format"] === "original" || i?.$?.["data-format"] === "epodoc")
+            //     .map((i) => safeText(i?.["inventor-name"]?.name))
+            //     .join("; ");
+
+            // const applicantsData = safeArray(biblioArray?.parties?.applicants?.applicant);
+            // const applicantNames = applicantsData
+            //     .filter((a) => a?.$?.["data-format"] === "original" || a?.$?.["data-format"] === "epodoc" )
+            //     .map((a) => safeText(a?.["applicant-name"]?.name))
+            //     .join("; ");
+
+            // Inventors
+            
+            // const inventorsData = safeArray(biblioArray?.parties?.inventors?.inventor);
+
+            // const inventorOriginal = inventorsData.filter(i => i?.$?.["data-format"] === "original");
+            // const inventorEpodoc = inventorsData.filter(i => i?.$?.["data-format"] === "epodoc");
+
+            // const inventorNames = (inventorOriginal.length > 0 ? inventorOriginal : inventorEpodoc)
+            //     .map(i => safeText(i?.["inventor-name"]?.name))
+            //     .join("; ");
+
+
+            // const applicantsData = safeArray(biblioArray?.parties?.applicants?.applicant);
+
+            // const applicantOriginal = applicantsData.filter(a => a?.$?.["data-format"] === "original");
+            // const applicantEpodoc = applicantsData.filter(a => a?.$?.["data-format"] === "epodoc");
+
+            // const applicantNames = (applicantOriginal.length > 0 ? applicantOriginal : applicantEpodoc)
+            //     .map(a => safeText(a?.["applicant-name"]?.name))
+            //     .join("; ");
+
+
+
             const inventorsData = safeArray(biblioArray?.parties?.inventors?.inventor);
-            const inventorNames = inventorsData
-                .filter((i) => i?.$?.["data-format"] === "epodoc" || i?.$?.["data-format"] === "original")
-                .map((i) => safeText(i?.["inventor-name"]?.name))
+
+            const inventorOriginal = inventorsData.filter(i => i?.$?.["data-format"] === "original");
+            const inventorEpodoc = inventorsData.filter(i => i?.$?.["data-format"] === "epodoc");
+
+            const inventorNames = (inventorOriginal.length > 0 ? inventorOriginal : inventorEpodoc)
+                .map(i => safeText(i?.["inventor-name"]?.name)?.replace(/,+$/g, "").trim())
+                .filter(Boolean)
                 .join("; ");
 
+
             const applicantsData = safeArray(biblioArray?.parties?.applicants?.applicant);
-            const applicantNames = applicantsData
-                .filter((a) => a?.$?.["data-format"] === "epodoc" || a?.$?.["data-format"] === "original")
-                .map((a) => safeText(a?.["applicant-name"]?.name))
+
+            const applicantOriginal = applicantsData.filter(a => a?.$?.["data-format"] === "original");
+            const applicantEpodoc = applicantsData.filter(a => a?.$?.["data-format"] === "epodoc");
+
+            const applicantNames = (applicantOriginal.length > 0 ? applicantOriginal : applicantEpodoc)
+                .map(a => safeText(a?.["applicant-name"]?.name)?.replace(/,+$/g, "").trim())
+                .filter(Boolean)
                 .join("; ");
+
+                
+// ---------------------------------------------------
+
+            // const inventorsData = safeArray(biblioArray?.parties?.inventors?.inventor);
+
+            // const inventorOriginal = inventorsData.filter(i => i?.$?.["data-format"] === "original");
+            // const inventorEpodoc = inventorsData.filter(i => i?.$?.["data-format"] === "epodoc");
+
+            // const inventorNames = inventorOriginal.length > 0
+            //     ? [inventorOriginal[0]].map(i => safeText(i?.["inventor-name"]?.name)).join("; ")
+            //     : inventorEpodoc.map(i => safeText(i?.["inventor-name"]?.name)).join("; ");
+
+
+            // const applicantsData = safeArray(biblioArray?.parties?.applicants?.applicant);
+
+            // const applicantOriginal = applicantsData.filter(a => a?.$?.["data-format"] === "original");
+            // const applicantEpodoc = applicantsData.filter(a => a?.$?.["data-format"] === "epodoc");
+
+            // const applicantNames = applicantOriginal.length > 0
+            //     ? [applicantOriginal[0]].map(a => safeText(a?.["applicant-name"]?.name)).join("; ")
+            //     : applicantEpodoc.map(a => safeText(a?.["applicant-name"]?.name)).join("; ");
+
+
 
             const publicationDate = publicationDateFunction(biblioArray);
             const applicationDate = applicationDateFunction(biblioArray);

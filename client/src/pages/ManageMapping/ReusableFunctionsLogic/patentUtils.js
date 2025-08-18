@@ -47,7 +47,7 @@ export const getEnglishAbstract = (biblio) => {
 export const getCleanPartyNames = (partyArray = [], nameKey = '') => {
     if (!Array.isArray(partyArray) || !nameKey) return '';
 
-    const priority = ['epodoc', 'original', 'docdb'];
+    const priority = ['original', 'epodoc'];
 
     const availableFormat = priority.find(format =>
         partyArray.some(item => item?.$?.['data-format'] === format)
@@ -68,16 +68,50 @@ export const getCleanPartyNames = (partyArray = [], nameKey = '') => {
         )
         .filter(Boolean);
 
+
     const uniqueNames = [...new Map(
         cleanedNames.map(name => [name.toLowerCase(), name])
     ).values()];
-
     const titleCasedNames = uniqueNames.map(str =>
         str.replace(/\b\w/g, char => char.toUpperCase())
     );
-
     return titleCasedNames.join('; ');
 };
+
+// export const getCleanPartyNames = (partyArray = [], nameKey = '') => {
+//     if (!Array.isArray(partyArray) || !nameKey) return '';
+
+//     const priority = ['original', 'epodoc'];
+
+//     const availableFormat = priority.find(format =>
+//         partyArray.some(item => item?.$?.['data-format'] === format)
+//     );
+
+//     if (!availableFormat) return '';
+
+//     const firstMatch = partyArray.find(
+//         item => item?.$?.['data-format'] === availableFormat
+//     );
+
+//     if (!firstMatch) return '';
+
+//     const rawName = nameKey.split('.').reduce((obj, key) => obj?.[key], firstMatch);
+
+//     if (!rawName) return '';
+
+//     let cleaned = rawName
+//         .replace(/\[.*?\]/g, '')
+//         .replace(/[.,;]/g, '')
+//         .replace(/\s+/g, ' ')
+//         .trim();
+
+//     if (!cleaned) return '';
+
+//     cleaned = cleaned.replace(/\b\w/g, char => char.toUpperCase());
+
+//     return cleaned;
+// };
+
 
 export const convertDescriptionToKeyValue = (descriptionText = '') => {
     const result = {};

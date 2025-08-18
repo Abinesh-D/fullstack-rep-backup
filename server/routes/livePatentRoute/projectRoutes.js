@@ -122,7 +122,9 @@ router.get("/get-introduction/:id", async (req, res) => {
 
 router.post("/update-introduction/:id", async (req, res) => {
   const { id } = req.params;
-  const { projectTitle, projectSubTitle, searchFeatures, projectId, textEditor } = req.body;
+  const { projectTitle, projectSubTitle, searchFeatures, projectId, executiveSummaryTotalColumn, textEditor } = req.body;
+
+  console.log(textEditor, "textEditor")
 
   try {
     const updatedProject = await cln_prior_report_schema.findByIdAndUpdate(
@@ -133,6 +135,7 @@ router.post("/update-introduction/:id", async (req, res) => {
             projectTitle,
             projectSubTitle,
             projectId,
+            executiveSummaryTotalColumn,
             searchFeatures,
             textEditor,
           }],
@@ -140,7 +143,6 @@ router.post("/update-introduction/:id", async (req, res) => {
       },
       { new: true, runValidators: true }
     );
-
 
     if (!updatedProject) {
       return res.status(404).json({ message: " Project not found" });
@@ -892,38 +894,79 @@ router.delete("/delete-key-string-npl/:id/:keyID", async (req, res) => {
 });
 
 
-// Save Additional Search
-router.post("/add-key-string-additional/:id", async (req, res) => {
-  const { id } = req.params;
+// // Save Additional Search
+// router.post("/add-key-string-additional/:id", async (req, res) => {
+  // const { id } = req.params;
+  // const { keyStringsAdditionalText } = req.body;
+
+//   try {
+//     const project = await cln_prior_report_schema.findById(id);
+
+//     if (!project) {
+//       return res.status(404).json({ message: " Project not found" });
+//     }
+
+//     if (project.stages.appendix1.length === 0) {
+//       project.stages.appendix1.push({
+//         _id: uuidv4(),
+//         keyStringsAdditionalText: [],
+//       });
+//     }
+
+//     project.stages.appendix1[0].keyStringsAdditional.push({
+//       _id: uuidv4(),
+//       keyStringsAdditionalText
+//     });
+
+//     await project.save();
+//     res.status(200).json(project);
+//   } catch (err) {
+//     console.error(" Error adding Additional Key Strings:", err);
+//     res.status(500).json({ message: "Server error", error: err.message });
+//   }
+// });
+
+
+
+
+// POST: add Key Strings Additional (comma-separated support)
+router.post("/add-key-string-additional/:projectId", async (req, res) => {
+  const { projectId } = req.params;
   const { keyStringsAdditionalText } = req.body;
 
+  if (!keyStringsAdditionalText) {
+    return res.status(400).json({ error: "keyStringsAdditionalText is required" });
+  }
+
   try {
-    const project = await cln_prior_report_schema.findById(id);
+    const values = keyStringsAdditionalText
+      .split(",")
+      .map((val) => val.trim())
+      .filter(Boolean);
+
+    const docs = values.map((val) => ({
+      _id: uuidv4(),
+      keyStringsAdditionalText: val,
+    }));
+    const project = await cln_prior_report_schema.findById(projectId);
 
     if (!project) {
-      return res.status(404).json({ message: " Project not found" });
+      return res.status(404).json({ error: "Project not found" });
     }
 
-    if (project.stages.appendix1.length === 0) {
-      project.stages.appendix1.push({
-        _id: uuidv4(),
-        keyStringsAdditionalText: [],
-      });
+    if (!project.stages.appendix1 || project.stages.appendix1.length === 0) {
+      project.stages.appendix1.push({});
     }
 
-    project.stages.appendix1[0].keyStringsAdditional.push({
-      _id: uuidv4(),
-      keyStringsAdditionalText
-    });
-
+    project.stages.appendix1[0].keyStringsAdditional.push(...docs);
     await project.save();
-    res.status(200).json(project);
+
+    res.json(project);
   } catch (err) {
-    console.error(" Error adding Additional Key Strings:", err);
-    res.status(500).json({ message: "Server error", error: err.message });
+    console.error("❌ Error saving key strings additional:", err);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
-
 
 // Delete Additional Search
 router.delete("/delete-key-string-additional/:id/:keyID", async (req, res) => {
@@ -961,15 +1004,14 @@ router.post("/add-data-availability/:id", async (req, res) => {
 
     if (project.stages.appendix1.length === 0) {
       project.stages.appendix1.push({
-        _id: uuidv4(),
         dataAvailableText: [],
       });
     }
 
     project.stages.appendix1[0].dataAvailability.push({
-      _id: uuidv4(),
       dataAvailableText
     });
+
 
     await project.save();
     res.status(200).json(project);
@@ -1026,9 +1068,63 @@ router.delete("/delete-data-availability/:id/:availabilityID", async (req, res) 
 //   }
 // });
 
-router.post("/update-appendix2-patents/:id", async (req, res) => {
+  // router.post("/update-appendix2-patents/:id", async (req, res) => {
+  //   const { id } = req.params;
+  //   const { patents } = req.body;
+
+  //   try {
+  //     const updatedProject = await cln_prior_report_schema.findByIdAndUpdate(
+  //       id,
+  //       { "stages.appendix2.0.patents": patents },
+  //       { new: true, runValidators: true }
+  //     );
+
+  //     if (!updatedProject) {
+  //       return res.status(404).json({ message: "Project not found" });
+  //     }
+
+  //     res.status(200).json(updatedProject);
+  //   } catch (error) {
+  //     console.error("❌ Error updating Appendix 2 - Patents:", error);
+  //     res.status(500).json({ message: "Server error", error: error.message });
+  //   }
+  // });
+
+
+  // // Save Appendix 2 - Non-Patent Literature
+  // router.post("/update-appendix2-npl/:id", async (req, res) => {
+  //   const { id } = req.params;
+  //   const { nonPatentLiterature } = req.body;
+
+  //   try {
+  //     const updatedProject = await cln_prior_report_schema.findByIdAndUpdate(
+  //       id,
+  //       { "stages.appendix2.0.nonPatentLiterature": nonPatentLiterature },
+  //       { new: true, runValidators: true }
+  //     );
+
+  //     if (!updatedProject) {
+  //       return res.status(404).json({ message: " Project not found" });
+  //     }
+
+  //     res.status(200).json(updatedProject);
+  //   } catch (error) {
+  //     console.error(" Error updating Appendix 2 - NPL:", error);
+  //     res.status(500).json({ message: "Server error", error: error.message });
+  //   }
+  // });
+
+
+
+
+  router.post("/update-appendix2-patents/:id", async (req, res) => {
   const { id } = req.params;
-  const { patents } = req.body;
+  let { patents } = req.body;
+
+  // // Normalize: array → comma-separated string
+  // if (Array.isArray(patents)) {
+  //   patents = patents.join(", ");
+  // }
 
   try {
     const updatedProject = await cln_prior_report_schema.findByIdAndUpdate(
@@ -1048,11 +1144,13 @@ router.post("/update-appendix2-patents/:id", async (req, res) => {
   }
 });
 
-
-// Save Appendix 2 - Non-Patent Literature
 router.post("/update-appendix2-npl/:id", async (req, res) => {
   const { id } = req.params;
-  const { nonPatentLiterature } = req.body;
+  let { nonPatentLiterature } = req.body;
+
+  // if (Array.isArray(nonPatentLiterature)) {
+  //   nonPatentLiterature = nonPatentLiterature.join(", ");
+  // }
 
   try {
     const updatedProject = await cln_prior_report_schema.findByIdAndUpdate(
@@ -1062,7 +1160,7 @@ router.post("/update-appendix2-npl/:id", async (req, res) => {
     );
 
     if (!updatedProject) {
-      return res.status(404).json({ message: " Project not found" });
+      return res.status(404).json({ message: "Project not found" });
     }
 
     res.status(200).json(updatedProject);
@@ -1071,6 +1169,7 @@ router.post("/update-appendix2-npl/:id", async (req, res) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 });
+
 
 
 // router.delete("/delete-image/:projectId/:imageId", async (req, res) => {
