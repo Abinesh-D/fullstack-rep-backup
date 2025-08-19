@@ -5,6 +5,7 @@ import TableContainer from "../../ReusableComponents/TableContainer";
 import { useSelector } from "react-redux";
 import { generateTableColumns } from "../../../../components/Common/commonReport/columnUtils";
 import { handleSaveKeyString, refreshData } from "../../../ManageEmployees/ManageBibliography/BibliographySLice/BibliographySlice";
+import axios from "axios";
 
 
 const Appendix1 = ({
@@ -45,8 +46,32 @@ const Appendix1 = ({
     handleSaveDataAvailability,
     onDataAvailabilityDelete,
 
+    onKeyStringsDeletes,
+    appendix1KeyStringsLevelValue,
+    setAppendix1KeyStringsLevelValue,
+
 }) => {
 
+    const handleJointKeyStrings = (keyStringsArray) => {
+        const allKeyStrings = [];
+
+        if (keyStringsArray?.length > 0) {
+            const keyStringsObj = keyStringsArray[0];
+
+            Object.keys(keyStringsObj).forEach((key) => {
+                const arr = keyStringsObj[key];
+                if (Array.isArray(arr)) {
+                    arr.forEach((item) => {
+                        allKeyStrings.push(item);
+                    });
+                }
+            });
+        }
+
+        return allKeyStrings;
+    };
+
+    const allKeyStrings = useMemo(() => handleJointKeyStrings(appendix1KeyStringsLevelValue), [appendix1KeyStringsLevelValue]);
     
     const [selectedSource, setSelectedSource] = useState("Orbit");
     const [keyStrings, setKeyStrings] = useState({
@@ -57,8 +82,17 @@ const Appendix1 = ({
         Others: ""
     });
 
-    const [editingItem, setEditingItem] = useState(null);
-    const [editValue, setEditValue] = useState("");
+    const [hitCount, setHitCount] = useState("")
+
+
+    const sources = [
+        "Orbit",
+        "Google Patents",
+        "Espacenet",
+        "USPTO",
+        "Others"
+    ];
+
     const [keyStringsList, setKeyStringsList] = useState([]);
 
     const singleProject = useSelector(state => state.patentSlice.singleProject);
@@ -124,34 +158,26 @@ const Appendix1 = ({
     const keyStringsUpdatedCOlumn = useMemo(() => {
         return generateTableColumns({
             columnsConfig: [
-                { header: "Value", accessorKey: "value" },
-                { header: "Type", accessorKey: "fieldName" },
+                { header: "Key Strings", accessorKey: "value" },
+                { header: "Database", accessorKey: "fieldName" },
+                { header: "Hits", accessorKey: "hitCount" },
             ],
             includeSerialNo: true,
             includeActions: true,
-            onDeleteClick: (row) => onKeyStringsDeletes(row._id, row.typeField),
+            onDeleteClick: (row) => onKeyStringsDeletes(row),
             deleteTooltip: "Delete Key String",
+            isCell: true
         });
-    }, []);
+    }, [allKeyStrings]);
 
-
-    const sourceFieldMap = {
-        Orbit: "keyStringsOrbit",
-        "Google Patents": "keyStringsGoogle",
-        Espacenet: "keyStringsEspacenet",
-        USPTO: "keyStringsUSPTO",
-        Others: "keyStringsOthers"
-    };
 
 
     const onSubmitKeyString = async () => {
-        handleSaveKeyString({
-            _id,
-            selectedSource,
-            keyStrings,
-            setKeyStrings,
-            sourceFieldMap
-        })
+        const textValue = keyStrings[selectedSource] || "";
+
+        await handleSaveKeyString({ _id, selectedSource, textValue, setAppendix1KeyStringsLevelValue, hitCount })
+        setKeyStrings({ ...keyStrings, [selectedSource]: "" });
+        setHitCount("");
     };
 
 
@@ -163,112 +189,27 @@ const Appendix1 = ({
 
 
 
-  const onKeyStringsDeletes = async (itemId, fieldName) => {
-    try {
-    //   await axios.delete(`/api/appendix1/${projectId}/${fieldName}/${itemId}`);
-      refreshData();
-    } catch (err) {
-      console.error(err);
-    }
-  };
+
+// const onKeyStringsDeletes = async (projectId, itemId, fieldName) => {
+//   try {
+//     const response = await axios.delete(
+//       `http://localhost:8080/live/projectname/appendix1/keystring/${projectId}/${fieldName}/${itemId}`
+
+//     );
+//       console.log('response', response.data)
+
+//     if (response.data.success) {
+//     } else {
+//       console.error("Failed to delete key string:", response.data.message);
+//     }
+//   } catch (err) {
+//     console.error("Error deleting key string:", err);
+//   }
+// };
 
 
     return (
         <>
-            <>
-                <h5 className="fw-semibold mt-5">2. Search Strings</h5>
-
-                <Row>
-                    <Col lg="4">
-                        <div className="mb-3">
-                            <Label for="source-select">Source</Label>
-                            <select
-                                id="source-select"
-                                className="form-control"
-                                value={selectedSource}
-                                onChange={handleSourceChange}
-                            >
-                                <option>Orbit</option>
-                                <option>Google Patents</option>
-                                <option>Espacenet</option>
-                                <option>USPTO</option>
-                                <option>Others</option>
-                            </select>
-                        </div>
-                    </Col>
-
-                    <Col lg="8">
-                        <div className="mb-3">
-                            <Label for="key-strings">
-                                Key Strings ({selectedSource})
-                            </Label>
-                            <textarea
-                                id="key-strings"
-                                className="form-control"
-                                rows="3"
-                                placeholder={`Enter key strings for ${selectedSource}`}
-                                value={keyStrings[selectedSource]}
-                                onChange={handleKeyStringChange}
-                            />
-                        </div>
-                    </Col>
-                </Row>
-
-                <Col lg={4}>
-                    <div className="mb-3">
-                        <Button
-                            color="info"
-                            className="w-100"
-                            onClick={onSubmitKeyString}
-                        >
-                            + Strings ({selectedSource})
-                        </Button>
-                    </div>
-                </Col>
-            </>
-
-
-            <>
-                {/* <h5 className="fw-semibold mt-4">Key Strings Table</h5> */}
-
-                {singleProject?.stages?.appendix1?.[0]?.keyStrings?.[0] && (() => {
-                    const { _id, ...keyStringsData } = singleProject.stages.appendix1[0].keyStrings[0];
-
-                    const cleanedKeyStrings = Object.fromEntries(
-                        Object.entries(keyStringsData).map(([sourceLabel, arr]) => [
-                            sourceLabel,
-                            Array.isArray(arr) ? arr.map(({ _id, ...rest }) => rest) : arr
-                        ])
-                    );
-
-                    return Object.entries(cleanedKeyStrings).map(([sourceLabel, items]) => {
-                        if (!items || items.length === 0) return null;
-
-                        return (
-                            <div key={sourceLabel} className="mb-4">
-                                <h5>{sourceLabel}</h5>
-                                <TableContainer
-                                    columns={keyStringsUpdatedCOlumn}
-                                    data={items || []}
-                                    isPagination={true}
-                                    isCustomPageSize={true}
-                                    tableClass="align-middle table-nowrap table-hover dt-responsive nowrap w-100 dataTable no-footer dtr-inline"
-                                    theadClass="table-light"
-                                    paginationWrapper="dataTables_paginate paging_simple_numbers pagination-rounded"
-                                    pagination="pagination"
-                                />
-                            </div>
-                        );
-                    });
-                })()}
-            </>
-
-
-
-
-
-
-
             <h4 className="fw-bold mb-3">{ singleProject.projectTypeId === "0002" ? "Appendix 2" : "Appendix 1"}</h4>
             <p className="text-muted mb-4">
                 <i>The search terms and key strings to extract relevant patent publications and non-patent literature are provided below.</i>
@@ -350,6 +291,156 @@ const Appendix1 = ({
                     }
                 </>
             }
+
+
+            <>
+                <h5 className="fw-semibold mt-5">2. Key strings (Patents/Patent Applications)</h5>
+
+                {/* <Row>
+                   
+                    <Col lg="3">
+                        <div className="mb-3">
+                            <Label for="source-select">Source</Label>
+                            <select
+                                id="source-select"
+                                className="form-control"
+                                value={selectedSource}
+                                onChange={handleSourceChange}
+                            >
+                                {sources.map((source, index) => (
+                                    <option key={index} value={source}>
+                                        {source}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    </Col>
+                    <Col lg="3">
+                        <div>
+                            <Label for="hitCount">Hits</Label>
+                            <Input
+                                type="number"
+                                id="hitCount"
+                                placeholder="Enter Database hit count..."
+                                value={hitCount || ""}
+                                min={0}
+                                onChange={(e) => {
+                                    let value = e.target.value;
+                                    if (value < 0) {
+                                        value = 0;
+                                    }
+                                    setHitCount(value);
+                                }}
+                            />
+
+                        </div>
+
+                    </Col>
+
+                    <Col lg="9">
+                        <div className="mb-3">
+                            <Label for="key-strings">
+                                Key Strings ({selectedSource})
+                            </Label>
+                            <textarea
+                                id="key-strings"
+                                className="form-control"
+                                rows="4"
+                                placeholder={`Enter key strings for ${selectedSource}`}
+                                value={keyStrings[selectedSource]}
+                                onChange={handleKeyStringChange}
+                            />
+                        </div>
+                    </Col>
+                </Row> */}
+
+
+                <Row>
+                    <Col lg="3">
+                        <Row>
+                            <Col lg="12">
+                                <div className="mb-3">
+                                    <Label for="source-select">Source</Label>
+                                    <select
+                                        id="source-select"
+                                        className="form-control"
+                                        value={selectedSource}
+                                        onChange={handleSourceChange}
+                                    >
+                                        {sources.map((source, index) => (
+                                            <option key={index} value={source}>
+                                                {source}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </Col>
+
+                            <Col lg="12">
+                                <div className="mb-3">
+                                    <Label for="hitCount">Database Hits</Label>
+                                    <Input
+                                        type="number"
+                                        id="hitCount"
+                                        placeholder="Database hit count..."
+                                        value={hitCount || ""}
+                                        min={0}
+                                        onChange={(e) => {
+                                            let value = e.target.value;
+                                            if (value < 0) value = 0;
+                                            setHitCount(value);
+                                        }}
+                                    />
+                                </div>
+                            </Col>
+                        </Row>
+                    </Col>
+
+                    <Col lg="9">
+                        <div className="mb-3">
+                            <Label for="key-strings">Key Strings ({selectedSource})</Label>
+                            <textarea
+                                id="key-strings"
+                                className="form-control"
+                                rows="6"
+                                placeholder={`Enter key strings for ${selectedSource}`}
+                                value={keyStrings[selectedSource]}
+                                onChange={handleKeyStringChange}
+                            />
+                        </div>
+                    </Col>
+                </Row>
+
+
+                <Col lg={3}>
+                    <div className="mb-3">
+                        <Button
+                            color="info"
+                            className="w-100"
+                            onClick={onSubmitKeyString}
+                        >
+                            + Strings ({selectedSource})
+                        </Button>
+                    </div>
+                </Col>
+            </>
+
+
+            <>
+                {/* <h5 className="fw-semibold mt-4">Key Strings Table</h5> */}
+                <TableContainer
+                    columns={keyStringsUpdatedCOlumn}
+                    data={allKeyStrings || []}
+                    isPagination={true}
+                    isCustomPageSize={true}
+                    tableClass="align-middle table-nowrap table-hover dt-responsive nowrap w-100 dataTable no-footer dtr-inline"
+                    theadClass="table-light"
+                    paginationWrapper="dataTables_paginate paging_simple_numbers pagination-rounded"
+                    pagination="pagination"
+                />
+            </>
+
+
 
             {/* <h5 className="fw-semibold mt-5">2. Search Strings</h5>
             <Row>

@@ -1174,7 +1174,7 @@ export const generateBibliographicSection = ({
 
                         children: [
                             isNpl
-                                ? createParagraph("Relevant Excerpts add here....!", {
+                                ? createParagraph(" NPL Relevant Excerpts add here....!", {
                                     alignment: AlignmentType.CENTER,
                                     spacing: { after: 100 },
                                     textStyleOverride: {
@@ -1422,14 +1422,144 @@ const createHyperlinkBackToTOC = () =>
 
 // ============ Table Generator ============
 
+// const createSearchStringsTable = (keyStrings = []) => {
+
+//     const dynamicIndex = keyStrings[0].keyStringsOrbit.length
+//         + keyStrings[0].keyStringsGoogle.length
+//         + keyStrings[0].keyStringsEspacenet.length
+//         + keyStrings[0].keyStringsUSPTO.length
+//         + keyStrings[0].keyStringsOthers.length;
+
+        
+//         const keyStringLabels = {
+//             keyStringsOrbit: "Orbit",
+//             keyStringsGoogle: "Google Patents",
+//             keyStringsEspacenet: "Espacenet",
+//             keyStringsUSPTO: "USPTO",
+//             keyStringsOthers: "Others",
+//     };
+
+
+//     const tableData = Object.keys(keyStrings[0])
+//         .filter((key) => Array.isArray(keyStrings[0][key]) && keyStrings[0][key].length > 0)
+//         .map((key) => ({
+//             label: keyStringLabels[key] || key,
+//             values: keyStrings[0][key],
+//         }));
+
+//         console.log('tableData', tableData)
+//         let globalIndex = 1;
+
+
+//     const headerRow = new TableRow({
+//         children: [
+//             "S. No.", "Key Strings (Orbit, Google Patents, Google Scholar, etc.)", "Database", "Hits"
+//         ].map((text, i) =>
+//             new TableCell({
+//                 borders: commonBorders,
+//                 width: [{ size: 5 }, { size: 80 }, { size: 10 }, { size: 5 }][i],
+//                 verticalAlign: VerticalAlign.CENTER,
+//                 shading: { fill: "353839" },
+//                 children: [
+//                     new Paragraph({
+//                         alignment: AlignmentType.CENTER,
+//                         spacing: { before: 30, after: 30 },
+//                         children: [
+//                             createTextRun(text, textStyle.arial10, { bold: true, color: "FFFFFF" }),
+//                         ],
+//                     }),
+//                 ],
+//             })
+//         ),
+//     });
+
+//     const dataRows = keyStrings.map((item, index) =>
+//         new TableRow({
+//             children: [
+//                 new TableCell({
+//                     borders: commonBorders,
+//                     width: { size: 5, type: WidthType.PERCENTAGE },
+//                     verticalAlign: VerticalAlign.CENTER,
+//                     children: [
+//                         new Paragraph({
+//                             alignment: AlignmentType.CENTER,
+//                             children: [createTextRun(`${index + 1}.`, textStyle.arial10)],
+//                         }),
+//                     ],
+//                 }),
+//                 new TableCell({
+//                     borders: commonBorders,
+//                     width: { size: 80, type: WidthType.PERCENTAGE },
+//                     verticalAlign: VerticalAlign.CENTER,
+//                     children: [
+//                         new Paragraph({
+//                             alignment: AlignmentType.LEFT,
+//                             spacing: { before: 20, after: 20 },
+//                             indent: { left: 80 },
+//                             children: [createTextRun(item.keyStringsText, textStyle.arial10)],
+//                         }),
+//                     ],
+//                 }),
+//                 ...[10, 5].map(size =>
+//                     new TableCell({
+//                         borders: commonBorders,
+//                         width: { size, type: WidthType.PERCENTAGE },
+//                         verticalAlign: VerticalAlign.CENTER,
+//                         children: [
+//                             new Paragraph({
+//                                 alignment: AlignmentType.CENTER,
+//                                 children: [createTextRun("", textStyle.arial10)],
+//                             }),
+//                         ],
+//                     })
+//                 ),
+//             ],
+//         })
+//     );
+
+//     return new Table({
+//         width: { size: 100, type: WidthType.PERCENTAGE },
+//         borders: commonBorders,
+//         rows: [headerRow, ...dataRows],
+//     });
+// };
+
+
 const createSearchStringsTable = (keyStrings = []) => {
+    if (!keyStrings || keyStrings.length === 0) return null;
+
+    const keyStringsObj = keyStrings[0];
+
+    const keyStringLabels = {
+        keyStringsOrbit: "Orbit",
+        keyStringsGoogle: "Google Patents",
+        keyStringsEspacenet: "Espacenet",
+        keyStringsUSPTO: "USPTO",
+        keyStringsOthers: "Others",
+    };
+
+    // collect all sources with non-empty arrays
+    const tableData = Object.keys(keyStringsObj)
+        .filter((key) => Array.isArray(keyStringsObj[key]) && keyStringsObj[key].length > 0)
+        .map((key) => ({
+            label: keyStringLabels[key] || key,
+            values: keyStringsObj[key],
+            fieldName: key, // keep raw fieldName if needed
+        }));
+
+    console.log("tableData", tableData);
+
+    // header row
     const headerRow = new TableRow({
         children: [
-            "S. No.", "Key Strings (Orbit, Google Patents, Google Scholar, etc.)", "Database", "Hits"
+            "S. No.",
+            "Key Strings (Orbit, Google Patents, Espacenet, etc.)",
+            "Database",
+            "Hits",
         ].map((text, i) =>
             new TableCell({
                 borders: commonBorders,
-                width: [{ size: 5 }, { size: 80 }, { size: 10 }, { size: 5 }][i],
+                width: [{ size: 5 }, { size: 70 }, { size: 15 }, { size: 10 }][i],
                 verticalAlign: VerticalAlign.CENTER,
                 shading: { fill: "353839" },
                 children: [
@@ -1437,7 +1567,10 @@ const createSearchStringsTable = (keyStrings = []) => {
                         alignment: AlignmentType.CENTER,
                         spacing: { before: 30, after: 30 },
                         children: [
-                            createTextRun(text, textStyle.arial10, { bold: true, color: "FFFFFF" }),
+                            createTextRun(text, textStyle.arial10, {
+                                bold: true,
+                                color: "FFFFFF",
+                            }),
                         ],
                     }),
                 ],
@@ -1445,47 +1578,73 @@ const createSearchStringsTable = (keyStrings = []) => {
         ),
     });
 
-    const dataRows = keyStrings.map((item, index) =>
-        new TableRow({
-            children: [
-                new TableCell({
-                    borders: commonBorders,
-                    width: { size: 5, type: WidthType.PERCENTAGE },
-                    verticalAlign: VerticalAlign.CENTER,
-                    children: [
-                        new Paragraph({
-                            alignment: AlignmentType.CENTER,
-                            children: [createTextRun(`${index + 1}.`, textStyle.arial10)],
-                        }),
-                    ],
-                }),
-                new TableCell({
-                    borders: commonBorders,
-                    width: { size: 80, type: WidthType.PERCENTAGE },
-                    verticalAlign: VerticalAlign.CENTER,
-                    children: [
-                        new Paragraph({
-                            alignment: AlignmentType.LEFT,
-                            spacing: { before: 20, after: 20 },
-                            indent: { left: 80 },
-                            children: [createTextRun(item.keyStringsText, textStyle.arial10)],
-                        }),
-                    ],
-                }),
-                ...[10, 5].map(size =>
+    // continuous index
+    let globalIndex = 1;
+
+    // flatten all rows across sources
+    const dataRows = tableData.flatMap((item) =>
+        item.values.map((keyStr) => {
+            const row = new TableRow({
+                children: [
+                    // S. No.
                     new TableCell({
                         borders: commonBorders,
-                        width: { size, type: WidthType.PERCENTAGE },
+                        width: { size: 5, type: WidthType.PERCENTAGE },
                         verticalAlign: VerticalAlign.CENTER,
                         children: [
                             new Paragraph({
                                 alignment: AlignmentType.CENTER,
-                                children: [createTextRun("", textStyle.arial10)],
+                                children: [
+                                    createTextRun(`${globalIndex}.`, textStyle.arial10),
+                                ],
                             }),
                         ],
-                    })
-                ),
-            ],
+                    }),
+                    // Key String text
+                    new TableCell({
+                        borders: commonBorders,
+                        width: { size: 70, type: WidthType.PERCENTAGE },
+                        verticalAlign: VerticalAlign.CENTER,
+                        children: [
+                            new Paragraph({
+                                alignment: AlignmentType.LEFT,
+                                spacing: { before: 20, after: 20 },
+                                indent: { left: 80 },
+                                children: [
+                                    createTextRun(keyStr.value || keyStr.keyStringsText, textStyle.arial10),
+                                ],
+                            }),
+                        ],
+                    }),
+                    // Database (from fieldName)
+                    new TableCell({
+                        borders: commonBorders,
+                        width: { size: 15, type: WidthType.PERCENTAGE },
+                        verticalAlign: VerticalAlign.CENTER,
+                        children: [
+                            new Paragraph({
+                                alignment: AlignmentType.CENTER,
+                                children: [createTextRun(item.label, textStyle.arial10)],
+                            }),
+                        ],
+                    }),
+                    // Hits (keep empty for now)
+                    new TableCell({
+                        borders: commonBorders,
+                        width: { size: 10, type: WidthType.PERCENTAGE },
+                        verticalAlign: VerticalAlign.CENTER,
+                        children: [
+                            new Paragraph({
+                                alignment: AlignmentType.CENTER,
+                                children: [createTextRun(`${keyStr.hitCount}`, textStyle.arial10)],
+                            }),
+                        ],
+                    }),
+                ],
+            });
+
+            globalIndex++;
+            return row;
         })
     );
 
@@ -1495,6 +1654,7 @@ const createSearchStringsTable = (keyStrings = []) => {
         rows: [headerRow, ...dataRows],
     });
 };
+
 
 // ============ Assembling Appendix 1 Dynamically ============
 

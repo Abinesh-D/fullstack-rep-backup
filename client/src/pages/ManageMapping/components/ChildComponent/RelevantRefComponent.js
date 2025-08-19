@@ -145,30 +145,29 @@ const RelevantRefComponent = ({
     //     , [relevantFormData]);
     const [selectedRows, setSelectedRows] = useState([]);
 
-const handleDeleteSelected = () => {
-  // Delete API call / filter logic
-  console.log("Deleting selected rows:", selectedRows);
-};
+    const handleDeleteSelected = () => {
+        console.log("Deleting selected rows:", selectedRows);
+    };
 
 
     const columns = useMemo(
-  () =>
-    generateTableColumns({
-      columnsConfig: [
-        { header: "Publication Number", accessorKey: "patentNumber" },
-        { header: "Publication Date", accessorKey: "filingDate" },
-        { header: "Grant Date", accessorKey: "grantDate" },
-        { header: "Priority Date", accessorKey: "priorityDate" },
-      ],
-      includeSerialNo: true,
-      includeActions: true,
-      onDeleteClick: (row) => console.log("Delete single:", row),
-      selectedRows,
-      setSelectedRows,
-      allRows: relevantFormData, // pass all table rows
-    }),
-  [relevantFormData, selectedRows]
-);
+        () =>
+            generateTableColumns({
+                columnsConfig: [
+                    { header: "Publication Number", accessorKey: "patentNumber" },
+                    { header: "Publication Date", accessorKey: "filingDate" },
+                    { header: "Grant Date", accessorKey: "grantDate" },
+                    { header: "Priority Date", accessorKey: "priorityDate" },
+                ],
+                includeSerialNo: true,
+                includeActions: true,
+                onDeleteClick: (row) => console.log("Delete single:", row),
+                selectedRows,
+                setSelectedRows,
+                allRows: relevantFormData,
+            }),
+        [relevantFormData, selectedRows]
+    );
 
 
     const nplColumns = useMemo(() =>

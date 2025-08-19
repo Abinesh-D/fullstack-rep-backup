@@ -44,80 +44,10 @@ export const handleWordReportDownload = async ({
     relevantAndNplCombined
 }) => {
 
-
-    const htmlToParagraphs = (html) => {
-        const tempDiv = document.createElement("div");
-        tempDiv.innerHTML = html;
-
-        const paragraphs = [];
-        tempDiv.childNodes.forEach(node => {
-            const runs = parseNode(node);
-            paragraphs.push(new Paragraph({ children: runs }));
-        });
-
-        return paragraphs;
-    };
+    console.log('appendix1', appendix1)
 
 
-    const parseNode = (node) => {
-        if (node.nodeType === 3) {
-            return new TextRun({ text: node.textContent });
-        }
-
-        const options = {};
-        if (node.nodeName === "STRONG") options.bold = true;
-        if (node.nodeName === "EM") options.italics = true;
-        if (node.nodeName === "U") options.underline = {};
-        if (node.nodeName === "SPAN") {
-            const color = node.style.color.replace(/\s/g, "");
-            const background = node.style.backgroundColor.replace(/\s/g, "");
-            if (color) options.color = color.replace("rgb(", "").replace(")", "").split(",").map(c => parseInt(c).toString(16).padStart(2, '0')).join("");
-            if (background) options.highlight = "yellow";
-        }
-        if (node.nodeName === "A") options.style = "Hyperlink";
-
-        const childrenRuns = [];
-        node.childNodes.forEach(child => {
-            childrenRuns.push(...parseNode(child));
-        });
-
-        if (childrenRuns.length > 0) {
-            return childrenRuns.map(run => new TextRun({ ...options, text: run.text }));
-        } else {
-            return [new TextRun({ ...options, text: node.textContent || "" })];
-        }
-    };
-
-
-
-    function downloadWordFile(filename, htmlContent) {
-                const wordHtml = `
-        <html xmlns:o='urn:schemas-microsoft-com:office:office' 
-                xmlns:w='urn:schemas-microsoft-com:office:word' 
-                xmlns='http://www.w3.org/TR/REC-html40'>
-        <head><meta charset='utf-8'><title>Document</title></head>
-        <body>${htmlContent}</body></html>
-        `;
-        const blob = new Blob([wordHtml], { type: "application/msword" });
-
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
-
-    const htmlContent = `
-        <p class="ql-align-justify"><br></p>
-        <p class="ql-align-justify">The <a href="https://worldwide.espacenet.com/" target="_blank">objective </a>of the search was to <s>identify</s> prior arts both patents and non-patent literature that top-load washer uses the flexibility of both manual and automatic detergent dosing, providing users with adaptable washing options. It incorporates advanced features such as algorithms, sensors, actuators, and/or mechanical <span style="color: rgb(0, 138, 0);">components to control the automatic dispensing process. The auto-dispensing mechanism is not limited to a</span> <span style="background-color: rgb(230, 0, 0);">traditional pump system but can utilize various technologies, including positive displacement pumps or</span> principles like the Bernoulli effect. Additionally, the washer features a removable detergent reservoir that allows for easy cleaning without impacting the function of the powder detergent dispenser. The search focused on <em><u>identifying prior arts that disclose the following features:</u></em></p>
-        <p><strong>Feature 1</strong>: A top-load washer that comprises the flexibility of using both manual and auto dosing.</p>
-        <p><strong>Feature 1a</strong>: The washer uses an algorithm, sensor, actuator and/or mechanical/ hardware components.</p>
-        <p><strong>Feature 1b</strong>: The auto mechanism to dispense the detergent is not limited to the pump only, it can utilize various technologies, including positive displacement pumps or principles like the Bernoulli effect.</p>
-        <p><strong>Feature 2</strong>: Removable reservoir for easy cleaning without effect on powder detergent dispenser.</p>
-        `;
-
-    downloadWordFile("washer_features.doc", htmlContent);
+   
 
 
 
@@ -168,6 +98,475 @@ export const handleWordReportDownload = async ({
         hyperlink: true,
         headingStyleRange: "1-3",
     });
+
+console.log('appendix1', appendix1)
+    const dynamicIndex = appendix1?.keyStrings[0]?.keyStringsOrbit.length
+        + appendix1?.keyStrings[0]?.keyStringsGoogle.length
+        + appendix1?.keyStrings[0]?.keyStringsEspacenet.length
+        + appendix1?.keyStrings[0]?.keyStringsUSPTO.length
+        + appendix1?.keyStrings[0]?.keyStringsOthers.length;
+
+
+    const createKeyStringsTables = (appendix1) => {
+        if (!appendix1 || !appendix1.keyStrings || appendix1.keyStrings.length === 0) return [];
+
+        const keyStringsObj = appendix1.keyStrings[0];
+
+        const keyStringLabels = {
+            keyStringsOrbit: "Orbit",
+            keyStringsGoogle: "Google Patents",
+            keyStringsEspacenet: "Espacenet",
+            keyStringsUSPTO: "USPTO",
+            keyStringsOthers: "Others",
+        };
+
+        const tableData = Object.keys(keyStringsObj)
+            .filter((key) => Array.isArray(keyStringsObj[key]) && keyStringsObj[key].length > 0)
+            .map((key) => ({
+                label: keyStringLabels[key] || key,
+                values: keyStringsObj[key],
+            }));
+
+        console.log("tableData", tableData);
+
+        let globalIndex = 1;
+
+        return tableData
+            .filter((item) => Array.isArray(item.values) && item.values.length > 0)
+            .map((item) => {
+                return new Table({
+                    width: { size: 100, type: WidthType.PERCENTAGE },
+                    borders: commonBorders,
+                    rows: [
+                        new TableRow({
+                            children: [
+                                new TableCell({
+                                    borders: commonBorders,
+                                    verticalAlign: VerticalAlign.CENTER,
+                                    children: [
+                                        new Paragraph({
+                                            spacing: { before: 0, after: 0 },
+                                            alignment: AlignmentType.CENTER,
+                                            children: [
+                                                createTextRun("S. No.", textStyle.arial10, { bold: true, color: "FFFFFF" }),
+                                            ],
+                                        }),
+                                    ],
+                                    shading: { fill: "353839" },
+                                }),
+                                new TableCell({
+                                    borders: commonBorders,
+                                    verticalAlign: VerticalAlign.CENTER,
+                                    children: [
+                                        new Paragraph({
+                                            alignment: AlignmentType.CENTER,
+                                            spacing: { before: 30, after: 30 },
+                                            children: [
+                                                createTextRun(`Key strings (${item.label})`, textStyle.arial10, { bold: true, color: "FFFFFF" }),
+                                            ],
+                                        }),
+                                    ],
+                                    shading: { fill: "353839" },
+                                }),
+                            ],
+                        }),
+                        ...item.values.map((keyStr) => {
+                            const row = new TableRow({
+                                children: [
+                                    new TableCell({
+                                        borders: commonBorders,
+                                        verticalAlign: VerticalAlign.CENTER,
+                                        width: { size: 5, type: WidthType.PERCENTAGE },
+                                        children: [
+                                            new Paragraph({
+                                                alignment: AlignmentType.CENTER,
+                                                children: [createTextRun(`${globalIndex}.`, textStyle.arial10)],
+                                            }),
+                                        ],
+                                    }),
+                                    new TableCell({
+                                        borders: commonBorders,
+                                        verticalAlign: VerticalAlign.CENTER,
+                                        children: [
+                                            new Paragraph({
+                                                alignment: AlignmentType.LEFT,
+                                                spacing: { before: 20, after: 20 },
+                                                indent: { left: 80 },
+                                                children: [createTextRun(keyStr.value, textStyle.arial10)],
+                                            }),
+                                        ],
+                                    }),
+                                ],
+                            });
+
+                            globalIndex++;
+                            return row;
+                        }),
+                    ],
+                });
+            });
+    };
+
+    const tables = [
+        ...createKeyStringsTables(appendix1),
+    ];
+
+
+    // ---- NPL ----
+    tables.push(
+        new Table({
+            width: { size: 100, type: WidthType.PERCENTAGE },
+            borders: commonBorders,
+            rows: [
+                new TableRow({
+                    children: [
+                        new TableCell({
+                            borders: commonBorders,
+                            verticalAlign: VerticalAlign.CENTER,
+                            children: [
+                                new Paragraph({
+                                    alignment: AlignmentType.CENTER,
+                                    children: [createTextRun("", { bold: true, color: "FFFFFF" })],
+                                }),
+                            ],
+                            shading: { fill: "353839" },
+                        }),
+                        new TableCell({
+                            borders: commonBorders,
+                            verticalAlign: VerticalAlign.CENTER,
+                            children: [
+                                new Paragraph({
+                                    alignment: AlignmentType.CENTER,
+                                    spacing: { before: 0, after: 0 },
+                                    children: [
+                                        createTextRun("Key strings (Non-Patent Literatures)", textStyle.arial10, { bold: true, color: "FFFFFF" }),
+                                    ],
+                                }),
+                            ],
+                            shading: { fill: "353839" },
+                        }),
+                    ],
+                }),
+                ...(appendix1?.keyStringsNpl
+                    ? appendix1.keyStringsNpl.map((keyStr, index) => {
+                        const row = new TableRow({
+                            children: [
+                                new TableCell({
+                                    borders: commonBorders,
+                                    verticalAlign: VerticalAlign.CENTER,
+                                    children: [
+                                        new Paragraph({
+                                            alignment: AlignmentType.CENTER,
+                                            spacing: { after: 10, before: 10 },
+                                            children: [createTextRun(`${dynamicIndex + index + 1}.`, textStyle.arial10)],
+                                        }),
+                                    ],
+                                }),
+                                new TableCell({
+                                    borders: commonBorders,
+                                    verticalAlign: VerticalAlign.CENTER,
+                                    children: [
+                                        new Paragraph({
+                                            alignment: AlignmentType.LEFT,
+                                            indent: { left: 80 },
+                                            spacing: { after: 10, before: 10 },
+                                            children: [createTextRun(keyStr.keyStringsNplText, textStyle.arial10)],
+                                        }),
+                                    ],
+                                }),
+                            ],
+                        });
+                        return row;
+                    })
+                    : []),
+            ],
+        })
+    );
+
+    // ---- Additional Search ----
+    tables.push(
+        new Table({
+            width: { size: 100, type: WidthType.PERCENTAGE },
+            borders: commonBorders,
+            rows: [
+                new TableRow({
+                    children: [
+                        new TableCell({
+                            borders: commonBorders,
+                            verticalAlign: VerticalAlign.CENTER,
+                            children: [
+                                new Paragraph({
+                                    alignment: AlignmentType.CENTER,
+                                    children: [createTextRun("", { bold: true, color: "FFFFFF" })],
+                                }),
+                            ],
+                            shading: { fill: "353839" },
+                        }),
+                        new TableCell({
+                            borders: commonBorders,
+                            verticalAlign: VerticalAlign.CENTER,
+                            children: [
+                                new Paragraph({
+                                    alignment: AlignmentType.CENTER,
+                                    spacing: { before: 0, after: 0 },
+                                    children: [
+                                        createTextRun("Additional Search", textStyle.arial10, { bold: true, color: "FFFFFF" }),
+                                    ],
+                                }),
+                            ],
+                            shading: { fill: "353839" },
+                        }),
+                    ],
+                }),
+                ...(appendix1?.keyStringsAdditional
+                    ? appendix1.keyStringsAdditional.map((keyStr, index) => {
+                        const row = new TableRow({
+                            children: [
+                                new TableCell({
+                                    borders: commonBorders,
+                                    verticalAlign: VerticalAlign.CENTER,
+                                    children: [
+                                        new Paragraph({
+                                            alignment: AlignmentType.CENTER,
+                                            spacing: { before: 20, after: 20 },
+                                            children: [createTextRun(`${dynamicIndex + appendix1.keyStringsNpl.length + index + 1}.`, textStyle.arial10)],
+                                        }),
+                                    ],
+                                }),
+                                new TableCell({
+                                    borders: commonBorders,
+                                    verticalAlign: VerticalAlign.CENTER,
+                                    children: [
+                                        new Paragraph({
+                                            indent: { left: 80 },
+                                            alignment: AlignmentType.LEFT,
+                                            spacing: { before: 20, after: 20 },
+                                            children: [createTextRun(keyStr.keyStringsAdditionalText, textStyle.arial10)],
+                                        }),
+                                    ],
+                                }),
+                            ],
+                        });
+                        return row;
+                    })
+                    : []),
+            ],
+        })
+    );
+
+
+
+
+
+
+
+    // const createKeyStringsTables = (appendix1) => {
+    //     if (!appendix1 || !appendix1.keyStrings || appendix1.keyStrings.length === 0) return [];
+
+    //     const keyStringsObj = appendix1.keyStrings[0];
+
+    //     const keyStringLabels = {
+    //         keyStringsOrbit: "Orbit",
+    //         keyStringsGoogle: "Google Patents",
+    //         keyStringsEspacenet: "Espacenet",
+    //         keyStringsUSPTO: "USPTO",
+    //         keyStringsOthers: "Others",
+    //     };
+
+    //     const tableData = Object.keys(keyStringsObj)
+    //         .filter((key) => Array.isArray(keyStringsObj[key]) && keyStringsObj[key].length > 0)
+    //         .map((key) => ({
+    //             label: keyStringLabels[key] || key,
+    //             values: keyStringsObj[key],
+    //         }));
+
+    //     console.log("tableData", tableData);
+
+    //     let globalIndex = 1;
+
+    //     return tableData
+    //         .filter((item) => Array.isArray(item.values) && item.values.length > 0)
+    //         .map((item) => {
+    //             return new Table({
+    //                 width: { size: 100, type: WidthType.PERCENTAGE },
+    //                 borders: commonBorders,
+    //                 rows: [
+    //                     new TableRow({
+    //                         children: [
+    //                             new TableCell({
+    //                                 borders: commonBorders,
+    //                                 verticalAlign: VerticalAlign.CENTER,
+    //                                 children: [
+    //                                     new Paragraph({
+    //                                         spacing: { before: 0, after: 0 },
+    //                                         alignment: AlignmentType.CENTER,
+    //                                         children: [
+    //                                             createTextRun("S. No.", textStyle.arial10, { bold: true, color: "FFFFFF" }),
+    //                                         ],
+    //                                     }),
+    //                                 ],
+    //                                 shading: { fill: "353839" },
+    //                             }),
+    //                             new TableCell({
+    //                                 borders: commonBorders,
+    //                                 verticalAlign: VerticalAlign.CENTER,
+    //                                 children: [
+    //                                     new Paragraph({
+    //                                         alignment: AlignmentType.CENTER,
+    //                                         spacing: { before: 30, after: 30 },
+    //                                         children: [
+    //                                             createTextRun(`Key strings (${item.label})`, textStyle.arial10, { bold: true, color: "FFFFFF" }),
+    //                                         ],
+    //                                     }),
+    //                                 ],
+    //                                 shading: { fill: "353839" },
+    //                             }),
+    //                         ],
+    //                     }),
+    //                     ...item.values.map((keyStr) => {
+    //                         const row = new TableRow({
+    //                             children: [
+    //                                 new TableCell({
+    //                                     borders: commonBorders,
+    //                                     verticalAlign: VerticalAlign.CENTER,
+    //                                     width: { size: 5, type: WidthType.PERCENTAGE },
+    //                                     children: [
+    //                                         new Paragraph({
+    //                                             alignment: AlignmentType.CENTER,
+    //                                             children: [createTextRun(`${globalIndex}.`, textStyle.arial10)],
+    //                                         }),
+    //                                     ],
+    //                                 }),
+    //                                 new TableCell({
+    //                                     borders: commonBorders,
+    //                                     verticalAlign: VerticalAlign.CENTER,
+    //                                     children: [
+    //                                         new Paragraph({
+    //                                             alignment: AlignmentType.LEFT,
+    //                                             spacing: { before: 20, after: 20 },
+    //                                             indent: { left: 80 },
+    //                                             children: [createTextRun(keyStr.value, textStyle.arial10)],
+    //                                         }),
+    //                                     ],
+    //                                 }),
+    //                             ],
+    //                         });
+
+    //                         globalIndex++;
+    //                         return row;
+    //                     }),
+    //                 ],
+    //             });
+    //         });
+    // };
+
+    // const tables = createKeyStringsTables(appendix1);
+
+
+
+    // const createKeyStringsTables = (appendix1) => {
+    //     if (!appendix1 || !appendix1.keyStrings || appendix1.keyStrings.length === 0) return [];
+
+    //     const keyStringsObj = appendix1.keyStrings[0];
+
+    //     const keyStringLabels = {
+    //         keyStringsOrbit: "Orbit",
+    //         keyStringsGoogle: "Google Patents",
+    //         keyStringsEspacenet: "Espacenet",
+    //         keyStringsUSPTO: "USPTO",
+    //         keyStringsOthers: "Others",
+    //     };
+
+    //     const tableData = Object.keys(keyStringsObj)
+    //         .filter((key) => Array.isArray(keyStringsObj[key]) && keyStringsObj[key].length > 0)
+    //         .map((key) => ({
+    //             label: keyStringLabels[key] || key,
+    //             values: keyStringsObj[key],
+    //         }));
+
+    //     console.log("tableData", tableData);
+
+
+
+    //     return tableData
+    //         .filter((item) => Array.isArray(item.values) && item.values.length > 0)
+    //         .map((item) => {
+    //             return new Table({
+    //                 width: { size: 100, type: WidthType.PERCENTAGE },
+    //                 borders: commonBorders,
+    //                 rows: [
+    //                     new TableRow({
+    //                         children: [
+    //                             new TableCell({
+    //                                 borders: commonBorders,
+    //                                 verticalAlign: VerticalAlign.CENTER,
+    //                                 children: [
+    //                                     new Paragraph({
+    //                                         spacing: { before: 0, after: 0 },
+    //                                         alignment: AlignmentType.CENTER,
+    //                                         children: [
+    //                                             createTextRun("S. No.", textStyle.arial10, { bold: true, color: "FFFFFF" }),
+    //                                         ],
+    //                                     }),
+    //                                 ],
+    //                                 shading: { fill: "353839" },
+    //                             }),
+    //                             new TableCell({
+    //                                 borders: commonBorders,
+    //                                 verticalAlign: VerticalAlign.CENTER,
+    //                                 children: [
+    //                                     new Paragraph({
+    //                                         alignment: AlignmentType.CENTER,
+    //                                         spacing: { before: 30, after: 30 },
+    //                                         children: [
+    //                                             createTextRun(`Key strings (${item.label})`, textStyle.arial10, { bold: true, color: "FFFFFF" }),
+    //                                         ],
+    //                                     }),
+    //                                 ],
+    //                                 shading: { fill: "353839" },
+    //                             }),
+    //                         ],
+    //                     }),
+    //                     ...item.values.map((keyStr, index) => {
+    //                         return new TableRow({
+    //                             children: [
+    //                                 new TableCell({
+    //                                     borders: commonBorders,
+    //                                     verticalAlign: VerticalAlign.CENTER,
+    //                                     width: { size: 5, type: WidthType.PERCENTAGE },
+    //                                     children: [
+    //                                         new Paragraph({
+    //                                             alignment: AlignmentType.CENTER,
+    //                                             children: [createTextRun(`${index + 1}.`, textStyle.arial10)],
+    //                                         }),
+    //                                     ],
+    //                                 }),
+    //                                 new TableCell({
+    //                                     borders: commonBorders,
+    //                                     verticalAlign: VerticalAlign.CENTER,
+    //                                     children: [
+    //                                         new Paragraph({
+    //                                             alignment: AlignmentType.LEFT,
+    //                                             spacing: { before: 20, after: 20 },
+    //                                             indent: { left: 80 },
+    //                                             children: [createTextRun(keyStr.value, textStyle.arial10)],
+    //                                         }),
+    //                                     ],
+    //                                 }),
+    //                             ],
+    //                         });
+    //                     }),
+    //                 ],
+    //             });
+    //         });
+    // };
+
+    // const tables = createKeyStringsTables(appendix1);
+
+
+
+
+
 
     const appendix1Childern = [];
 
@@ -308,246 +707,266 @@ export const handleWordReportDownload = async ({
                 indent: { left: 720 },
             }),
             // Key strings (Patents/Patent Applications)
-            new Table({
-                width: {
-                    size: 100,
-                    type: WidthType.PERCENTAGE,
-                },
-                borders: commonBorders,
-                rows: [
-                    new TableRow({
-                        children: [
-                            new TableCell({
-                                borders: commonBorders,
-                                verticalAlign: VerticalAlign.CENTER,
-                                children: [
-                                    new Paragraph({
-                                        spacing: { before: 0, after: 0 },
-                                        alignment: AlignmentType.CENTER,
-                                        children: [
-                                            createTextRun("S. No.", textStyle.arial10, { bold: true, color: "FFFFFF" }),
-                                        ],
-                                    }),
-                                ],
-                                shading: {
-                                    fill: "353839",
-                                },
-                            }),
-                            new TableCell({
-                                borders: commonBorders,
-                                verticalAlign: VerticalAlign.CENTER,
-                                children: [
-                                    new Paragraph({
-                                        alignment: AlignmentType.CENTER,
-                                        spacing: { before: 30, after: 30 },
-                                        children: [
-                                            createTextRun("Key strings (Patents/Patent Applications)", textStyle.arial10, { bold: true, color: "FFFFFF" }),
-                                        ],
-                                    }),
-                                ],
-                                shading: {
-                                    fill: "353839",
-                                },
-                            }),
-                        ],
-                    }),
 
-                    ...(appendix1?.keyStrings ?
-                        appendix1?.keyStrings?.map((keyStr, index) =>
-                            new TableRow({
-                                children: [
-                                    new TableCell({
-                                        borders: commonBorders,
-                                        verticalAlign: AlignmentType.CENTER,
-                                        width: { size: 5, type: WidthType.PERCENTAGE },
-                                        children: [
-                                            new Paragraph({
-                                                alignment: AlignmentType.CENTER,
-                                                children: [
-                                                    createTextRun(`${index + 1}.`, textStyle.arial10),
-                                                ],
-                                            }),
-                                        ],
-                                    }),
-                                    new TableCell({
-                                        borders: commonBorders,
-                                        verticalAlign: AlignmentType.CENTER,
-                                        children: [
-                                            new Paragraph({
-                                                alignment: AlignmentType.LEFT,
-                                                spacing: { before: 20, after: 20 },
-                                                indent: { left: 80 },
-                                                children: [
-                                                    createTextRun(keyStr.keyStringsText, textStyle.arial10),
-                                                ],
-                                            }),
-                                        ],
-                                    }),
-                                ],
-                            })
-                        ) : []),
-                ],
-            }),
-            // Key strings (Non-Patent Literatures)
-            new Table({
-                width: {
-                    size: 100,
-                    type: WidthType.PERCENTAGE,
-                },
-                borders: commonBorders,
-                rows: [
-                    new TableRow({
-                        children: [
-                            new TableCell({
-                                borders: commonBorders,
-                                verticalAlign: VerticalAlign.CENTER,
-                                children: [
-                                    new Paragraph({
-                                        alignment: AlignmentType.CENTER,
-                                        children: [
-                                            createTextRun("", { bold: true, color: "FFFFFF" }),
-                                        ],
-                                    }),
-                                ],
-                                shading: {
-                                    fill: "353839",
-                                },
-                            }),
-                            new TableCell({
-                                borders: commonBorders,
-                                verticalAlign: VerticalAlign.CENTER,
-                                children: [
-                                    new Paragraph({
-                                        alignment: AlignmentType.CENTER,
-                                        spacing: { before: 0, after: 0 },
-                                        children: [
-                                            createTextRun("Key strings (Non-Patent Literatures)", textStyle.arial10, { bold: true, color: "FFFFFF" }),
-                                        ],
-                                    }),
-                                ],
-                                shading: {
-                                    fill: "353839",
-                                },
-                            }),
-                        ],
-                    }),
-                    ...(appendix1?.keyStringsNpl ?
-                        appendix1?.keyStringsNpl?.map((keyStr, index) =>
-                            new TableRow({
-                                children: [
-                                    new TableCell({
-                                        borders: commonBorders,
-                                        verticalAlign: AlignmentType.CENTER,
-                                        children: [
-                                            new Paragraph({
-                                                alignment: AlignmentType.CENTER,
-                                                spacing: { after: 10, before: 10 },
-                                                children: [
-                                                    createTextRun(`${(appendix1.keyStrings.length) + (index + 1)}.`, textStyle.arial10),
-                                                ],
-                                            }),
-                                        ],
-                                    }),
-                                    new TableCell({
-                                        borders: commonBorders,
-                                        verticalAlign: AlignmentType.CENTER,
-                                        children: [
-                                            new Paragraph({
-                                                alignment: AlignmentType.LEFT,
-                                                indent: { left: 80 },
-                                                children: [
-                                                    createTextRun(keyStr.keyStringsNplText, textStyle.arial10),
-                                                ],
-                                                spacing: { after: 10, before: 10 }
-                                            }),
-                                        ],
-                                    }),
-                                ],
-                            })
-                        ) : []),
-                ],
-            }),
-            // Additional Search
-            new Table({
-                width: {
-                    size: 100,
-                    type: WidthType.PERCENTAGE,
-                },
-                borders: commonBorders,
-                rows: [
-                    new TableRow({
-                        children: [
-                            new TableCell({
-                                borders: commonBorders,
-                                verticalAlign: VerticalAlign.CENTER,
-                                children: [
-                                    new Paragraph({
-                                        alignment: AlignmentType.CENTER,
-                                        children: [
-                                            createTextRun("", { bold: true, color: "FFFFFF" }),
-                                        ],
-                                    }),
-                                ],
-                                shading: {
-                                    fill: "353839",
-                                },
-                            }),
-                            new TableCell({
-                                borders: commonBorders,
-                                verticalAlign: VerticalAlign.CENTER,
-                                children: [
-                                    new Paragraph({
-                                        alignment: AlignmentType.CENTER,
-                                        spacing: { before: 0, after: 0 },
-                                        children: [
-                                            createTextRun("Additional Search", textStyle.arial10, { bold: true, color: "FFFFFF" }),
-                                        ],
-                                    }),
-                                ],
-                                shading: {
-                                    fill: "353839",
-                                },
-                            }),
-                        ],
-                    }),
 
-                    // Dynamic Rows
-                    ...(appendix1?.keyStringsAdditional ?
-                        appendix1?.keyStringsAdditional?.map((keyStr, index) =>
-                            new TableRow({
-                                children: [
-                                    new TableCell({
-                                        borders: commonBorders,
-                                        verticalAlign: VerticalAlign.CENTER,
-                                        children: [
-                                            new Paragraph({
-                                                alignment: AlignmentType.CENTER,
-                                                spacing: { before: 20, after: 20 },
-                                                children: [
-                                                    createTextRun(`${(appendix1?.keyStrings.length + appendix1?.keyStringsNpl.length) + (index + 1)}.`, textStyle.arial10),
-                                                ],
-                                            }),
-                                        ],
-                                    }),
-                                    new TableCell({
-                                        borders: commonBorders,
-                                        verticalAlign: VerticalAlign.CENTER,
-                                        children: [
-                                            new Paragraph({
-                                                indent: { left: 80 },
-                                                alignment: AlignmentType.LEFT,
-                                                spacing: { before: 20, after: 20 },
-                                                children: [
-                                                    createTextRun(keyStr.keyStringsAdditionalText, textStyle.arial10),
-                                                ],
-                                            }),
-                                        ],
-                                    }),
-                                ],
-                            })
-                        ) : []),
-                ],
-            }),
+            ...tables,
+
+
+            // new Table({
+            //     width: {
+            //         size: 100,
+            //         type: WidthType.PERCENTAGE,
+            //     },
+            //     borders: commonBorders,
+            //     rows: [
+            //         new TableRow({
+            //             children: [
+            //                 new TableCell({
+            //                     borders: commonBorders,
+            //                     verticalAlign: VerticalAlign.CENTER,
+            //                     children: [
+            //                         new Paragraph({
+            //                             spacing: { before: 0, after: 0 },
+            //                             alignment: AlignmentType.CENTER,
+            //                             children: [
+            //                                 createTextRun("S. No.", textStyle.arial10, { bold: true, color: "FFFFFF" }),
+            //                             ],
+            //                         }),
+            //                     ],
+            //                     shading: {
+            //                         fill: "353839",
+            //                     },
+            //                 }),
+            //                 new TableCell({
+            //                     borders: commonBorders,
+            //                     verticalAlign: VerticalAlign.CENTER,
+            //                     children: [
+            //                         new Paragraph({
+            //                             alignment: AlignmentType.CENTER,
+            //                             spacing: { before: 30, after: 30 },
+            //                             children: [
+            //                                 createTextRun("Key strings (Patents/Patent Applications)", textStyle.arial10, { bold: true, color: "FFFFFF" }),
+            //                             ],
+            //                         }),
+            //                     ],
+            //                     shading: {
+            //                         fill: "353839",
+            //                     },
+            //                 }),
+            //             ],
+            //         }),
+
+            //         ...(appendix1?.keyStrings ?
+            //             appendix1?.keyStrings?.map((keyStr, index) =>
+            //                 new TableRow({
+            //                     children: [
+            //                         new TableCell({
+            //                             borders: commonBorders,
+            //                             verticalAlign: AlignmentType.CENTER,
+            //                             width: { size: 5, type: WidthType.PERCENTAGE },
+            //                             children: [
+            //                                 new Paragraph({
+            //                                     alignment: AlignmentType.CENTER,
+            //                                     children: [
+            //                                         createTextRun(`${index + 1}.`, textStyle.arial10),
+            //                                     ],
+            //                                 }),
+            //                             ],
+            //                         }),
+            //                         new TableCell({
+            //                             borders: commonBorders,
+            //                             verticalAlign: AlignmentType.CENTER,
+            //                             children: [
+            //                                 new Paragraph({
+            //                                     alignment: AlignmentType.LEFT,
+            //                                     spacing: { before: 20, after: 20 },
+            //                                     indent: { left: 80 },
+            //                                     children: [
+            //                                         createTextRun(keyStr.keyStringsText, textStyle.arial10),
+            //                                     ],
+            //                                 }),
+            //                             ],
+            //                         }),
+            //                     ],
+            //                 })
+            //             ) : []),
+            //     ],
+            // }),
+
+
+
+            // // Key strings (Non-Patent Literatures)
+            // new Table({
+            //     width: {
+            //         size: 100,
+            //         type: WidthType.PERCENTAGE,
+            //     },
+            //     borders: commonBorders,
+            //     rows: [
+            //         new TableRow({
+            //             children: [
+            //                 new TableCell({
+            //                     borders: commonBorders,
+            //                     verticalAlign: VerticalAlign.CENTER,
+            //                     children: [
+            //                         new Paragraph({
+            //                             alignment: AlignmentType.CENTER,
+            //                             children: [
+            //                                 createTextRun("", { bold: true, color: "FFFFFF" }),
+            //                             ],
+            //                         }),
+            //                     ],
+            //                     shading: {
+            //                         fill: "353839",
+            //                     },
+            //                 }),
+            //                 new TableCell({
+            //                     borders: commonBorders,
+            //                     verticalAlign: VerticalAlign.CENTER,
+            //                     children: [
+            //                         new Paragraph({
+            //                             alignment: AlignmentType.CENTER,
+            //                             spacing: { before: 0, after: 0 },
+            //                             children: [
+            //                                 createTextRun("Key strings (Non-Patent Literatures)", textStyle.arial10, { bold: true, color: "FFFFFF" }),
+            //                             ],
+            //                         }),
+            //                     ],
+            //                     shading: {
+            //                         fill: "353839",
+            //                     },
+            //                 }),
+            //             ],
+            //         }),
+            //         ...(appendix1?.keyStringsNpl ?
+            //             appendix1?.keyStringsNpl?.map((keyStr, index) =>
+            //                 new TableRow({
+            //                     children: [
+            //                         new TableCell({
+            //                             borders: commonBorders,
+            //                             verticalAlign: AlignmentType.CENTER,
+            //                             children: [
+            //                                 new Paragraph({
+            //                                     alignment: AlignmentType.CENTER,
+            //                                     spacing: { after: 10, before: 10 },
+            //                                     children: [
+            //                                         createTextRun(`${(appendix1.keyStrings.length) + (index + 1)}.`, textStyle.arial10),
+            //                                     ],
+            //                                 }),
+            //                             ],
+            //                         }),
+            //                         new TableCell({
+            //                             borders: commonBorders,
+            //                             verticalAlign: AlignmentType.CENTER,
+            //                             children: [
+            //                                 new Paragraph({
+            //                                     alignment: AlignmentType.LEFT,
+            //                                     indent: { left: 80 },
+            //                                     children: [
+            //                                         createTextRun(keyStr.keyStringsNplText, textStyle.arial10),
+            //                                     ],
+            //                                     spacing: { after: 10, before: 10 }
+            //                                 }),
+            //                             ],
+            //                         }),
+            //                     ],
+            //                 })
+            //             ) : []),
+            //     ],
+            // }),
+            // // Additional Search
+            // new Table({
+            //     width: {
+            //         size: 100,
+            //         type: WidthType.PERCENTAGE,
+            //     },
+            //     borders: commonBorders,
+            //     rows: [
+            //         new TableRow({
+            //             children: [
+            //                 new TableCell({
+            //                     borders: commonBorders,
+            //                     verticalAlign: VerticalAlign.CENTER,
+            //                     children: [
+            //                         new Paragraph({
+            //                             alignment: AlignmentType.CENTER,
+            //                             children: [
+            //                                 createTextRun("", { bold: true, color: "FFFFFF" }),
+            //                             ],
+            //                         }),
+            //                     ],
+            //                     shading: {
+            //                         fill: "353839",
+            //                     },
+            //                 }),
+            //                 new TableCell({
+            //                     borders: commonBorders,
+            //                     verticalAlign: VerticalAlign.CENTER,
+            //                     children: [
+            //                         new Paragraph({
+            //                             alignment: AlignmentType.CENTER,
+            //                             spacing: { before: 0, after: 0 },
+            //                             children: [
+            //                                 createTextRun("Additional Search", textStyle.arial10, { bold: true, color: "FFFFFF" }),
+            //                             ],
+            //                         }),
+            //                     ],
+            //                     shading: {
+            //                         fill: "353839",
+            //                     },
+            //                 }),
+            //             ],
+            //         }),
+
+            //         // Dynamic Rows
+            //         ...(appendix1?.keyStringsAdditional ?
+            //             appendix1?.keyStringsAdditional?.map((keyStr, index) =>
+            //                 new TableRow({
+            //                     children: [
+            //                         new TableCell({
+            //                             borders: commonBorders,
+            //                             verticalAlign: VerticalAlign.CENTER,
+            //                             children: [
+            //                                 new Paragraph({
+            //                                     alignment: AlignmentType.CENTER,
+            //                                     spacing: { before: 20, after: 20 },
+            //                                     children: [
+            //                                         createTextRun(`${(appendix1?.keyStrings.length + appendix1?.keyStringsNpl.length) + (index + 1)}.`, textStyle.arial10),
+            //                                     ],
+            //                                 }),
+            //                             ],
+            //                         }),
+            //                         new TableCell({
+            //                             borders: commonBorders,
+            //                             verticalAlign: VerticalAlign.CENTER,
+            //                             children: [
+            //                                 new Paragraph({
+            //                                     indent: { left: 80 },
+            //                                     alignment: AlignmentType.LEFT,
+            //                                     spacing: { before: 20, after: 20 },
+            //                                     children: [
+            //                                         createTextRun(keyStr.keyStringsAdditionalText, textStyle.arial10),
+            //                                     ],
+            //                                 }),
+            //                             ],
+            //                         }),
+            //                     ],
+            //                 })
+            //             ) : []),
+            //     ],
+            // }),
+
+
+
+
+
+
+
+
+
+
+
+
             // back-to-table-of-content
             new Paragraph({
                 alignment: AlignmentType.RIGHT,
@@ -637,6 +1056,11 @@ export const handleWordReportDownload = async ({
                         spacing: { before: 50, after: 50 },
                         textStyleOverride: { bold: true, ...textStyle.arial24 },
                     }),
+                     createParagraph(introduction.projectId, {
+                        alignment: AlignmentType.CENTER,
+                        spacing: { before: 50, after: 50 },
+                        textStyleOverride: { bold: true, ...textStyle.arial24 },
+                    }),
                 ],
             },
             // Table Content
@@ -693,7 +1117,6 @@ export const handleWordReportDownload = async ({
                         }
                     ),
 
-                     htmlToParagraphs(htmlContent),
 
 
 

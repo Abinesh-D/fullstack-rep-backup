@@ -81,6 +81,7 @@ const SingleKeyStringSchema = new Schema({
   _id: { type: String, default: uuidv4 },
   value: { type: String, required: false },
   fieldName: { type: String, required: false },
+  hitCount: { type: Number, required: false },
 }, { _id: false });
 
 const KeyStringsSchemaAppendix1 = new Schema({

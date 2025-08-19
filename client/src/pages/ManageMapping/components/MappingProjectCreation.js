@@ -39,14 +39,13 @@ const MappingProjectCreation = () => {
     const relatedData = useSelector(state => state.patentSlice.liveEpoRelatedData);
 
     const fullReportData = useSelector(state => state.patentSlice.fullReportData);
-    console.log('currentReport', fullReportData.filter(fil => fil._id === id)[0]);
 
     const introduction = fullReportData.filter(fil => fil._id === id)[0]?.stages?.introduction || [];
 
     const releventBiblioGoogleData = useSelector(state => state.patentSlice.liveGoogleRelevantData);
     const relatedBiblioGoogleData = useSelector(state => state.patentSlice.liveGoogleRelatedData);
 
-    const [activeTab, setactiveTab] = useState(1);
+    const [activeTab, setactiveTab] = useState(4);
     const [passedSteps, setPassedSteps] = useState([1]);
 
     const [relevantForm, setRelevantForm] = useState({
@@ -61,8 +60,10 @@ const MappingProjectCreation = () => {
         inventors: '',
         priorityDate: '',
         classifications: '',
+
         ipcClassifications: '',
         cpcClassifications: '',
+        
         usClassification: '',
         familyMembers: '',
         analystComments: '',
@@ -85,6 +86,10 @@ const MappingProjectCreation = () => {
             inventors: '',
             priorityDate: '',
             classifications: '',
+
+            ipcClassifications: '',
+            cpcClassifications: '',
+
             usClassification: '',
             familyMembers: '',
             analystComments: '',
@@ -111,7 +116,7 @@ const MappingProjectCreation = () => {
     const [findLoading, setFindLoading] = useState(false);
 
     const [relevantAndNplUpdatedData, setRelevantAndNplUpdatedData] = useState([]);
-
+    const [appendix1KeyStringsLevelValue, setAppendix1KeyStringsLevelValue] = useState([]);
 
     const [keyString, setKeyString] = useState("");
     const [keyStringsList, setKeyStringsList] = useState("");
@@ -237,6 +242,11 @@ const MappingProjectCreation = () => {
         setSelectedRow(rowData);
         setActiveModal("dataAvailability");
     }
+      const onSourceDeleted = (rowData) => {
+        setSelectedRow(rowData);
+        setActiveModal("keyStringsLevel");
+    }
+
     const onRelevantWordsDelete = (rowData) => {
         setSelectedRow(rowData);
         setActiveModal("relevantWords");
@@ -424,6 +434,9 @@ const MappingProjectCreation = () => {
                     setKeyStringsNplList(singleProject.stages.appendix1?.[0]?.keyStringsNpl || []);
                     setKeyStringsAdditionalList(singleProject.stages.appendix1?.[0]?.keyStringsAdditional || []);
                     setDataAvailabilityValue(singleProject.stages.appendix1?.[0]?.dataAvailability || []);
+
+                    setAppendix1KeyStringsLevelValue(singleProject.stages.appendix1?.[0]?.keyStrings || []);
+
                     setAppendix2Patents(singleProject.stages.appendix2?.[0]?.patents || appendix2Patents);
                     setAppendix2NPL(singleProject.stages.appendix2?.[0]?.nonPatentLiterature || appendix2NPL);
                 }
@@ -434,6 +447,24 @@ const MappingProjectCreation = () => {
 
         getProject();
     }, []);
+
+
+
+
+    const onKeyStringsLevelDeletes = async () => {
+        try {
+            const response = await axios.delete(
+                `http://localhost:8080/live/projectname/appendix1/keystring/${id}/${selectedRow.fieldName}/${selectedRow._id}`
+            );
+            setAppendix1KeyStringsLevelValue(response.data || []);
+
+        } catch (err) {
+            console.error("Error deleting key string:", err);
+        }
+    };
+
+
+
 
 
 
@@ -593,8 +624,6 @@ const MappingProjectCreation = () => {
                 { headers: { "Content-Type": "application/json" } }
 
             );
-            console.log('appendixData', response.data.stages.appendix1[0])
-
             const appendixData = response.data.stages.appendix1[0]?.keyStringsAdditional;
             setKeyStringsAdditionalList(appendixData);
             setKeyStringAdditional("");
@@ -1155,7 +1184,6 @@ const MappingProjectCreation = () => {
     const handleRelatedSubmit = async (e) => {
         e.preventDefault();
         if (!relatedForm.publicationNumber) return;
-        console.log('relatedForm', relatedForm)
 
         try {
             const response = await axios.post(`http://localhost:8080/live/projectname/add-related/${id}`, relatedForm,
@@ -1240,6 +1268,11 @@ const MappingProjectCreation = () => {
             message: "Are you sure you want to delete this Data Availability Value?",
             onConfirm: handleDeleteDataAvailability,
         },
+        keyStringsLevel: {
+            message: "Are you sure you want to delete this Data keyStringsLevel Value?",
+            onConfirm: onKeyStringsLevelDeletes,
+        },
+
     };
 
 
@@ -1500,6 +1533,10 @@ const MappingProjectCreation = () => {
                                                         dataAvailabilityValue={dataAvailabilityValue}
                                                         handleSaveDataAvailability={handleSaveDataAvailability}
                                                         onDataAvailabilityDelete={onDataAvailabilityDelete}
+
+                                                        onKeyStringsDeletes={onSourceDeleted}
+                                                        appendix1KeyStringsLevelValue={appendix1KeyStringsLevelValue}
+                                                        setAppendix1KeyStringsLevelValue={setAppendix1KeyStringsLevelValue}
                                                     />
                                                 </TabPane>
 

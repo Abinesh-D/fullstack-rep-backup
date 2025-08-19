@@ -612,67 +612,203 @@ router.delete("/delete-base-search-term/:id/:termId", async (req, res) => {
 
 
 
-// // Add Key Strings
 
-router.post("/appendix1/:projectId/:fieldName", async (req, res) => {
-  const { projectId, fieldName } = req.params;
-  const { value } = req.body; 
+// router.post("/appendix1/keystring/:projectId", async (req, res) => {
+//   const { projectId } = req.params;
+//   const { value, fieldName } = req.body;
 
-  const allowedFields = ["keyStringsOrbit", "keyStringsGoogle", "keyStringsEspacenet", "keyStringsUSPTO", "keyStringsOthers"];
-  if (!allowedFields.includes(fieldName)) {
-    return res.status(400).json({ message: "Invalid field name" });
-  }
+//   const fieldMap = {
+//     Orbit: "keyStringsOrbit",
+//     "Google Patents": "keyStringsGoogle",
+//     Espacenet: "keyStringsEspacenet",
+//     USPTO: "keyStringsUSPTO",
+//     Others: "keyStringsOthers",
+//   };
+//   try {
 
-  if (!value || !value.trim()) {
-    return res.status(400).json({ message: "Value cannot be empty" });
-  }
+//     if (!value || !fieldName) {
+//       return res.status(400).json({ message: "Value and fieldName are required" });
+//     }
+
+//     const keyField = fieldMap[fieldName];
+//     if (!keyField) {
+//       return res.status(400).json({ message: "Invalid fieldName" });
+//     }
+
+//     const project = await cln_prior_report_schema.findById(projectId);
+//     if (!project) return res.status(404).json({ message: "Project not found" });
+
+//     if (!project.stages.appendix1 || project.stages.appendix1.length === 0) {
+//       project.stages.appendix1 = [{}];
+//     }
+
+//     const appendix1 = project.stages.appendix1[0];
+
+//     if (!appendix1.keyStrings || appendix1.keyStrings.length === 0) {
+//       appendix1.keyStrings = [
+//         {
+//           keyStringsOrbit: [],
+//           keyStringsGoogle: [],
+//           keyStringsEspacenet: [],
+//           keyStringsUSPTO: [],
+//           keyStringsOthers: [],
+//         },
+//       ];
+//     }
+
+//     const keyStringsObj = appendix1.keyStrings[0];
+
+//     keyStringsObj[keyField].push({ _id: uuidv4(), value, fieldName });
+
+//     await project.save();
+
+//     res.status(200).json( [keyStringsObj]);
+//   } catch (err) {
+//     console.error("Error saving key string:", err);
+//     res.status(500).json({ message: "Server error" });
+//   }
+// });
+
+
+
+router.post("/appendix1/keystring/:projectId", async (req, res) => {
+  const { projectId } = req.params;
+  const { value, fieldName, hitCount } = req.body;
+
+  const fieldMap = {
+    Orbit: "keyStringsOrbit",
+    "Google Patents": "keyStringsGoogle",
+    Espacenet: "keyStringsEspacenet",
+    USPTO: "keyStringsUSPTO",
+    Others: "keyStringsOthers",
+  };
 
   try {
-    const project = await cln_prior_report_schema.findById(projectId);
-    if (!project) {
-      return res.status(404).json({ message: "Project not found" });
+    if (!value || !fieldName) {
+      return res.status(400).json({ message: "Value and fieldName are required" });
     }
 
+    const keyField = fieldMap[fieldName];
+    if (!keyField) {
+      return res.status(400).json({ message: "Invalid fieldName" });
+    }
+
+    const values = value
+      .split(",")
+      .map((val) => val.trim())
+      .filter(Boolean);
+
+    const project = await cln_prior_report_schema.findById(projectId);
+    if (!project) return res.status(404).json({ message: "Project not found" });
+
     if (!project.stages.appendix1 || project.stages.appendix1.length === 0) {
-      project.stages.appendix1 = [{
-        keyStrings: [{
+      project.stages.appendix1 = [{}];
+    }
+
+    const appendix1 = project.stages.appendix1[0];
+
+    if (!appendix1.keyStrings || appendix1.keyStrings.length === 0) {
+      appendix1.keyStrings = [
+        {
           keyStringsOrbit: [],
           keyStringsGoogle: [],
           keyStringsEspacenet: [],
           keyStringsUSPTO: [],
           keyStringsOthers: [],
-        }]
-      }];
-    }
-    if (!project.stages.appendix1[0].keyStrings || project.stages.appendix1[0].keyStrings.length === 0) {
-      project.stages.appendix1[0].keyStrings = [{
-        keyStringsOrbit: [],
-        keyStringsGoogle: [],
-        keyStringsEspacenet: [],
-        keyStringsUSPTO: [],
-        keyStringsOthers: [],
-      }];
+        },
+      ];
     }
 
-    const valuesArray = value.split(",").map(v => v.trim()).filter(v => v);
+    const keyStringsObj = appendix1.keyStrings[0];
 
-    valuesArray.forEach(val => {
-      project.stages.appendix1[0].keyStrings[0][fieldName].push({
-        _id: uuidv4(),
-        value: val,
-        fieldName: fieldName,
-      });
-    });
+    const docs = values.map((val) => ({
+      _id: uuidv4(),
+      value: val,
+      fieldName,
+      hitCount,
+    }));
+
+    keyStringsObj[keyField].push(...docs);
 
     await project.save();
 
-    res.status(200).json({ keyStrings: project.stages.appendix1[0].keyStrings[0] });
-
+    res.status(200).json([keyStringsObj]);
   } catch (err) {
-    console.error("Error adding key string item:", err);
-    res.status(500).json({ message: "Server error", error: err.message });
+    console.error("❌ Error saving key string:", err);
+    res.status(500).json({ message: "Server error" });
   }
 });
+
+
+
+
+
+
+
+
+
+
+
+
+// router.post("/appendix1/:projectId/:fieldName", async (req, res) => {
+//   const { projectId, fieldName } = req.params;
+//   const { value } = req.body; 
+
+//   const allowedFields = ["keyStringsOrbit", "keyStringsGoogle", "keyStringsEspacenet", "keyStringsUSPTO", "keyStringsOthers"];
+//   if (!allowedFields.includes(fieldName)) {
+//     return res.status(400).json({ message: "Invalid field name" });
+//   }
+
+//   if (!value || !value.trim()) {
+//     return res.status(400).json({ message: "Value cannot be empty" });
+//   }
+
+//   try {
+//     const project = await cln_prior_report_schema.findById(projectId);
+//     if (!project) {
+//       return res.status(404).json({ message: "Project not found" });
+//     }
+
+//     if (!project.stages.appendix1 || project.stages.appendix1.length === 0) {
+//       project.stages.appendix1 = [{
+//         keyStrings: [{
+//           keyStringsOrbit: [],
+//           keyStringsGoogle: [],
+//           keyStringsEspacenet: [],
+//           keyStringsUSPTO: [],
+//           keyStringsOthers: [],
+//         }]
+//       }];
+//     }
+//     if (!project.stages.appendix1[0].keyStrings || project.stages.appendix1[0].keyStrings.length === 0) {
+//       project.stages.appendix1[0].keyStrings = [{
+//         keyStringsOrbit: [],
+//         keyStringsGoogle: [],
+//         keyStringsEspacenet: [],
+//         keyStringsUSPTO: [],
+//         keyStringsOthers: [],
+//       }];
+//     }
+
+//     const valuesArray = value.split(",").map(v => v.trim()).filter(v => v);
+
+//     valuesArray.forEach(val => {
+//       project.stages.appendix1[0].keyStrings[0][fieldName].push({
+//         _id: uuidv4(),
+//         value: val,
+//         fieldName: fieldName,
+//       });
+//     });
+
+//     await project.save();
+
+//     res.status(200).json({ keyStrings: project.stages.appendix1[0].keyStrings[0] });
+
+//   } catch (err) {
+//     console.error("Error adding key string item:", err);
+//     res.status(500).json({ message: "Server error", error: err.message });
+//   }
+// });
 
 
 // router.post("/appendix1/:projectId/:fieldName", async (req, res) => {
@@ -733,7 +869,6 @@ router.post("/appendix1/:projectId/:fieldName", async (req, res) => {
 
 
 // Delete key string item
-// Delete a key string item from nested appendix1 structure
 router.delete("/appendix1/:projectId/:appendixId/:keyStringsId/:fieldName/:itemId", async (req, res) => {
   const { projectId, appendixId, keyStringsId, fieldName, itemId } = req.params;
 
@@ -838,7 +973,8 @@ router.delete("/appendix1/:projectId/:appendixId/:keyStringsId/:fieldName/:itemI
 
 
 
-// Save keyStringsNpl
+// // Save keyStringsNpl
+
 router.post("/add-key-string-npl/:id", async (req, res) => {
   const { id } = req.params;
   const { keyStringsNplText } = req.body;
@@ -847,51 +983,152 @@ router.post("/add-key-string-npl/:id", async (req, res) => {
     const project = await cln_prior_report_schema.findById(id);
 
     if (!project) {
-      return res.status(404).json({ message: " Project not found" });
+      return res.status(404).json({ message: "Project not found" });
     }
 
-    if (project.stages.appendix1.length === 0) {
+    if (!keyStringsNplText) {
+      return res.status(400).json({ message: "keyStringsNplText is required" });
+    }
+
+    const values = keyStringsNplText
+      .split(",")
+      .map((val) => val.trim())
+      .filter(Boolean);
+
+    const docs = values.map((val) => ({
+      _id: uuidv4(),
+      keyStringsNplText: val,
+    }));
+
+    if (!project.stages.appendix1 || project.stages.appendix1.length === 0) {
       project.stages.appendix1.push({
         _id: uuidv4(),
-        keyStringsNplText: [],
+        keyStringsNpl: [],
       });
     }
 
-    project.stages.appendix1[0].keyStringsNpl.push({
-      _id: uuidv4(),
-      keyStringsNplText
-    });
+    project.stages.appendix1[0].keyStringsNpl.push(...docs);
 
     await project.save();
     res.status(200).json(project);
   } catch (err) {
-    console.error(" Error adding Key Strings:", err);
+    console.error("❌ Error adding Key Strings:", err);
     res.status(500).json({ message: "Server error", error: err.message });
   }
 });
+
+
+// router.post("/add-key-string-npl/:id", async (req, res) => {
+//   const { id } = req.params;
+//   const { keyStringsNplText } = req.body;
+
+//   try {
+//     const project = await cln_prior_report_schema.findById(id);
+
+//     if (!project) {
+//       return res.status(404).json({ message: " Project not found" });
+//     }
+
+//     if (project.stages.appendix1.length === 0) {
+//       project.stages.appendix1.push({
+//         _id: uuidv4(),
+//         keyStringsNplText: [],
+//       });
+//     }
+
+//     project.stages.appendix1[0].keyStringsNpl.push({
+//       _id: uuidv4(),
+//       keyStringsNplText
+//     });
+
+//     await project.save();
+//     res.status(200).json(project);
+//   } catch (err) {
+//     console.error(" Error adding Key Strings:", err);
+//     res.status(500).json({ message: "Server error", error: err.message });
+//   }
+// });
 
 
 // Delete Key StringsNpl Term 
-router.delete("/delete-key-string-npl/:id/:keyID", async (req, res) => {
-  const { id, keyID } = req.params;
+router.delete("/appendix1/keystring/:projectId/:fieldName/:itemId", async (req, res) => {
+  const { projectId, itemId, fieldName } = req.params;
+
+  const fieldMap = {
+    Orbit: "keyStringsOrbit",
+    "Google Patents": "keyStringsGoogle",
+    Espacenet: "keyStringsEspacenet",
+    USPTO: "keyStringsUSPTO",
+    Others: "keyStringsOthers",
+  };
 
   try {
-    const updatedProject = await cln_prior_report_schema.findOneAndUpdate(
-      { _id: id },
-      { $pull: { "stages.appendix1.0.keyStringsNpl": { _id: keyID } } },
-      { new: true }
-    );
-
-    if (!updatedProject) {
-      return res.status(404).json({ message: " Project or term not found" });
+    const keyField = fieldMap[fieldName];
+    if (!keyField) {
+      return res.status(400).json({ message: "Invalid fieldName" });
     }
 
-    res.status(200).json(updatedProject);
+    const project = await cln_prior_report_schema.findById(projectId);
+    if (!project) return res.status(404).json({ message: "Project not found" });
+
+    if (!project.stages.appendix1 || project.stages.appendix1.length === 0) {
+      return res.status(400).json({ message: "No appendix1 data found" });
+    }
+
+    const appendix1 = project.stages.appendix1[0];
+
+    if (!appendix1.keyStrings || appendix1.keyStrings.length === 0) {
+      return res.status(400).json({ message: "No keyStrings data found" });
+    }
+
+    const keyStringsObj = appendix1.keyStrings[0];
+
+    if (!keyStringsObj[keyField]) {
+      return res.status(400).json({ message: `No ${fieldName} data found` });
+    }
+
+    const beforeCount = keyStringsObj[keyField].length;
+
+    keyStringsObj[keyField] = keyStringsObj[keyField].filter(
+      (item) => !(item._id === itemId && item.fieldName === fieldName)
+    );
+
+    if (beforeCount === keyStringsObj[keyField].length) {
+      return res.status(404).json({ message: "Item not found" });
+    }
+
+    await project.save();
+
+    res.status(200).json([keyStringsObj]);
   } catch (err) {
-    console.error(" Error deleting Key Strings:", err);
+    console.error("❌ Error deleting key string:", err);
     res.status(500).json({ message: "Server error", error: err.message });
   }
 });
+
+
+
+
+// router.delete("/delete-key-string-npl/:id/:keyID", async (req, res) => {
+//   const { id, keyID } = req.params;
+
+//   try {
+//     const updatedProject = await cln_prior_report_schema.findOneAndUpdate(
+//       { _id: id },
+//       { $pull: { "stages.appendix1.0.keyStringsNpl": { _id: keyID } } },
+//       { new: true }
+//     );
+
+//     if (!updatedProject) {
+//       return res.status(404).json({ message: " Project or term not found" });
+//     }
+
+//     res.status(200).json(updatedProject);
+//   } catch (err) {
+//     console.error(" Error deleting Key Strings:", err);
+//     res.status(500).json({ message: "Server error", error: err.message });
+//   }
+// });
 
 
 // // Save Additional Search

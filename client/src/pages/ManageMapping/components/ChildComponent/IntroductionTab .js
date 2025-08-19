@@ -149,7 +149,7 @@ const IntroductionTab = ({
         <>
             <Row>
 
-                <Row>
+                {/* <Row>
                     <Col lg="12">
                         <div
                             style={{
@@ -230,7 +230,7 @@ const IntroductionTab = ({
                         </div>
 
                     </Col>
-                </Row>
+                </Row> */}
 
 
 

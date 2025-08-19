@@ -545,32 +545,65 @@ export const onKeyStringsEdit = async (_id, itemId, fieldName, newValue, setEdit
   }
 };
 
-export const handleSaveKeyString = async ({ _id, selectedSource, keyStrings, setKeyStrings, sourceFieldMap }) => {
 
-  const backendField = sourceFieldMap[selectedSource];
-  const value = keyStrings[selectedSource].trim();
 
-  if (!value) {
+export const handleSaveKeyString = async ({
+  _id,
+  selectedSource,
+  textValue,
+  setAppendix1KeyStringsLevelValue,
+  hitCount="",
+}) => {
+
+
+  if (!textValue.trim()) {
     alert("Please enter a key string");
-    return;
-  }
-  if (!backendField) {
-    alert("Invalid source selection");
     return;
   }
 
   try {
-    const res = await urlSocket.post(`/live/projectname/appendix1/${_id}/${backendField}`, { value });
-
-    console.log("Saved:", res.data.keyStrings);
-
-    setKeyStrings({ ...keyStrings, [selectedSource]: "" });
-
+    const res = await urlSocket.post(`/live/projectname/appendix1/keystring/${_id}`,
+      {
+        value: textValue.trim(),
+        fieldName: selectedSource,
+        hitCount: hitCount,
+      }
+    );
+    console.log('res.data', res.data)
+    setAppendix1KeyStringsLevelValue(res.data);
   } catch (err) {
     console.error("Error saving key string:", err);
     alert("Failed to save key string");
   }
 };
+
+
+// export const handleSaveKeyString = async ({ _id, selectedSource, keyStrings, setKeyStrings, sourceFieldMap }) => {
+
+//   const backendField = sourceFieldMap[selectedSource];
+//   const value = keyStrings[selectedSource].trim();
+
+//   if (!value) {
+//     alert("Please enter a key string");
+//     return;
+//   }
+//   if (!backendField) {
+//     alert("Invalid source selection");
+//     return;
+//   }
+
+//   try {
+//     const res = await urlSocket.post(`/live/projectname/appendix1/${_id}/${backendField}`, { value });
+
+//     console.log("Saved:", res.data.keyStrings);
+
+//     setKeyStrings({ ...keyStrings, [selectedSource]: "" });
+
+//   } catch (err) {
+//     console.error("Error saving key string:", err);
+//     alert("Failed to save key string");
+//   }
+// };
 
 
 export const handleNonPatentDeleteSlice = async (id, _id) => {

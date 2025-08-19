@@ -1,5 +1,3 @@
-// pages/DraggableTable.js
-import React from 'react';
 import { DragDropContext, Droppable } from 'react-beautiful-dnd';
 import DraggableTableRow from './DraggableTableRow';
 
@@ -32,12 +30,6 @@ const DraggableTable = ({ data, columns, setData }) => {
                                 <DraggableTableRow key={row._id} row={row} index={index}>
                                     {columns?.map((col, colIndex) => (
                                         <td key={colIndex} style={{ backgroundColor: row.nplId === true ? "antiquewhite" : "#fafecf" }} className="px-3 py-2">
-                                            {/* {col.header === 'S. No.'
-                                                ? index + 1
-                                                : col.cell
-                                                    ? col.cell({ row })
-                                                    : row[col.accessorKey]
-                                            } */}
                                             {col.header === 'S. No.'
                                                 ? index + 1
                                                 : col.cell
