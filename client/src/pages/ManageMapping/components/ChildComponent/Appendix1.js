@@ -1,11 +1,12 @@
 import { isEmptyArray } from "formik";
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { Row, Col, Button, Label, Input, Spinner } from "reactstrap";
 import TableContainer from "../../ReusableComponents/TableContainer";
 import { useSelector } from "react-redux";
 import { generateTableColumns } from "../../../../components/Common/commonReport/columnUtils";
-import { handleSaveKeyString, refreshData } from "../../../ManageEmployees/ManageBibliography/BibliographySLice/BibliographySlice";
+import { fetchSources, handleSaveKeyString, refreshData } from "../../../ManageEmployees/ManageBibliography/BibliographySLice/BibliographySlice";
 import axios from "axios";
+import CustomModal from "./CustomModal";
 
 
 const Appendix1 = ({
@@ -73,25 +74,58 @@ const Appendix1 = ({
 
     const allKeyStrings = useMemo(() => handleJointKeyStrings(appendix1KeyStringsLevelValue), [appendix1KeyStringsLevelValue]);
     
+    const [sources, setSources] = useState([]);
+
     const [selectedSource, setSelectedSource] = useState("Orbit");
-    const [keyStrings, setKeyStrings] = useState({
-        Orbit: "",
-        "Google Patents": "",
-        Espacenet: "",
-        USPTO: "",
-        Others: ""
-    });
+    // const [keyStrings, setKeyStrings] = useState({
+    //     Orbit: "",
+    //     "Google Patents": "",
+    //     Espacenet: "",
+    //     USPTO: "",
+    //     Others: ""
+    // });
 
-    const [hitCount, setHitCount] = useState("")
+    // const initialKeyStrings = sources?.slice(1)?.reduce((acc, src) => {
+    //     acc[src.value] = ""; 
+    //     return acc;
+    // }, {});
+
+    const [keyStrings, setKeyStrings] = useState([]);
 
 
-    const sources = [
-        "Orbit",
-        "Google Patents",
-        "Espacenet",
-        "USPTO",
-        "Others"
-    ];
+    useEffect(() => {
+        if (sources.length > 1) {
+            const initialKeyStrings = sources.slice(1).reduce((acc, src) => {
+                acc[src.value] = "";
+                return acc;
+            }, {});
+            setKeyStrings(initialKeyStrings);
+        }
+    }, [sources]);
+
+
+    const [hitCount, setHitCount] = useState("");
+    const [modalOpen, setModalOpen] = useState(false);
+    const [newDatabase, setNewDatabase] = useState("");
+    const [inputError, setInputError] = useState("");
+
+
+
+
+    useEffect(() => {
+        const getSources = async () => {
+            const data = await fetchSources();
+            setSources(data);
+
+            if (data.length > 0 && !selectedSource) {
+                setSelectedSource(data[0].value);
+            }
+        };
+
+        getSources();
+    }, []);
+
+
 
     const [keyStringsList, setKeyStringsList] = useState([]);
 
@@ -107,7 +141,8 @@ const Appendix1 = ({
             includeSerialNo: true,
             includeActions: true,
             onDeleteClick: onRelevantWordsDelete,
-            deleteTooltip: "Delete Search Term"
+            deleteTooltip: "Delete Search Term",
+            isCell: true
         }), [relevantWordsList]);
 
     const keyStringsColumns = useMemo(() =>
@@ -129,7 +164,8 @@ const Appendix1 = ({
             includeSerialNo: true,
             includeActions: true,
             onDeleteClick: onKeyStringsNplDelete,
-            deleteTooltip: "Delete NPL Key String"
+            deleteTooltip: "Delete NPL Key String",
+            isCell: true
         }), [keyStringsNplList]);
 
     const keyStringsAdditionalColumns = useMemo(() =>
@@ -140,7 +176,8 @@ const Appendix1 = ({
             includeSerialNo: true,
             includeActions: true,
             onDeleteClick: onKeyStringsAdditionalDelete,
-            deleteTooltip: "Delete Additional Search"
+            deleteTooltip: "Delete Additional Search",
+            isCell: true
         }), [keyStringsAdditionalList]);
 
     const availabilityColumns = useMemo(() =>
@@ -151,7 +188,8 @@ const Appendix1 = ({
             includeSerialNo: true,
             includeActions: true,
             onDeleteClick: onDataAvailabilityDelete,
-            deleteTooltip: "Delete Data Availability"
+            deleteTooltip: "Delete Data Availability",
+            isCell: true
         }), [dataAvailabilityValue]);
 
 
@@ -172,6 +210,9 @@ const Appendix1 = ({
 
 
 
+      const toggleModal = () => setModalOpen(!modalOpen);
+
+
     const onSubmitKeyString = async () => {
         const textValue = keyStrings[selectedSource] || "";
 
@@ -181,11 +222,33 @@ const Appendix1 = ({
     };
 
 
-  const handleSourceChange = (e) => setSelectedSource(e.target.value);
 
-  const handleKeyStringChange = (e) => {
-    setKeyStrings({ ...keyStrings, [selectedSource]: e.target.value });
-  };
+    const handleKeyStringChange = (e) => {
+        setKeyStrings({ ...keyStrings, [selectedSource]: e.target.value });
+
+    };
+    const handleSourceChange = (e) => {
+        const value = e.target.value;
+        if (value === "addNew") {
+            toggleModal(); 
+        } else {
+            setSelectedSource(value);
+        }
+    };
+
+
+    const handleInputChange = (e) => {
+        const value = e.target.value;
+        setNewDatabase(value);
+
+        if (sources.some((s) => s.value.toLowerCase() === value.trim().toLowerCase())) {
+            setInputError("This database already exists");
+        } else if (value.trim() === "") {
+            setInputError("Database name is required");
+        } else {
+            setInputError("");
+        }
+    };
 
 
 
@@ -206,6 +269,41 @@ const Appendix1 = ({
 //     console.error("Error deleting key string:", err);
 //   }
 // };
+
+
+
+
+    const handleAddDatabase = async () => {
+        if (newDatabase.trim() !== "" && !sources.some(s => s.value === newDatabase)) {
+            try {
+                const res = await axios.post("http://localhost:8080/keystrings/sources/add", {
+                    value: newDatabase
+                });
+
+                setSources(res.data.sources);
+                setSelectedSource(newDatabase);
+                setNewDatabase("");
+                toggleModal();
+            } catch (err) {
+                console.error("Error adding database:", err);
+            }
+        }
+    };
+
+
+
+    // const handleAddDatabase = () => {
+    //     if (newDatabase.trim() !== "" && !sources.some(s => s.value === newDatabase)) {
+    //         const updatedSources = [
+    //             ...sources,
+    //             { value: newDatabase, label: newDatabase } 
+    //         ];
+    //         setSources(updatedSources);
+    //         setSelectedSource(newDatabase);
+    //         setNewDatabase("");
+    //         toggleModal();
+    //     }
+    // };
 
 
     return (
@@ -362,37 +460,45 @@ const Appendix1 = ({
                                 <div className="mb-3">
                                     <Label for="source-select">Source</Label>
                                     <select
-                                        id="source-select"
                                         className="form-control"
                                         value={selectedSource}
                                         onChange={handleSourceChange}
+                                        style={{ border: "1px solid blue" }}
                                     >
-                                        {sources.map((source, index) => (
-                                            <option key={index} value={source}>
-                                                {source}
+                                        {sources.slice(1).map((source, index) => (
+                                            <option key={index} value={source.value} >
+                                                {source.label}
                                             </option>
                                         ))}
                                     </select>
                                 </div>
                             </Col>
 
-                            <Col lg="12">
-                                <div className="mb-3">
-                                    <Label for="hitCount">Database Hits</Label>
-                                    <Input
-                                        type="number"
-                                        id="hitCount"
-                                        placeholder="Database hit count..."
-                                        value={hitCount || ""}
-                                        min={0}
-                                        onChange={(e) => {
-                                            let value = e.target.value;
-                                            if (value < 0) value = 0;
-                                            setHitCount(value);
-                                        }}
-                                    />
-                                </div>
-                            </Col>
+                            {
+                                singleProject.projectTypeId === "0002" && (
+                                    <>
+                                        <Col lg="12">
+                                            <div className="mb-3">
+                                                <Label for="hitCount">Database Hits</Label>
+                                                <Input
+                                                    type="number"
+                                                    id="hitCount"
+                                                    placeholder="Database hit count..."
+                                                    value={hitCount || ""}
+                                                    min={0}
+                                                    onChange={(e) => {
+                                                        let value = e.target.value;
+                                                        if (value < 0) value = 0;
+                                                        setHitCount(value);
+                                                    }}
+                                                />
+                                            </div>
+                                        </Col>
+                                    </>
+                                )
+                            }
+
+
                         </Row>
                     </Col>
 
@@ -410,6 +516,21 @@ const Appendix1 = ({
                         </div>
                     </Col>
                 </Row>
+
+                <CustomModal
+                    isOpen={modalOpen}
+                    toggle={toggleModal}
+                    title="Add New Database"
+                    onSubmit={handleAddDatabase}
+                    submitLabel="Add"
+                    inputProps={{   
+                        type: "text",
+                        placeholder: "Enter database name",
+                        value: newDatabase,
+                        onChange: handleInputChange
+                    }}
+                    inputError={inputError}
+                />
 
 
                 <Col lg={3}>

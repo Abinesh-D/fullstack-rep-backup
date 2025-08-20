@@ -1,7 +1,131 @@
+
+
+// import React, { useState } from "react";
+// import { Link } from "react-router-dom";
+
+// export const TextCell = ({ text = "", sliceLength = 30 }) => {
+//   const [expanded, setExpanded] = useState(false);
+//   const isLong = text.length > sliceLength;
+//   const displayedText = expanded || !isLong ? text : text.slice(0, sliceLength) + " ...";
+
+//   return (
+//     <div>
+//       <span>{displayedText}</span>
+//       {isLong && (
+//         <button
+//           onClick={() => setExpanded((prev) => !prev)}
+//           style={{
+//             border: "none",
+//             background: "none",
+//             color: "blue",
+//             cursor: "pointer",
+//             padding: 0,
+//             marginLeft: "5px",
+//           }}
+//         >
+//           {expanded ? "show less" : "more"}
+//         </button>
+//       )}
+//     </div>
+//   );
+// };
+
+// export const generateTableColumns = ({
+//   columnsConfig = [],
+//   includeSerialNo = true,
+//   includeActions = false,
+//   onDeleteClick = () => {},
+//   deleteTooltip = "Delete",
+//   isCell = false,
+// }) => {
+//   const columns = [];
+
+//   if (includeSerialNo) {
+//     columns.push({
+//       header: "S. No.",
+//       accessorKey: "serial_number",
+//       cell: ({ row }) => <span>{row.index + 1}</span>,
+//       enableColumnFilter: false,
+//       enableSorting: false,
+//     });
+//   }
+
+//   columns.push(
+//     ...columnsConfig.map((col) => {
+//       const columnDef = {
+//         header: col.header,
+//         accessorKey: col.accessorKey,
+//         enableColumnFilter: col.enableColumnFilter ?? false,
+//         enableSorting: col.enableSorting ?? true,
+//       };
+
+//       if (!col.skipTextCell) {
+//         // columnDef.cell = ({ row }) => {
+//         //   const rowData = row.original;
+//         //   const text = rowData[col.accessorKey] || "";
+//         //   const sliceLength = false ? 80 : 30;
+//         //   return <TextCell text={text} sliceLength={sliceLength} />;
+//         // };
+//         columnDef.cell = ({ row }) => {
+//           const rowData = row.original;
+//           let text = rowData[col.accessorKey] || "";
+
+//           if (Array.isArray(text)) {
+//             text = text.join(", ");
+//           }
+
+//           const sliceLength = isCell ? 80 : 20;
+//           return <TextCell text={text} sliceLength={sliceLength} />;
+//         };
+
+//       }
+
+//       return columnDef;
+//     })
+//   );
+
+//   if (includeActions) {
+//     columns.push({
+//       header: "Actions",
+//       cell: ({ row }) => {
+//         const rowData = row.original;
+//         return (
+//           <div className="d-flex justify-content-center align-items-center gap-3">
+//             <Link
+//               to="#"
+//               data-bs-toggle="tooltip"
+//               data-bs-placement="top"
+//               title={deleteTooltip}
+//               onClick={() => onDeleteClick(rowData)}
+//             >
+//               <i className="mdi mdi-delete text-danger font-size-18"></i>
+//             </Link>
+//           </div>
+//         );
+//       },
+//     });
+//   }
+
+//   return columns;
+// };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-
-
 
 export const TextCell = ({ text }) => {
   const [expanded, setExpanded] = useState(false);
@@ -30,8 +154,6 @@ export const TextCell = ({ text }) => {
   );
 };
 
-
-
 export const generateTableColumns = ({
     columnsConfig = [],
     includeSerialNo = true,
@@ -43,8 +165,71 @@ export const generateTableColumns = ({
     setSelectedRows = () => { },
     allRows = [],
     isCell = false,
+    relatedRef= false,
 }) => {
     const columns = [];
+
+    if (includeSerialNo) {
+        columns.push({
+            header: "S. No.",
+            accessorKey: "serial_number",
+            cell: ({ row }) => <span>{row.index + 1}</span>,
+            enableColumnFilter: false,
+            enableSorting: false,
+        });
+    }
+
+  columns.push(
+    ...columnsConfig.map((col) => {
+      const columnDef = {
+        header: col.header,
+        accessorKey: col.accessorKey,
+        enableColumnFilter: col.enableColumnFilter ?? false,
+        enableSorting: col.enableSorting ?? true,
+      };
+
+      if (isCell) {
+        columnDef.cell = ({ row }) => {
+          const rowData = row.original;
+          const text = rowData[col.accessorKey] || "";
+          return <TextCell text={text} />;
+        };
+      }
+
+      return columnDef;
+    })
+  );
+
+    if (includeActions) {
+        columns.push({
+            header: "Actions",
+            cell: ({ row }) => {
+                const rowData = row.original;
+                return (
+                    <div className="d-flex justify-content-center align-items-center gap-3">
+                        <Link
+                            to="#"
+                            data-bs-toggle="tooltip"
+                            data-bs-placement="top"
+                            title={deleteTooltip}
+                            onClick={() => onDeleteClick(rowData)}
+                        >
+                            <i className="mdi mdi-delete text-danger font-size-18"></i>
+                        </Link>
+                    </div>
+                );
+            },
+        });
+    }
+
+    return columns;
+};
+
+
+
+
+
+
 
     // columns.push({
     //     id: "select",
@@ -90,15 +275,7 @@ export const generateTableColumns = ({
     //     },
     // });
 
-    if (includeSerialNo) {
-        columns.push({
-            header: "S. No.",
-            accessorKey: "serial_number",
-            cell: ({ row }) => <span>{row.index + 1}</span>,
-            enableColumnFilter: false,
-            enableSorting: false,
-        });
-    }
+
 
     // columns.push(
     //     ...columnsConfig.map((col) => ({
@@ -123,63 +300,6 @@ export const generateTableColumns = ({
     //         },
     //     }))
     // );
-
-
-
-  columns.push(
-    ...columnsConfig.map((col) => {
-      const columnDef = {
-        header: col.header,
-        accessorKey: col.accessorKey,
-        enableColumnFilter: col.enableColumnFilter ?? false,
-        enableSorting: col.enableSorting ?? true,
-      };
-
-      if (isCell) {
-        columnDef.cell = ({ row }) => {
-          const rowData = row.original;
-          const text = rowData[col.accessorKey] || "";
-          return <TextCell text={text} />;
-        };
-      }
-
-      return columnDef;
-    })
-  );
-
-
-
-    if (includeActions) {
-        columns.push({
-            header: "Actions",
-            cell: ({ row }) => {
-                const rowData = row.original;
-                return (
-                    <div className="d-flex justify-content-center align-items-center gap-3">
-                        <Link
-                            to="#"
-                            data-bs-toggle="tooltip"
-                            data-bs-placement="top"
-                            title={deleteTooltip}
-                            onClick={() => onDeleteClick(rowData)}
-                        >
-                            <i className="mdi mdi-delete text-danger font-size-18"></i>
-                        </Link>
-                    </div>
-                );
-            },
-        });
-    }
-
-    return columns;
-};
-
-
-
-
-
-
-
 
 
 

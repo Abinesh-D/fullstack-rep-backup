@@ -139,6 +139,8 @@ router.get("/:patentNumber", async (req, res) => {
 });
 
 
+
+
 // router.get("/:patentNumber", async (req, res) => {
 //     const { patentNumber } = req.params;
 

@@ -1346,7 +1346,7 @@ console.log('appendix1', appendix1)
                                 { label: "Inventor", value: capitalizeEachWord((pub.inventors || []).join(", ")) },
                                 { label: "Assignee", value: capitalizeEachWord((pub.assignee || []).join(", ")) },
                                 {
-                                    label: "Family Member",
+                                    label: "Family Members",
                                     value: getFamilyMembersParagraphChildren(
                                         {
                                             FamilyMembers: pub.familyMembers,

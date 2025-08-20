@@ -617,6 +617,17 @@ export const handleNonPatentDeleteSlice = async (id, _id) => {
 };
 
 
+// Fetch all keystrings database values
+export const fetchSources = async () => {
+  try {
+    const res = await axios.get("http://localhost:8080/keystrings/sources");
+    return res.data;
+  } catch (err) {
+    console.error("Error fetching sources:", err);
+    return []; 
+  }
+};
+
 
 export const { setPatentData, setEspaceApiData, setBulkESPData, resetPatentData, setGoogleApiData, setLensOrgApiData, setFreePatentApiData,
   setPatentLoading, setLensPageUrl, setFetchESPData, setESPData, setFetchLegalStatus, setClassifyData, setChatBoxData,

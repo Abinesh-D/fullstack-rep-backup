@@ -91,13 +91,17 @@ const RelatedRefComponent = ({
         return generateTableColumns({
             columnsConfig: [
                 { header: "Publication Number", accessorKey: "publicationNumber" },
-                { header: "Priority Date", accessorKey: "relatedPriorityDate" },
+                // { header: "Priority Date", accessorKey: "relatedPriorityDate" },
+                { header: "Assignee", accessorKey: "relatedAssignee" },
+                { header: "Title", accessorKey: "relatedTitle" },
                 { header: "Publication Date", accessorKey: "relatedPublicationDate" },
+
             ],
             includeSerialNo: true,
             includeActions: true,
             onDeleteClick: onRelatedDelete,
             deleteTooltip: "Delete Publication",
+            relatedRef: true,
         });
     }, [relatedFormData]);
 

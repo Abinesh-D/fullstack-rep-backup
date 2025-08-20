@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 require("dotenv").config();
 
+
 const bodyParser = require('body-parser');
 
 const app = express();
@@ -13,25 +14,11 @@ app.use(bodyParser.json());
 const PORT = process.env.PORT || 8080;
 
 
-// Atlas cluster URI
-const MONGODB_URI = process.env.MONGODB_URI
+const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/mern_db";
 
-// MongoDB Connection
 mongoose.connect(MONGODB_URI)
-.then(() => console.log("MongoDB connected"))
-.catch((err) => console.error("MongoDB connection error:", err));
-
-
-
-// const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/mern_db";
-
-// mongoose.connect(MONGO_URI, {
-//   useNewUrlParser: true,
-//   useUnifiedTopology: true,
-  
-// })
-//   .then(() => console.log("MongoDB connected"))
-//   .catch((err) => console.error("MongoDB connection error:", err));
+  .then(() => console.log("MongoDB connected"))
+  .catch((err) => console.error("MongoDB connection error:", err));
 
 
 
@@ -49,9 +36,9 @@ const wipoClassRoutes = require("./routes/wipoClassRoutes");
 const chatRoute = require("./routes/chatRoute");
 const cpcGoogleRoutes = require("./routes/cpcGoogleRoutes");
 const bulkBiblioData = require("./routes/bulkBiblioRoute");
+const DatabaseSourceRoutes  = require("./routes/livePatentRoute/databaseSources");
 
 const bulkClassificationTEsting = require("./routes/bulkClassificationTEsting");
-
 
 // ipc route
 const ipcRoute = require("./routes/ipcRoute");
@@ -85,7 +72,9 @@ app.use("/patent", patentRoutes);
 app.use("/api/lens", lensRoutes)
 app.use("/api/espacenet", espRoutes)
 
-
+// Ket str database
+app.use("/keystrings/sources", DatabaseSourceRoutes )
+app.use("/keystrings/sources", DatabaseSourceRoutes );
 
 
 
@@ -126,7 +115,6 @@ app.use(bodyParser.json({ limit: "10mb" }));
 
 // Register route
 app.use("/api/word", wordRoute);
-
 
 
 app.listen(PORT, () => {

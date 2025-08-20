@@ -29,7 +29,6 @@ export const saveAppendix2Patents = async (id, appendix2Patents) => {
         );
 
         if (response.status === 200) {
-            console.log("✅ Appendix2 - Patents saved:", response.data.stages.appendix2[0].patents);
         }
     } catch (err) {
         console.error("❌ Error saving Appendix 2 - Patents:", err);
@@ -48,7 +47,6 @@ export const saveAppendix2NPL = async (id, appendix2NPL) => {
         );
 
         if (response.status === 200) {
-            console.log("✅ Appendix2 - NPL saved:", response.data.stages.appendix2[0].nonPatentLiterature);
         }
     } catch (err) {
         console.error("❌ Error saving Appendix 2 - NPL:", err);
@@ -67,7 +65,6 @@ export const staticSaveDataAvailability = async (
     setDataAvailability,
     setDataAvailabilityValue
 ) => {
-    console.log('dataAvailableText', dataAvailableText)
     try {
         const response = await axios.post(
             `http://localhost:8080/live/projectname/add-data-availability/${id}`,
