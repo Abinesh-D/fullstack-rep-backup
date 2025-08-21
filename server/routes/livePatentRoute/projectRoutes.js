@@ -460,27 +460,64 @@ router.get("/get-related/:id", async (req, res) => {
 
 
 // Delete Reladed Ref
-router.delete("/delete-related/:projectId/:relatedId", async (req, res) => {
-  const { projectId, relatedId } = req.params;
+router.delete("/delete-related/:projectId", async (req, res) => {
+  const { projectId } = req.params;
+  const { relatedIds } = req.body;
 
   try {
+    let idsToDelete = [];
+
+    if (Array.isArray(relatedIds)) {
+      idsToDelete = relatedIds;
+    } else if (typeof relatedIds === "string") {
+      idsToDelete = [relatedIds];
+    }
+
+    if (idsToDelete.length === 0) {
+      return res.status(400).json({ message: "No relatedIds provided" });
+    }
+
     const updatedProject = await cln_prior_report_schema.findByIdAndUpdate(
       projectId,
-      { $pull: { "stages.relatedReferences": { _id: relatedId } } },
+      { $pull: { "stages.relatedReferences": { _id: { $in: idsToDelete } } } },
       { new: true }
     );
 
     if (!updatedProject) {
-      return res.status(404).json({ message: " Project not found" });
+      return res.status(404).json({ message: "Project not found" });
     }
 
     res.status(200).json(updatedProject);
   } catch (error) {
-    console.error(" Error deleting related reference:", error);
+    console.error("Error deleting related reference(s):", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
-
 });
+
+
+
+
+// router.delete("/delete-related/:projectId/:relatedId", async (req, res) => {
+//   const { projectId, relatedId } = req.params;
+
+//   try {
+//     const updatedProject = await cln_prior_report_schema.findByIdAndUpdate(
+//       projectId,
+//       { $pull: { "stages.relatedReferences": { _id: relatedId } } },
+//       { new: true }
+//     );
+
+//     if (!updatedProject) {
+//       return res.status(404).json({ message: " Project not found" });
+//     }
+
+//     res.status(200).json(updatedProject);
+//   } catch (error) {
+//     console.error(" Error deleting related reference:", error);
+//     res.status(500).json({ message: "Server error", error: error.message });
+//   }
+
+// });
 
 
 // Save api Keywords List

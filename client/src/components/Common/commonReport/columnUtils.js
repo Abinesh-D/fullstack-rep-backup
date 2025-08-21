@@ -127,10 +127,10 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 
-export const TextCell = ({ text }) => {
+const TextCell = ({ text, relatedRef }) => {
   const [expanded, setExpanded] = useState(false);
   const isLong = text.length > 50;
-  const displayedText = expanded || !isLong ? text : text.slice(0, 80) + " ...";
+  const displayedText = expanded || !isLong ? text : text.slice(0, relatedRef ? 30 :80) + " ...";
 
   return (
     <div>
@@ -162,12 +162,61 @@ export const generateTableColumns = ({
     onDeleteSelected = () => { },
     deleteTooltip = "Delete",
     selectedRows = [],
-    setSelectedRows = () => { },
+    setSelectedRows,
     allRows = [],
     isCell = false,
     relatedRef= false,
 }) => {
     const columns = [];
+
+  if (relatedRef) {
+    columns.push({
+      id: "select",
+      header: () => {
+        const allSelected = selectedRows.length === allRows.length && allRows.length > 0;
+        const indeterminate = selectedRows.length > 0 && selectedRows.length < allRows.length;
+
+        return (
+          <input
+            type="checkbox"
+            defaultChecked={allSelected}
+            ref={(el) => {
+              if (el) el.indeterminate = indeterminate;
+            }}
+            onChange={(e) => {
+              console.log("allRowsallRows", allRows)
+              if (e.target.checked) {
+                setSelectedRows(allRows.map((row) => row._id)); 
+              } else {
+                setSelectedRows([]);
+              }
+            }}
+          />
+        );
+      },
+      cell: ({ row }) => {
+        const rowData = row.original;
+        return (
+          <input
+            type="checkbox"
+            defaultChecked={selectedRows.includes(rowData._id)} 
+            onChange={(e) => {
+              if (e.target.checked) {
+                setSelectedRows((prev) => [...prev, rowData._id]);
+              } else {
+                setSelectedRows((prev) =>
+                  prev.filter((id) => id !== rowData._id)
+                );
+              }
+            }}
+          />
+        );
+      },
+    });
+
+  }
+
+    
 
     if (includeSerialNo) {
         columns.push({
@@ -192,7 +241,7 @@ export const generateTableColumns = ({
         columnDef.cell = ({ row }) => {
           const rowData = row.original;
           const text = rowData[col.accessorKey] || "";
-          return <TextCell text={text} />;
+          return <TextCell text={text} relatedRef={relatedRef} />;
         };
       }
 

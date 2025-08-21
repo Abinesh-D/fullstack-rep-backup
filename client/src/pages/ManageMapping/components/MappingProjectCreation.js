@@ -24,13 +24,10 @@ import DeleteModal from "../ReusableComponents/ResuableDeleteComp";
 import usePatentData from "../ReusableFunctionsLogic/usePatentData";
 
 
-
-
 const MappingProjectCreation = () => {
     document.title = "Project Form | MCRPL";
     const id = sessionStorage.getItem("_id");
     const reportData = JSON.parse(sessionStorage.getItem("reportData"));
-
 
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -72,7 +69,6 @@ const MappingProjectCreation = () => {
 
     const [relevantRefSaved, setRelevantRefSaved] = useState(false);
 
-
     const resetRelevantForm = () => {
         setRelevantForm({
             patentNumber: '',
@@ -97,7 +93,6 @@ const MappingProjectCreation = () => {
         });
     };
 
-
     const [loading, setLoading] = useState(false);
     const [relatedLoading, setRelatedLoading] = useState(false);
 
@@ -106,7 +101,6 @@ const MappingProjectCreation = () => {
 
     const [overallSummary, setOverallSummary] = useState("");
     const [summarySaved, setSummarySaved] = useState(false);
-
 
     const [baseSearchTerm, setBaseSearchTerm] = useState("");
     const [baseSearchTermsList, setBaseSearchTermsList] = useState([]);
@@ -136,7 +130,6 @@ const MappingProjectCreation = () => {
 
     const [appendix2NPL, setAppendix2NPL] = useState("");
     const [appendix2NPLSaved, setAppendix2NPLSaved] = useState("");
-
 
     const [projectFormData, setProjectFormData] = useState({
         projectTitle: '',
@@ -252,22 +245,54 @@ const MappingProjectCreation = () => {
         setActiveModal("relevantWords");
     }
 
+    // const handleRelatedReferenceDelete = async () => {
+    //     try {
+    //         const response = await axios.delete(`http://localhost:8080/live/projectname/delete-related/${id}/${selectedRow._id}`);
+    //         if (response.status === 200) {
+    //             const updatedRelatedRef = response.data.stages.relatedReferences;
+    //             setRelatedFormData(updatedRelatedRef);
+    //         }
+    //     } catch (error) {
+    //         console.error("Error deleting related reference:", error);
+    //     } finally {
+    //         setActiveModal(null);
+    //         setSelectedRow(null);
+    //     }
+    // };
 
+    const [selectedRows, setSelectedRows] = useState([]);
 
+    console.log('selectedRow', selectedRow)
     const handleRelatedReferenceDelete = async () => {
         try {
-            const response = await axios.delete(`http://localhost:8080/live/projectname/delete-related/${id}/${selectedRow._id}`);
+            const relatedIds = selectedRow?._id ? selectedRow._id : selectedRows;
+
+            if (!relatedIds || (Array.isArray(relatedIds) && relatedIds.length === 0)) {
+                console.warn("No rows selected for deletion");
+                return;
+            }
+
+            const response = await axios.delete(
+                `http://localhost:8080/live/projectname/delete-related/${id}`,
+                {
+                    data: { relatedIds },
+                }
+            );
+
             if (response.status === 200) {
                 const updatedRelatedRef = response.data.stages.relatedReferences;
                 setRelatedFormData(updatedRelatedRef);
+                setSelectedRows([]);
             }
         } catch (error) {
-            console.error("Error deleting related reference:", error);
+            console.error("Error deleting related reference(s):", error);
         } finally {
             setActiveModal(null);
             setSelectedRow(null);
         }
     };
+
+
 
 
     const handleAddSearchTerms = async () => {
@@ -294,8 +319,6 @@ const MappingProjectCreation = () => {
         }
     };
 
-
-
     const handleFindRelevantWord = async () => {
         if (!baseSearchTerm.trim()) {
             alert("Please enter a search term.");
@@ -321,8 +344,6 @@ const MappingProjectCreation = () => {
             setFindLoading(false);
         }
     };
-
-
 
     const handleNonPatentDelete = async () => {
         try {
@@ -1492,6 +1513,9 @@ const MappingProjectCreation = () => {
                                                         relatedErrorValidation={relatedErrorValidation}
                                                         setRelatedErrorValidation={setRelatedErrorValidation}
                                                         resetRelatedForm={resetRelatedForm}
+
+                                                        selectedRows={selectedRows}
+                                                        setSelectedRows={setSelectedRows}
                                                     />
                                                 </TabPane>
 

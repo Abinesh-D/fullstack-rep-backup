@@ -65,6 +65,8 @@ const RelevantRefComponent = ({
         filingDate: item.nplPublicationDate,
         _id: item._id,
         nplId: true,
+        relevantExcerpts: item.excerpts
+
     }));
 
     const combinedDataValue = useMemo(() => {
@@ -374,6 +376,7 @@ const RelevantRefComponent = ({
                     showSaved={relevantRefSaved}
                     handleValidationError={setErrorValidation}
                     relevantApiTrue={patentSlice.relevantApiTrue}
+                    
                 />
                 // <Form onSubmit={handleRelevantSubmit}>
                 //     <Row>
@@ -634,7 +637,7 @@ const RelevantRefComponent = ({
             )}
 
 
-            {patentSlice.singleProject.projectTypeId === "0002" && (
+            {/* {patentSlice.singleProject.projectTypeId === "0002" && (
                 <NonPatentLiteratureForm
                     nplPatentFormData={nplPatentFormData}
                     handleNplChange={handleNplChange}
@@ -666,7 +669,39 @@ const RelevantRefComponent = ({
                         </Col>
                     </Row>
                 </>
-            )}
+            )} */}
+
+
+            <NonPatentLiteratureForm
+                nplPatentFormData={nplPatentFormData}
+                handleNplChange={handleNplChange}
+                handleNplSubmit={handleNplSubmit}
+                nonPatentFormData={nonPatentFormData}
+                nplColumns={nplColumns}
+                // relevantExcerpts={relevantExcerpts}
+            />
+
+
+            <>
+                <Row style={{
+                    backgroundColor: "#fff3cd",
+                    border: "1px solid #ffeeba", borderRadius: "8px", padding: "0.5rem",
+                    alignItems: "center",
+                }}
+                >
+                    <Col lg="2" className="mt-3 mt-lg-0">
+                        <Button color="secondary" onClick={toggleCanvas}>
+                            Reorder Now
+                        </Button>
+                    </Col>
+                    <Col lg="10">
+                        <div style={{ flex: '1 1 auto', color: '#dc3545', fontWeight: 500 }}>
+                            ⚠️ Don't forget to <strong>Reorder</strong> — otherwise your <strong>Relevant</strong> and <strong>NPL</strong>
+                            reference will not appear in the generated Word report.
+                        </div>
+                    </Col>
+                </Row>
+            </>
 
             <RelevantReferenceOffCanvas
                 isOpen={isCanvasOpen}

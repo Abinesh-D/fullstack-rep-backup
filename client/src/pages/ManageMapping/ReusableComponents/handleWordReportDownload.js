@@ -1014,7 +1014,11 @@ console.log('appendix1', appendix1)
         )
     };
 
-    const publications = typeId2 ? relevantAndNplCombined : relevantReferences;
+    // const publications = typeId2 ? relevantAndNplCombined : relevantReferences;
+    console.log('relevantAndNplCombined', relevantAndNplCombined)
+    const publications = (Array.isArray(relevantAndNplCombined) && relevantAndNplCombined.length > 0)
+        ? relevantAndNplCombined
+        : relevantReferences;
 
     const appendixTable = createTwoColumnTickTable({
         leftTitle: "Patents" || "",

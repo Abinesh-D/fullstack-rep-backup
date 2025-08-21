@@ -1,31 +1,72 @@
-const { translate } = require('@vitalets/google-translate-api');
+import translate from "google-translate-api-x"; 
 
 function extractNames(text) {
   return text.match(/[A-Z]\.\s?[A-Za-z]+/g) || [];
 }
 
 async function translateToEnglish(text) {
-  console.log('translateToEnglish', text);
+  console.log("translateToEnglish", text);
   const cleanedText = text.trim();
   const names = extractNames(cleanedText);
-  const nameStr = names.join(' ');
+  const nameStr = names.join(" ");
 
   try {
-    const textWithoutNames = cleanedText.replace(nameStr, '');
+    const textWithoutNames = cleanedText.replace(nameStr, "");
 
     const response = await translate(textWithoutNames, {
-      from: 'auto',
-      to: 'en',
+      from: "auto", 
+      to: "en",
     });
 
     return `${nameStr} ${response.text}`.trim();
   } catch (err) {
-    console.error('Translation failed:', err.message || err);
+    console.error("Translation failed:", err.message || err);
     return cleanedText;
   }
 }
 
-module.exports = translateToEnglish;
+export default translateToEnglish;
+
+
+
+
+
+
+
+
+
+
+
+
+
+// const { translate } = require('@vitalets/google-translate-api');
+
+// function extractNames(text) {
+//   return text.match(/[A-Z]\.\s?[A-Za-z]+/g) || [];
+// }
+
+// async function translateToEnglish(text) {
+//   console.log('translateToEnglish', text);
+//   const cleanedText = text.trim();
+//   const names = extractNames(cleanedText);
+//   const nameStr = names.join(' ');
+
+//   try {
+//     const textWithoutNames = cleanedText.replace(nameStr, '');
+
+//     const response = await translate(textWithoutNames, {
+//       from: 'auto',
+//       to: 'en',
+//     });
+
+//     return `${nameStr} ${response.text}`.trim();
+//   } catch (err) {
+//     console.error('Translation failed:', err.message || err);
+//     return cleanedText;
+//   }
+// }
+
+// module.exports = translateToEnglish;
 
 
 

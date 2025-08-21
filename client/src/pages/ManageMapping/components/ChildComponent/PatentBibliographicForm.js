@@ -13,8 +13,6 @@ const PatentBibliographicForm = ({
     relevantApiTrue
 }) => {
 
-
-
     const filteredCPC = (formState?.cpcClassifications || []).filter(
         cpc => !(formState?.ipcClassifications || []).includes(cpc)
     );

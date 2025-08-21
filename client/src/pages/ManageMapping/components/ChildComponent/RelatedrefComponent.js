@@ -10,7 +10,7 @@ import classnames from "classnames";
 import RelatedReferenceForm from "./RelatedReferenceForm";
 import { computeFamId, mappedValue, mapRelatedData } from "../../../ManageBulkUpload/Components/BulkResponseMap";
 import { generateTableColumns } from "../../../../components/Common/commonReport/columnUtils";
-
+import axios from "axios";
 
 const RelatedRefComponent = ({
     relatedLoading,
@@ -25,6 +25,10 @@ const RelatedRefComponent = ({
     relatedErrorValidation,
     resetRelatedForm,
     setRelatedFormData,
+
+    selectedRows,
+    setSelectedRows,
+
 
 }) => {
 
@@ -87,6 +91,7 @@ const RelatedRefComponent = ({
         await bulkBiblioApiCall(commaSeparated);
     };
 
+
     const relatedColumns = useMemo(() => {
         return generateTableColumns({
             columnsConfig: [
@@ -102,8 +107,13 @@ const RelatedRefComponent = ({
             onDeleteClick: onRelatedDelete,
             deleteTooltip: "Delete Publication",
             relatedRef: true,
+            allRows: relatedFormData,
+            selectedRows,
+            setSelectedRows,
+            isCell: true,
+
         });
-    }, [relatedFormData]);
+    }, [relatedFormData, selectedRows]);
 
 
 
@@ -326,7 +336,7 @@ const RelatedRefComponent = ({
                 </Row>
             </div>
 
-            {
+            {/* {
                 !isEmptyArray(relatedFormData) && (
                     <TableContainer
                         columns={relatedColumns}
@@ -341,7 +351,33 @@ const RelatedRefComponent = ({
                         related={true}
                     />
                 )
-            }
+            } */}
+
+            <div>
+                {selectedRows.length > 0 && (
+                    <button
+                        onClick={onRelatedDelete}
+                        className="btn btn-danger mb-2"
+                    >
+                        Delete Selected ({selectedRows.length})
+                    </button>
+                )}
+
+                {!isEmptyArray(relatedFormData) && (
+                    <TableContainer
+                        columns={relatedColumns}
+                        data={relatedFormData}
+                        isPagination={true}
+                        isCustomPageSize={true}
+                        SearchPlaceholder="Search..."
+                        tableClass="align-middle table-nowrap table-hover dt-responsive nowrap w-100 dataTable no-footer dtr-inline"
+                        theadClass="table-light"
+                        paginationWrapper="dataTables_paginate paging_simple_numbers pagination-rounded"
+                        pagination="pagination"
+                        related={true}
+                    />
+                )}
+            </div>
 
         </>
     );

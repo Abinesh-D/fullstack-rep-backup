@@ -1173,17 +1173,18 @@ export const generateBibliographicSection = ({
 
 
                         children: [
-                            isNpl
-                                ? createParagraph(" NPL Relevant Excerpts add here....!", {
-                                    alignment: AlignmentType.CENTER,
-                                    spacing: { after: 100 },
-                                    textStyleOverride: {
-                                        ...textStyle.arial13,
-                                        bold: true,
-                                        color: "FF0000",
-                                    },
-                                })
-                                : (
+                            // !pub.relevantExcerpts
+                            //     ? createParagraph(" NPL Relevant Excerpts add here....!", {
+                            //         alignment: AlignmentType.CENTER,
+                            //         spacing: { after: 100 },
+                            //         textStyleOverride: {
+                            //             ...textStyle.arial13,
+                            //             bold: true,
+                            //             color: "FF0000",
+                            //         },
+                            //     })
+                            //     : 
+                                (
                                     Array.isArray(pub.relevantExcerpts) && pub.relevantExcerpts.length
                                         ? pub.relevantExcerpts.flatMap(excerpt =>
                                             String(excerpt || "")
