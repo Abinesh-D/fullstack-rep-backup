@@ -42,7 +42,7 @@ const MappingProjectCreation = () => {
     const releventBiblioGoogleData = useSelector(state => state.patentSlice.liveGoogleRelevantData);
     const relatedBiblioGoogleData = useSelector(state => state.patentSlice.liveGoogleRelatedData);
 
-    const [activeTab, setactiveTab] = useState(1);
+    const [activeTab, setactiveTab] = useState(4);
     const [passedSteps, setPassedSteps] = useState([1]);
 
     const [relevantForm, setRelevantForm] = useState({
@@ -113,7 +113,7 @@ const MappingProjectCreation = () => {
     const [appendix1KeyStringsLevelValue, setAppendix1KeyStringsLevelValue] = useState([]);
 
     const [keyString, setKeyString] = useState("");
-    const [keyStringsList, setKeyStringsList] = useState("");
+    const [keyStringsList, setKeyStringsList] = useState([]);
 
     const [keyStringNpl, setKeyStringNpl] = useState("");
     const [keyStringsNplList, setKeyStringsNplList] = useState("");
@@ -262,7 +262,6 @@ const MappingProjectCreation = () => {
 
     const [selectedRows, setSelectedRows] = useState([]);
 
-    console.log('selectedRow', selectedRow)
     const handleRelatedReferenceDelete = async () => {
         try {
             const relatedIds = selectedRow?._id ? selectedRow._id : selectedRows;

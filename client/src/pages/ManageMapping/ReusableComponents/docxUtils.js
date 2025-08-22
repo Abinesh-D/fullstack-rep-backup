@@ -131,6 +131,33 @@ export const createPageProperties = (margin = 920, orientation = "portrait") => 
             width: 15800,
             height: 11573,
         },
+        borders: {
+            pageBorderTop: {
+                style: BorderStyle.THIN_THICK_SMALL_GAP,
+                size: 22,
+                space: 18,
+                color: "002060",
+            },
+
+            pageBorderBottom: {
+                style: BorderStyle.THICK_THIN_SMALL_GAP,
+                size: 22,
+                space: 18,
+                color: '002060',
+            },
+            pageBorderLeft: {
+                style: BorderStyle.THIN_THICK_SMALL_GAP,
+                size: 22,
+                space: 18,
+                color: '002060',
+            },
+            pageBorderRight: {
+                style: BorderStyle.THICK_THIN_SMALL_GAP,
+                size: 22,
+                space: 18,
+                color: '002060',
+            },
+        },
     },
 });
 

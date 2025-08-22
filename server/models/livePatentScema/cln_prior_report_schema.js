@@ -84,13 +84,29 @@ const SingleKeyStringSchema = new Schema({
   hitCount: { type: Number, required: false },
 }, { _id: false });
 
-const KeyStringsSchemaAppendix1 = new Schema({
-  keyStringsOrbit: { type: [SingleKeyStringSchema], default: [] },
-  keyStringsGoogle: { type: [SingleKeyStringSchema], default: [] },
-  keyStringsEspacenet: { type: [SingleKeyStringSchema], default: [] },
-  keyStringsUSPTO: { type: [SingleKeyStringSchema], default: [] },
-  keyStringsOthers: { type: [SingleKeyStringSchema], default: [] },
+// const defauktKeyStringsFields = new Schema({
+//   keyStringsOrbit: { type: [SingleKeyStringSchema], default: [] },
+//   keyStringsGoogle: { type: [SingleKeyStringSchema], default: [] },
+//   keyStringsEspacenet: { type: [SingleKeyStringSchema], default: [] },
+//   keyStringsUSPTO: { type: [SingleKeyStringSchema], default: [] },
+//   keyStringsOthers: { type: [SingleKeyStringSchema], default: [] },
+// });
+
+
+
+const keyStringSchema = new mongoose.Schema({
+  _id: { type: String, default: uuidv4 },
+  keyString: { type: String, required: true },
+  hitCount: { type: Number, default: 0 }
 });
+
+const databaseSchema = new mongoose.Schema({
+  _id: { type: String, default: uuidv4 },
+  dbId: { type: String, required: true, unique: true },
+  databaseName: { type: String, required: true, unique: true },
+  keyStrings: [keyStringSchema],
+});
+
 
 
 const KeyStringsNplSchemaAppendix1 = new Schema({
@@ -116,7 +132,7 @@ const DataAvailabilitySchemaAppendix1 = new Schema({
 
 const appendix1Schema = new Schema({
   baseSearchTerms: { type: [SearchItemSchemaAppendix1], default: [] },
-  keyStrings: { type: [KeyStringsSchemaAppendix1], default: [] },
+  keyStrings: { type: [databaseSchema], default: [] },
   keyStringsNpl: { type: [KeyStringsNplSchemaAppendix1], default: [] },
   keyStringsAdditional: { type: [KeyStringsAdditionalSchemaAppendix1], default: [] },
   dataAvailability: { type: [DataAvailabilitySchemaAppendix1], default: [] }
@@ -162,35 +178,35 @@ const appendix2 = new Schema({
 
 
 
-const fullProjectSchema = new Schema({
-  projectName: { type: String, required: false },
-  projectType: String,
-  createdOn: {
-    type: String,
-    default: () => {
-      const today = new Date();
-      const yyyy = today.getFullYear();
-      const mm = String(today.getMonth() + 1).padStart(2, '0');
-      const dd = String(today.getDate()).padStart(2, '0');
-      return `${dd}-${mm}-${yyyy}`;
-    }
-  },
-  projectTypeId: { type: String, required: false },
-
-  stages: {
-    introduction: [introductionSchema],
-    relevantReferences: {
-      publicationDetails: { type: [publicationDetailsSchema], default: [] },
-      nonPatentLiteratures: { type: [nonPatentLiteratureSchema], default: [] },
-      relevantAndNplCombined: {type: [relevantAndNplCombined], default: [] },
-      overallSummary: { type: [String], default: [] },
+  const fullProjectSchema = new Schema({
+    projectName: { type: String, required: false },
+    projectType: String,
+    createdOn: {
+      type: String,
+      default: () => {
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        return `${dd}-${mm}-${yyyy}`;
+      }
     },
-    relatedReferences: { type: [relatedReferenceSchema], default: [] },
-    appendix1: { type: [appendix1Schema], default: [] },
-    appendix2: { type: [appendix2]},
-  }
-}, { collection: "cln_prior_report_schema", timestamps: true });
+    projectTypeId: { type: String, required: false },
+
+    stages: {
+      introduction: [introductionSchema],
+      relevantReferences: {
+        publicationDetails: { type: [publicationDetailsSchema], default: [] },
+        nonPatentLiteratures: { type: [nonPatentLiteratureSchema], default: [] },
+        relevantAndNplCombined: {type: [relevantAndNplCombined], default: [] },
+        overallSummary: { type: [String], default: [] },
+      },
+      relatedReferences: { type: [relatedReferenceSchema], default: [] },
+      appendix1: { type: [appendix1Schema], default: [] },
+      appendix2: { type: [appendix2]},
+    }
+  }, { collection: "cln_prior_report_schema", timestamps: true });
 
 
-const cln_prior_report_schema = mongoose.model("cln_prior_report_schema", fullProjectSchema);
-module.exports = cln_prior_report_schema;
+  const cln_prior_report_schema = mongoose.model("cln_prior_report_schema", fullProjectSchema);
+  module.exports = cln_prior_report_schema;

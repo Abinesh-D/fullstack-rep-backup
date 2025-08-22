@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const cln_prior_report_schema = require("../../models/livePatentScema/cln_prior_report_schema")
 const { v4: uuidv4 } = require("uuid");
+const axios = require("axios");
 
 
 const cloudinary = require("cloudinary").v2;
@@ -708,73 +709,145 @@ router.delete("/delete-base-search-term/:id/:termId", async (req, res) => {
 
 
 
-router.post("/appendix1/keystring/:projectId", async (req, res) => {
+// POST /live/projectname/appendix1/keystring/:id
+router.post("/keystring/:projectId", async (req, res) => {
   const { projectId } = req.params;
-  const { value, fieldName, hitCount } = req.body;
+  const { value, fieldName, hitCount = "" } = req.body; 
 
-  const fieldMap = {
-    Orbit: "keyStringsOrbit",
-    "Google Patents": "keyStringsGoogle",
-    Espacenet: "keyStringsEspacenet",
-    USPTO: "keyStringsUSPTO",
-    Others: "keyStringsOthers",
-  };
+  if (!value || !value.trim()) {
+    return res.status(400).json({ message: "Key string value is required" });
+  }
 
   try {
-    if (!value || !fieldName) {
-      return res.status(400).json({ message: "Value and fieldName are required" });
-    }
+    const dynamicPath = `stages.appendix1.0.keyStrings.keyStrings.${fieldName}`;
 
-    const keyField = fieldMap[fieldName];
-    if (!keyField) {
-      return res.status(400).json({ message: "Invalid fieldName" });
-    }
+    const updatedProject = await cln_prior_report_schema.findOneAndUpdate(
+      { _id: projectId },
+      {
+        $push: { [dynamicPath]: { value, fieldName, hitCount } }
+      },
+      { new: true, upsert: true } 
+    );
 
-    const values = value
-      .split(",")
-      .map((val) => val.trim())
-      .filter(Boolean);
+    res.json(updatedProject.stages.appendix1[0].keyStrings.keyStrings);
+  } catch (err) {
+    console.error("Error saving key string:", err);
+    res.status(500).json({ message: "Failed to save key string" });
+  }
+});
+
+
+// sources
+router.post("/:projectId/add-database", async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    const { databaseName } = req.body;
 
     const project = await cln_prior_report_schema.findById(projectId);
     if (!project) return res.status(404).json({ message: "Project not found" });
 
     if (!project.stages.appendix1 || project.stages.appendix1.length === 0) {
-      project.stages.appendix1 = [{}];
+      project.stages.appendix1.push({ keyStrings: [] });
     }
 
     const appendix1 = project.stages.appendix1[0];
 
-    if (!appendix1.keyStrings || appendix1.keyStrings.length === 0) {
-      appendix1.keyStrings = [
-        {
-          keyStringsOrbit: [],
-          keyStringsGoogle: [],
-          keyStringsEspacenet: [],
-          keyStringsUSPTO: [],
-          keyStringsOthers: [],
-        },
-      ];
+    const exists = appendix1.keyStrings.find(
+      (db) => db.databaseName.toLowerCase() === databaseName.toLowerCase()
+    );
+    if (exists) {
+      return res.status(400).json({ message: "Database already exists" });
     }
 
-    const keyStringsObj = appendix1.keyStrings[0];
-
-    const docs = values.map((val) => ({
+    const newDatabase = {
       _id: uuidv4(),
-      value: val,
-      fieldName,
-      hitCount,
-    }));
+      dbId: databaseName.replace(/\s+/g, ""),
+      databaseName,
+      keyStrings: [],
+    };
 
-    keyStringsObj[keyField].push(...docs);
-
+    appendix1.keyStrings.push(newDatabase);
     await project.save();
 
-    res.status(200).json([keyStringsObj]);
-  } catch (err) {
-    console.error("❌ Error saving key string:", err);
-    res.status(500).json({ message: "Server error" });
+    return res.status(201).json({
+      message: "Database added",
+      keyStrings: appendix1.keyStrings,
+    });
+  } catch (error) {
+    console.error("Error in add-database:", error);
+    return res.status(500).json({ error: error.message });
   }
 });
+
+
+
+// router.post("/appendix1/keystring/:projectId", async (req, res) => {
+//   const { projectId } = req.params;
+//   const { value, fieldName, hitCount } = req.body;
+
+//   const fieldMap = {
+//     Orbit: "keyStringsOrbit",
+//     "Google Patents": "keyStringsGoogle",
+//     Espacenet: "keyStringsEspacenet",
+//     USPTO: "keyStringsUSPTO",
+//     Others: "keyStringsOthers",
+//   };
+
+//   try {
+//     if (!value || !fieldName) {
+//       return res.status(400).json({ message: "Value and fieldName are required" });
+//     }
+
+//     const keyField = fieldMap[fieldName];
+//     if (!keyField) {
+//       return res.status(400).json({ message: "Invalid fieldName" });
+//     }
+
+//     const values = value
+//       .split(",")
+//       .map((val) => val.trim())
+//       .filter(Boolean);
+
+//     const project = await cln_prior_report_schema.findById(projectId);
+//     if (!project) return res.status(404).json({ message: "Project not found" });
+
+//     if (!project.stages.appendix1 || project.stages.appendix1.length === 0) {
+//       project.stages.appendix1 = [{}];
+//     }
+
+//     const appendix1 = project.stages.appendix1[0];
+
+//     if (!appendix1.keyStrings || appendix1.keyStrings.length === 0) {
+//       appendix1.keyStrings = [
+//         {
+//           keyStringsOrbit: [],
+//           keyStringsGoogle: [],
+//           keyStringsEspacenet: [],
+//           keyStringsUSPTO: [],
+//           keyStringsOthers: [],
+//         },
+//       ];
+//     }
+
+//     const keyStringsObj = appendix1.keyStrings[0];
+
+//     const docs = values.map((val) => ({
+//       _id: uuidv4(),
+//       value: val,
+//       fieldName,
+//       hitCount,
+//     }));
+
+//     keyStringsObj[keyField].push(...docs);
+
+//     await project.save();
+
+//     res.status(200).json([keyStringsObj]);
+//   } catch (err) {
+//     console.error("❌ Error saving key string:", err);
+//     res.status(500).json({ message: "Server error" });
+//   }
+// });
 
 
 
@@ -1053,6 +1126,41 @@ router.post("/add-key-string-npl/:id", async (req, res) => {
     res.status(500).json({ message: "Server error", error: err.message });
   }
 });
+
+
+// GET /api/crossref/:doi
+router.get("/nplcorssref/:doi", async (req, res) => {
+  try {
+    const { doi } = req.params;
+
+    const url = `https://api.crossref.org/works/${encodeURIComponent(doi)}`;
+
+    const response = await axios.get(url);
+
+    const data = response.data.message;
+
+    const formattedData = {
+      title: data.title ? data.title[0] : "N/A",
+      authors: data.author
+        ? data.author.map(a => `${a.given || ""} ${a.family || ""}`)
+        : [],
+      publisher: data.publisher || "N/A",
+      publishedDate: data["published-print"]
+        ? data["published-print"]["date-parts"][0].join("-")
+        : data["published-online"]
+        ? data["published-online"]["date-parts"][0].join("-")
+        : "N/A",
+      doi: data.DOI,
+      URL: data.type,
+    };
+
+    res.json({ success: true, data: formattedData, fullData: data });
+  } catch (error) {
+    console.error("Error fetching Crossref data:", error.message);
+    res.status(500).json({ success: false, message: "Error fetching Crossref data" });
+  }
+});
+
 
 
 // router.post("/add-key-string-npl/:id", async (req, res) => {

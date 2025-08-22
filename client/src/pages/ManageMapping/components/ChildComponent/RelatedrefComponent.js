@@ -11,6 +11,7 @@ import RelatedReferenceForm from "./RelatedReferenceForm";
 import { computeFamId, mappedValue, mapRelatedData } from "../../../ManageBulkUpload/Components/BulkResponseMap";
 import { generateTableColumns } from "../../../../components/Common/commonReport/columnUtils";
 import axios from "axios";
+import NplCrossRef from "./NplCrossRef";
 
 const RelatedRefComponent = ({
     relatedLoading,
@@ -187,6 +188,10 @@ const RelatedRefComponent = ({
 
     return (
         <>
+        <NplCrossRef />
+
+
+        
             <Row className="align-items-center mb-2">
                 <Col className="d-flex align-items-center">
                     <h4 className="fw-bold m-0">Related References</h4>

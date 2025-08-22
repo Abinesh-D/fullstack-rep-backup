@@ -4,7 +4,7 @@ import { Row, Col, Button, Label, Input, Spinner } from "reactstrap";
 import TableContainer from "../../ReusableComponents/TableContainer";
 import { useSelector } from "react-redux";
 import { generateTableColumns } from "../../../../components/Common/commonReport/columnUtils";
-import { fetchSources, handleSaveKeyString, refreshData } from "../../../ManageEmployees/ManageBibliography/BibliographySLice/BibliographySlice";
+import { handleSaveKeyString, refreshData } from "../../../ManageEmployees/ManageBibliography/BibliographySLice/BibliographySlice";
 import axios from "axios";
 import CustomModal from "./CustomModal";
 
@@ -25,7 +25,7 @@ const Appendix1 = ({
 
     // keyString,
     // setKeyString,
-    // keyStringsList,
+    keyStringsList,
     // handleSaveKeyString,
     // onKeyStringsDelete,
 
@@ -53,6 +53,30 @@ const Appendix1 = ({
 
 }) => {
 
+
+    const singleProject = useSelector(state => state.patentSlice.singleProject);
+    const { _id } = singleProject;
+
+    const [sources, setSources] = useState([]);
+    const [selectedSource, setSelectedSource] = useState("");
+    const [keyStrings, setKeyStrings] = useState("");
+    const [hitCount, setHitCount] = useState("");
+    const [modalOpen, setModalOpen] = useState(false);
+    const [newDatabase, setNewDatabase] = useState("");
+    const [inputError, setInputError] = useState("");
+    const [allKeyStrings, setAllKeyStrings] = useState([]);
+
+
+    useEffect(() => {
+        if (keyStringsList && keyStringsList.length > 0) {
+            setSources(keyStringsList);
+            setSelectedSource(keyStringsList[1]?.dbId);
+        }
+    }, [keyStringsList]);
+
+
+
+
     const handleJointKeyStrings = (keyStringsArray) => {
         const allKeyStrings = [];
 
@@ -72,11 +96,11 @@ const Appendix1 = ({
         return allKeyStrings;
     };
 
-    const allKeyStrings = useMemo(() => handleJointKeyStrings(appendix1KeyStringsLevelValue), [appendix1KeyStringsLevelValue]);
-    
-    const [sources, setSources] = useState([]);
+    // const allKeyStrings = useMemo(() => handleJointKeyStrings(appendix1KeyStringsLevelValue), [appendix1KeyStringsLevelValue]);
 
-    const [selectedSource, setSelectedSource] = useState("Orbit");
+ 
+   
+
     // const [keyStrings, setKeyStrings] = useState({
     //     Orbit: "",
     //     "Google Patents": "",
@@ -90,47 +114,21 @@ const Appendix1 = ({
     //     return acc;
     // }, {});
 
-    const [keyStrings, setKeyStrings] = useState([]);
 
-
-    useEffect(() => {
-        if (sources.length > 1) {
-            const initialKeyStrings = sources.slice(1).reduce((acc, src) => {
-                acc[src.value] = "";
-                return acc;
-            }, {});
-            setKeyStrings(initialKeyStrings);
-        }
-    }, [sources]);
-
-
-    const [hitCount, setHitCount] = useState("");
-    const [modalOpen, setModalOpen] = useState(false);
-    const [newDatabase, setNewDatabase] = useState("");
-    const [inputError, setInputError] = useState("");
+    // useEffect(() => {
+    //     if (sources?.length > 1) {
+    //         const initialKeyStrings = sources.slice(1).reduce((acc, src) => {
+    //             acc[src.value] = "";
+    //             return acc;
+    //         }, {});
+    //         setKeyStrings(initialKeyStrings);
+    //     }
+    // }, [sources]);
 
 
 
 
-    useEffect(() => {
-        const getSources = async () => {
-            const data = await fetchSources();
-            setSources(data);
 
-            if (data.length > 0 && !selectedSource) {
-                setSelectedSource(data[0].value);
-            }
-        };
-
-        getSources();
-    }, []);
-
-
-
-    const [keyStringsList, setKeyStringsList] = useState([]);
-
-    const singleProject = useSelector(state => state.patentSlice.singleProject);
-    const { _id } = singleProject;
 
     const baseSearchTermsColumns = useMemo(() =>
         generateTableColumns({
@@ -213,22 +211,23 @@ const Appendix1 = ({
       const toggleModal = () => setModalOpen(!modalOpen);
 
 
-    const onSubmitKeyString = async () => {
-        const textValue = keyStrings[selectedSource] || "";
+    // const onSubmitKeyString = async () => {
+    //     const textValue = keyStrings[selectedSource] || "";
 
-        await handleSaveKeyString({ _id, selectedSource, textValue, setAppendix1KeyStringsLevelValue, hitCount })
-        setKeyStrings({ ...keyStrings, [selectedSource]: "" });
-        setHitCount("");
-    };
+    //     await handleSaveKeyString({ _id, selectedSource, textValue, setAppendix1KeyStringsLevelValue, hitCount })
+    //     setKeyStrings({ ...keyStrings, [selectedSource]: "" });
+    //     setHitCount("");
+    // };
 
 
 
     const handleKeyStringChange = (e) => {
-        setKeyStrings({ ...keyStrings, [selectedSource]: e.target.value });
+        setKeyStrings(e.target.value);
 
     };
     const handleSourceChange = (e) => {
         const value = e.target.value;
+        console.log('value', value)
         if (value === "addNew") {
             toggleModal(); 
         } else {
@@ -239,9 +238,10 @@ const Appendix1 = ({
 
     const handleInputChange = (e) => {
         const value = e.target.value;
+        console.log('value', value)
         setNewDatabase(value);
 
-        if (sources.some((s) => s.value.toLowerCase() === value.trim().toLowerCase())) {
+        if (sources.some((s) => s.dbId.toLowerCase() === value.trim().toLowerCase())) {
             setInputError("This database already exists");
         } else if (value.trim() === "") {
             setInputError("Database name is required");
@@ -272,23 +272,24 @@ const Appendix1 = ({
 
 
 
-
-    const handleAddDatabase = async () => {
-        if (newDatabase.trim() !== "" && !sources.some(s => s.value === newDatabase)) {
-            try {
-                const res = await axios.post("http://localhost:8080/keystrings/sources/add", {
-                    value: newDatabase
-                });
-
-                setSources(res.data.sources);
-                setSelectedSource(newDatabase);
-                setNewDatabase("");
-                toggleModal();
-            } catch (err) {
-                console.error("Error adding database:", err);
-            }
-        }
-    };
+    // const handleAddDatabase = async () => {
+    //     if (newDatabase.trim() !== "" && !sources.some(s => s.value === newDatabase)) {
+    //         try {
+    //             const res = await axios.post("http://localhost:8080/live/projectname/sources/add", {
+    //                 value: newDatabase,
+    //                 dataBaseFieldName: newDatabase.replace(/\s+/g, "").toLowerCase(),
+    //                 projectId: _id,
+    //             });
+    //             console.log('res.data', res.data)
+    //             setSources(res.data);
+    //             setSelectedSource(newDatabase);
+    //             setNewDatabase("");
+    //             toggleModal();
+    //         } catch (err) {
+    //             console.error("Error adding database:", err);
+    //         }
+    //     }
+    // };
 
 
 
@@ -306,8 +307,199 @@ const Appendix1 = ({
     // };
 
 
+    // useEffect(() => {
+    //     const fetchSources = async () => {
+    //         try {
+    //             const res = await axios.get(`http://localhost:8080/live/projectname/${_id}`);
+    //             const appendix1 = res.data.stages?.appendix1?.[0];
+    //             if (appendix1?.keyStrings) {
+    //                 const formatted = appendix1.keyStrings.map((db) => ({
+    //                     value: db._id,
+    //                     label: db.databaseName,
+    //                 }));
+    //                 setSources(formatted);
+    //                 if (formatted.length > 0) setSelectedSource(formatted[0].value);
+    //             }
+    //         } catch (err) {
+    //             console.error(err);
+    //         }
+    //     };
+    //     fetchSources();
+    // }, []);
+
+
+
+    // Add new database
+    const handleAddDatabase = async () => {
+        if (!newDatabase.trim()) {
+            setInputError("Database name required");
+            return;
+        }
+        try {
+            const res = await axios.post(
+                `http://localhost:8080/live/projectname/${_id}/add-database`,
+                { databaseName: newDatabase },
+            );
+
+            const lastDbId = res.data.keyStrings?.at(-1)?.dbId || null;
+            console.log(lastDbId);
+
+         
+            setSources(res.data.keyStrings);
+            setSelectedSource(lastDbId);
+            setNewDatabase("");
+            setModalOpen(false);
+            setInputError("");
+        } catch (err) {
+            setInputError(err.response?.data?.message || "Error adding database");
+        }
+    };
+
+    const onSubmitKeyString = async () => {
+        console.log('onSubmitKeyString', selectedSource, keyStrings, hitCount);
+
+        try {
+            const payload = {
+                databaseId: selectedSource,
+                keyString: keyStrings,
+                hitCount: hitCount,
+            };
+
+            console.log('payload', payload)
+
+            // const res = await axios.post(
+            //     `http://localhost:8080/projects/${_id}/add-keystring`,
+            //     payload
+            // );
+
+            // setAllKeyStrings(res.data.allKeyStrings); 
+            // setKeyStrings((prev) => ({ ...prev, [selectedSource]: "" }));
+            // setHitCount(0);
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+
+
     return (
         <>
+
+            <>
+                <h5 className="fw-semibold mt-5">2. Key strings (Patents/Patent Applications)</h5>
+                <Row>
+                    <Col lg="3">
+                        <Row>
+                            <Col lg="12">
+                                <div className="mb-3">
+                                    <Label for="source-select">Source</Label>
+                                    <select
+                                        className="form-control"
+                                        value={selectedSource}
+                                        onChange={handleSourceChange}
+                                        style={{ border: "1px solid blue" }}
+                                    >
+                                        {sources?.map((source, index) => (
+                                            <option key={index} value={source.dbId} >
+                                                {source.databaseName}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </Col>
+
+                            {
+                                singleProject.projectTypeId === "0002" && (
+                                    <>
+                                        <Col lg="12">
+                                            <div className="mb-3">
+                                                <Label for="hitCount">Database Hits</Label>
+                                                <Input
+                                                    type="number"
+                                                    id="hitCount"
+                                                    placeholder="Database hit count..."
+                                                    value={hitCount || ""}
+                                                    min={0}
+                                                    onChange={(e) => {
+                                                        let value = e.target.value;
+                                                        if (value < 0) value = 0;
+                                                        setHitCount(value);
+                                                    }}
+                                                />
+                                            </div>
+                                        </Col>
+                                    </>
+                                )
+                            }
+
+
+                        </Row>
+                    </Col>
+
+                    <Col lg="9">
+                        <div className="mb-3">
+                            <Label for="key-strings">Key Strings ({selectedSource})</Label>
+                            <textarea
+                                id="key-strings"
+                                className="form-control"
+                                rows="6"
+                                placeholder={`Enter key strings for ${selectedSource}`}
+                                value={keyStrings}
+                                onChange={handleKeyStringChange}
+                            />
+                        </div>
+                    </Col>
+                </Row>
+
+                <CustomModal
+                    isOpen={modalOpen}
+                    toggle={toggleModal}
+                    title="Add New Database"
+                    onSubmit={handleAddDatabase}
+                    submitLabel="Add"
+                    inputProps={{
+                        type: "text",
+                        placeholder: "Enter database name",
+                        value: newDatabase,
+                        onChange: handleInputChange
+                    }}
+                    inputError={inputError}
+                />
+
+
+                <Col lg={3}>
+                    <div className="mb-3">
+                        <Button
+                            color="info"
+                            className="w-100"
+                            onClick={onSubmitKeyString}
+                        >
+                            + Strings ({selectedSource})
+                        </Button>
+                    </div>
+                </Col>
+            </>
+
+
+            <>
+                <TableContainer
+                    columns={keyStringsUpdatedCOlumn}
+                    data={allKeyStrings || []}
+                    isPagination={true}
+                    isCustomPageSize={true}
+                    tableClass="align-middle table-nowrap table-hover dt-responsive nowrap w-100 dataTable no-footer dtr-inline"
+                    theadClass="table-light"
+                    paginationWrapper="dataTables_paginate paging_simple_numbers pagination-rounded"
+                    pagination="pagination"
+                />
+            </>
+
+
+
+
+
+
+
             <h4 className="fw-bold mb-3">{ singleProject.projectTypeId === "0002" ? "Appendix 2" : "Appendix 1"}</h4>
             <p className="text-muted mb-4">
                 <i>The search terms and key strings to extract relevant patent publications and non-patent literature are provided below.</i>
@@ -391,68 +583,8 @@ const Appendix1 = ({
             }
 
 
-            <>
+            {/* <>
                 <h5 className="fw-semibold mt-5">2. Key strings (Patents/Patent Applications)</h5>
-
-                {/* <Row>
-                   
-                    <Col lg="3">
-                        <div className="mb-3">
-                            <Label for="source-select">Source</Label>
-                            <select
-                                id="source-select"
-                                className="form-control"
-                                value={selectedSource}
-                                onChange={handleSourceChange}
-                            >
-                                {sources.map((source, index) => (
-                                    <option key={index} value={source}>
-                                        {source}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                    </Col>
-                    <Col lg="3">
-                        <div>
-                            <Label for="hitCount">Hits</Label>
-                            <Input
-                                type="number"
-                                id="hitCount"
-                                placeholder="Enter Database hit count..."
-                                value={hitCount || ""}
-                                min={0}
-                                onChange={(e) => {
-                                    let value = e.target.value;
-                                    if (value < 0) {
-                                        value = 0;
-                                    }
-                                    setHitCount(value);
-                                }}
-                            />
-
-                        </div>
-
-                    </Col>
-
-                    <Col lg="9">
-                        <div className="mb-3">
-                            <Label for="key-strings">
-                                Key Strings ({selectedSource})
-                            </Label>
-                            <textarea
-                                id="key-strings"
-                                className="form-control"
-                                rows="4"
-                                placeholder={`Enter key strings for ${selectedSource}`}
-                                value={keyStrings[selectedSource]}
-                                onChange={handleKeyStringChange}
-                            />
-                        </div>
-                    </Col>
-                </Row> */}
-
-
                 <Row>
                     <Col lg="3">
                         <Row>
@@ -548,7 +680,6 @@ const Appendix1 = ({
 
 
             <>
-                {/* <h5 className="fw-semibold mt-4">Key Strings Table</h5> */}
                 <TableContainer
                     columns={keyStringsUpdatedCOlumn}
                     data={allKeyStrings || []}
@@ -559,7 +690,7 @@ const Appendix1 = ({
                     paginationWrapper="dataTables_paginate paging_simple_numbers pagination-rounded"
                     pagination="pagination"
                 />
-            </>
+            </> */}
 
 
 

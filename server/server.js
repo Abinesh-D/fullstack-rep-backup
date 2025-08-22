@@ -36,7 +36,7 @@ const wipoClassRoutes = require("./routes/wipoClassRoutes");
 const chatRoute = require("./routes/chatRoute");
 const cpcGoogleRoutes = require("./routes/cpcGoogleRoutes");
 const bulkBiblioData = require("./routes/bulkBiblioRoute");
-const DatabaseSourceRoutes  = require("./routes/livePatentRoute/databaseSources");
+// const DatabaseSourceRoutes  = require("./routes/livePatentRoute/databaseSources");
 
 const bulkClassificationTEsting = require("./routes/bulkClassificationTEsting");
 
@@ -73,8 +73,7 @@ app.use("/api/lens", lensRoutes)
 app.use("/api/espacenet", espRoutes)
 
 // Ket str database
-app.use("/keystrings/sources", DatabaseSourceRoutes )
-app.use("/keystrings/sources", DatabaseSourceRoutes );
+// app.use("/keystrings/sources", DatabaseSourceRoutes )
 
 
 

@@ -1,6 +1,6 @@
 import {
     Document, Packer, InternalHyperlink, Paragraph, TextRun, AlignmentType, ExternalHyperlink, HeadingLevel, Bookmark, UnderlineType,
-    TableCell, VerticalAlign, TableRow, Table, WidthType, TableOfContents,
+    TableCell, VerticalAlign, TableRow, Table, WidthType, TableOfContents, BorderStyle,
 } from "docx";
 import { saveAs } from "file-saver";
 import { getSearchMethodology } from "./searchMethodology";
@@ -1463,6 +1463,7 @@ console.log('appendix1', appendix1)
             // typeId2 Search Methodology
             typeId2 && {
                 properties: createPageProperties(920, "portrait"),
+                
                 headers: { default: header },
                 footers: { default: footer },
                 children: getSearchMethodology(typeId2),

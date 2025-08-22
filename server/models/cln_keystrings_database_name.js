@@ -5,7 +5,8 @@ const databaseSourceSchema = new mongoose.Schema(
         sources: [
             {
                 value: { type: String, required: true },
-                label: { type: String, required: true }
+                label: { type: String, required: true },
+                dataBaseFieldName: { type: String, required: true },
             }
         ]
     },
