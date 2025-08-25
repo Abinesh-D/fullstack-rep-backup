@@ -106,7 +106,20 @@ export const handleSaveKeyStringAdditional = async ({
 
 
 
+// initiall keystrings database name
 
+export const updateKeyStrings = async (projectId) => {
+  try {
+    console.log('projectId', projectId)
+    const response = await axios.post(`http://localhost:8080/live/projectname/${projectId}/init-databases`);
+
+    console.log("Updated keyStrings:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error updating keyStrings:", error.response?.data || error.message);
+    throw error;
+  }
+};
 
 
 

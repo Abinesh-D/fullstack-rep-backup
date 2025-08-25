@@ -542,7 +542,6 @@ const createCellFamily = (pub) => new TableCell({
 
 
 export const createTickedParagraphs = (input) => {
-    console.log('input', input);
 
     let normalized = "";
 
@@ -1553,29 +1552,138 @@ const createHyperlinkBackToTOC = () =>
 // };
 
 
-const createSearchStringsTable = (keyStrings = []) => {
-    if (!keyStrings || keyStrings.length === 0) return null;
+// const createSearchStringsTable = (keyStrings = []) => {
+//     if (!keyStrings || keyStrings.length === 0) return null;
 
-    const keyStringsObj = keyStrings[0];
+//     const keyStringsObj = keyStrings[0];
 
-    const keyStringLabels = {
-        keyStringsOrbit: "Orbit",
-        keyStringsGoogle: "Google Patents",
-        keyStringsEspacenet: "Espacenet",
-        keyStringsUSPTO: "USPTO",
-        keyStringsOthers: "Others",
-    };
+//     const keyStringLabels = {
+//         keyStringsOrbit: "Orbit",
+//         keyStringsGoogle: "Google Patents",
+//         keyStringsEspacenet: "Espacenet",
+//         keyStringsUSPTO: "USPTO",
+//         keyStringsOthers: "Others",
+//     };
 
-    // collect all sources with non-empty arrays
-    const tableData = Object.keys(keyStringsObj)
-        .filter((key) => Array.isArray(keyStringsObj[key]) && keyStringsObj[key].length > 0)
-        .map((key) => ({
-            label: keyStringLabels[key] || key,
-            values: keyStringsObj[key],
-            fieldName: key, // keep raw fieldName if needed
-        }));
+//     const tableData = Object.keys(keyStringsObj)
+//         .filter((key) => Array.isArray(keyStringsObj[key]) && keyStringsObj[key].length > 0)
+//         .map((key) => ({
+//             label: keyStringLabels[key] || key,
+//             values: keyStringsObj[key],
+//             fieldName: key,
+//         }));
 
-    console.log("tableData", tableData);
+
+//     // header row
+//     const headerRow = new TableRow({
+//         children: [
+//             "S. No.",
+//             "Key Strings (Orbit, Google Patents, Espacenet, etc.)",
+//             "Database",
+//             "Hits",
+//         ].map((text, i) =>
+//             new TableCell({
+//                 borders: commonBorders,
+//                 width: [{ size: 5 }, { size: 70 }, { size: 15 }, { size: 10 }][i],
+//                 verticalAlign: VerticalAlign.CENTER,
+//                 shading: { fill: "353839" },
+//                 children: [
+//                     new Paragraph({
+//                         alignment: AlignmentType.CENTER,
+//                         spacing: { before: 30, after: 30 },
+//                         children: [
+//                             createTextRun(text, textStyle.arial10, {
+//                                 bold: true,
+//                                 color: "FFFFFF",
+//                             }),
+//                         ],
+//                     }),
+//                 ],
+//             })
+//         ),
+//     });
+
+//     // continuous index
+//     let globalIndex = 1;
+
+//     // flatten all rows across sources
+//     const dataRows = tableData.flatMap((item) =>
+//         item.values.map((keyStr) => {
+//             const row = new TableRow({
+//                 children: [
+//                     // S. No.
+//                     new TableCell({
+//                         borders: commonBorders,
+//                         width: { size: 5, type: WidthType.PERCENTAGE },
+//                         verticalAlign: VerticalAlign.CENTER,
+//                         children: [
+//                             new Paragraph({
+//                                 alignment: AlignmentType.CENTER,
+//                                 children: [
+//                                     createTextRun(`${globalIndex}.`, textStyle.arial10),
+//                                 ],
+//                             }),
+//                         ],
+//                     }),
+//                     // Key String text
+//                     new TableCell({
+//                         borders: commonBorders,
+//                         width: { size: 70, type: WidthType.PERCENTAGE },
+//                         verticalAlign: VerticalAlign.CENTER,
+//                         children: [
+//                             new Paragraph({
+//                                 alignment: AlignmentType.LEFT,
+//                                 spacing: { before: 20, after: 20 },
+//                                 indent: { left: 80 },
+//                                 children: [
+//                                     createTextRun(keyStr.value || keyStr.keyStringsText, textStyle.arial10),
+//                                 ],
+//                             }),
+//                         ],
+//                     }),
+//                     // Database (from fieldName)
+//                     new TableCell({
+//                         borders: commonBorders,
+//                         width: { size: 15, type: WidthType.PERCENTAGE },
+//                         verticalAlign: VerticalAlign.CENTER,
+//                         children: [
+//                             new Paragraph({
+//                                 alignment: AlignmentType.CENTER,
+//                                 children: [createTextRun(item.label, textStyle.arial10)],
+//                             }),
+//                         ],
+//                     }),
+//                     // Hits (keep empty for now)
+//                     new TableCell({
+//                         borders: commonBorders,
+//                         width: { size: 10, type: WidthType.PERCENTAGE },
+//                         verticalAlign: VerticalAlign.CENTER,
+//                         children: [
+//                             new Paragraph({
+//                                 alignment: AlignmentType.CENTER,
+//                                 children: [createTextRun(`${keyStr.hitCount}`, textStyle.arial10)],
+//                             }),
+//                         ],
+//                     }),
+//                 ],
+//             });
+
+//             globalIndex++;
+//             return row;
+//         })
+//     );
+
+//     return new Table({
+//         width: { size: 100, type: WidthType.PERCENTAGE },
+//         borders: commonBorders,
+//         rows: [headerRow, ...dataRows],
+//     });
+// };
+
+
+
+const createSearchStringsTable = (flatFormated = []) => {
+    if (!flatFormated || flatFormated.length === 0) return null;
 
     // header row
     const headerRow = new TableRow({
@@ -1606,75 +1714,77 @@ const createSearchStringsTable = (keyStrings = []) => {
         ),
     });
 
-    // continuous index
     let globalIndex = 1;
 
-    // flatten all rows across sources
-    const dataRows = tableData.flatMap((item) =>
-        item.values.map((keyStr) => {
-            const row = new TableRow({
-                children: [
-                    // S. No.
-                    new TableCell({
-                        borders: commonBorders,
-                        width: { size: 5, type: WidthType.PERCENTAGE },
-                        verticalAlign: VerticalAlign.CENTER,
-                        children: [
-                            new Paragraph({
-                                alignment: AlignmentType.CENTER,
-                                children: [
-                                    createTextRun(`${globalIndex}.`, textStyle.arial10),
-                                ],
-                            }),
-                        ],
-                    }),
-                    // Key String text
-                    new TableCell({
-                        borders: commonBorders,
-                        width: { size: 70, type: WidthType.PERCENTAGE },
-                        verticalAlign: VerticalAlign.CENTER,
-                        children: [
-                            new Paragraph({
-                                alignment: AlignmentType.LEFT,
-                                spacing: { before: 20, after: 20 },
-                                indent: { left: 80 },
-                                children: [
-                                    createTextRun(keyStr.value || keyStr.keyStringsText, textStyle.arial10),
-                                ],
-                            }),
-                        ],
-                    }),
-                    // Database (from fieldName)
-                    new TableCell({
-                        borders: commonBorders,
-                        width: { size: 15, type: WidthType.PERCENTAGE },
-                        verticalAlign: VerticalAlign.CENTER,
-                        children: [
-                            new Paragraph({
-                                alignment: AlignmentType.CENTER,
-                                children: [createTextRun(item.label, textStyle.arial10)],
-                            }),
-                        ],
-                    }),
-                    // Hits (keep empty for now)
-                    new TableCell({
-                        borders: commonBorders,
-                        width: { size: 10, type: WidthType.PERCENTAGE },
-                        verticalAlign: VerticalAlign.CENTER,
-                        children: [
-                            new Paragraph({
-                                alignment: AlignmentType.CENTER,
-                                children: [createTextRun(`${keyStr.hitCount}`, textStyle.arial10)],
-                            }),
-                        ],
-                    }),
-                ],
-            });
+    const dataRows = flatFormated.map((item) => {
+        const row = new TableRow({
+            children: [
+                // S. No.
+                new TableCell({
+                    borders: commonBorders,
+                    width: { size: 5, type: WidthType.PERCENTAGE },
+                    verticalAlign: VerticalAlign.CENTER,
+                    children: [
+                        new Paragraph({
+                            alignment: AlignmentType.CENTER,
+                            children: [
+                                createTextRun(`${globalIndex}.`, textStyle.arial10),
+                            ],
+                        }),
+                    ],
+                }),
+                // Key String text
+                new TableCell({
+                    borders: commonBorders,
+                    width: { size: 70, type: WidthType.PERCENTAGE },
+                    verticalAlign: VerticalAlign.CENTER,
+                    children: [
+                        new Paragraph({
+                            alignment: AlignmentType.LEFT,
+                            spacing: { before: 20, after: 20 },
+                            indent: { left: 80 },
+                            children: [
+                                createTextRun(item.keyString, textStyle.arial10),
+                            ],
+                        }),
+                    ],
+                }),
+                // Database
+                new TableCell({
+                    borders: commonBorders,
+                    width: { size: 15, type: WidthType.PERCENTAGE },
+                    verticalAlign: VerticalAlign.CENTER,
+                    children: [
+                        new Paragraph({
+                            alignment: AlignmentType.CENTER,
+                            children: [
+                                createTextRun(item.databaseName, textStyle.arial10),
+                            ],
+                            spacing: { after: 0 }
+                        }),
+                    ],
+                }),
+                // Hits
+                new TableCell({
+                    borders: commonBorders,
+                    width: { size: 10, type: WidthType.PERCENTAGE },
+                    verticalAlign: VerticalAlign.CENTER,
+                    children: [
+                        new Paragraph({
+                            alignment: AlignmentType.CENTER,
+                            children: [
+                                createTextRun(`${item.hitCount}`, textStyle.arial10),
+                            ],
+                            spacing: { after: 0 }
+                        }),
+                    ],
+                }),
+            ],
+        });
 
-            globalIndex++;
-            return row;
-        })
-    );
+        globalIndex++;
+        return row;
+    });
 
     return new Table({
         width: { size: 100, type: WidthType.PERCENTAGE },
@@ -1684,9 +1794,12 @@ const createSearchStringsTable = (keyStrings = []) => {
 };
 
 
+
 // ============ Assembling Appendix 1 Dynamically ============
 
 export const buildAppendix1 = ({ typeId1, typeId2, appendix1 }) => {
+
+    const flatFormated = appendix1?.keyStrings.slice(1).flatMap(fm=>fm.keyStrings);
     const appendixChildren = [];
 
     // Heading
@@ -1711,7 +1824,7 @@ export const buildAppendix1 = ({ typeId1, typeId2, appendix1 }) => {
 
     // Key Strings Table
     appendixChildren.push(createSubheading("Search Strings", null, 720, { before: 200, after: 20 }));
-    appendixChildren.push(createSearchStringsTable(appendix1?.keyStrings || []));
+    appendixChildren.push(createSearchStringsTable(flatFormated || []));
 
     // TOC Link
     appendixChildren.push(createHyperlinkBackToTOC());

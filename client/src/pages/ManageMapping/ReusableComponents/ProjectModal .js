@@ -8,13 +8,15 @@ import {
     Label,
     Input,
     Button,
-    FormFeedback
+    FormFeedback,
+    Spinner
 } from "reactstrap";
 
 const ProjectModal = ({
     mode,
     isOpen,
     toggle,
+    loading,
     projectName,
     setProjectName,
     projectType,
@@ -111,9 +113,16 @@ const ProjectModal = ({
                 </Button>
                 <Button
                     color="success"
-                    onClick={() => handleCreate() }
+                    onClick={() => handleCreate()}
                 >
-                    { mode? "Update" : "Create"}
+                    {loading ? (
+                        <>
+                            <Spinner size="sm" color="light" className="me-2" />
+                            {mode === "1" ? "Updating..." : "Creating..."}
+                        </>
+                    ) : (
+                        mode === "1" ? "Update" : "Create"
+                    )}
                 </Button>
             </ModalFooter>
         </Modal>

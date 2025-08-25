@@ -736,12 +736,61 @@ router.post("/keystring/:projectId", async (req, res) => {
   }
 });
 
+ 
 
-// sources
-router.post("/:projectId/add-database", async (req, res) => {
+// initial database name created
+router.post("/:projectId/init-databases", async (req, res) => {
+  const defaultDatabases = [
+    { dbId: "addNew", databaseName: "+ Add New Database" },
+    { dbId: "Orbit", databaseName: "Orbit" },
+    { dbId: "GooglePatents", databaseName: "Google Patents" },
+    { dbId: "Espacenet", databaseName: "Espacenet" },
+    { dbId: "USPTO", databaseName: "USPTO" },
+    { dbId: "Others", databaseName: "Others" },
+  ];
+
   try {
-    const { projectId } = req.params;
-    const { databaseName } = req.body;
+    const databasesWithIds = defaultDatabases.map(db => ({
+      _id: uuidv4(),
+      dbId: db.dbId,
+      databaseName: db.databaseName,
+      keyStrings: []
+    }));
+
+    const project = await cln_prior_report_schema.findByIdAndUpdate(
+      req.params.projectId,
+      {
+        $set: { "stages.appendix1.0.keyStrings": databasesWithIds }
+      },
+      { new: true, upsert: true } 
+    );
+
+    if (!project) return res.status(404).json({ error: "Project not found" });
+
+    res.status(201).json({
+      message: "Default databases initialized",
+      keyStrings: project.stages.appendix1[0].keyStrings
+    });
+
+  } catch (error) {
+    console.error("Error initializing databases:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+
+
+
+// new database name added
+router.post("/:projectId/add-database", async (req, res) => {
+  const { projectId } = req.params;
+  const { databaseName } = req.body;
+
+  try {
+    if (!databaseName) {
+      return res.status(400).json({ message: "databaseName is required" });
+    }
 
     const project = await cln_prior_report_schema.findById(projectId);
     if (!project) return res.status(404).json({ message: "Project not found" });
@@ -752,7 +801,7 @@ router.post("/:projectId/add-database", async (req, res) => {
 
     const appendix1 = project.stages.appendix1[0];
 
-    const exists = appendix1.keyStrings.find(
+    const exists = appendix1.keyStrings.some(
       (db) => db.databaseName.toLowerCase() === databaseName.toLowerCase()
     );
     if (exists) {
@@ -761,7 +810,7 @@ router.post("/:projectId/add-database", async (req, res) => {
 
     const newDatabase = {
       _id: uuidv4(),
-      dbId: databaseName.replace(/\s+/g, ""),
+      dbId: databaseName.toLowerCase().replace(/\s+/g, "-") + "-" + Date.now(),
       databaseName,
       keyStrings: [],
     };
@@ -770,7 +819,6 @@ router.post("/:projectId/add-database", async (req, res) => {
     await project.save();
 
     return res.status(201).json({
-      message: "Database added",
       keyStrings: appendix1.keyStrings,
     });
   } catch (error) {
@@ -778,6 +826,86 @@ router.post("/:projectId/add-database", async (req, res) => {
     return res.status(500).json({ error: error.message });
   }
 });
+
+// add-Keystrings and hit count 
+router.post("/:projectId/add-keystring", async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    const { databaseId, keyString, hitCount, databaseName } = req.body;
+
+    if (!databaseId || !keyString) {
+      return res.status(400).json({ message: "databaseId and keyString are required" });
+    }
+
+    const project = await cln_prior_report_schema.findById(projectId);
+    if (!project) return res.status(404).json({ message: "Project not found" });
+
+    let appendix = project.stages.appendix1[0];
+    if (!appendix) {
+      appendix = { keyStrings: [] };
+      project.stages.appendix1.push(appendix);
+    }
+
+    let dbEntry = appendix.keyStrings.find(db => db._id === databaseId);
+    if (!dbEntry) {
+      return res.status(404).json({ message: "Database not found in appendix1" });
+    }
+
+    dbEntry.keyStrings.push({
+      keyString,
+      hitCount: hitCount || "",
+      databaseName,
+      parentId: databaseId,
+    });
+
+    await project.save();
+
+    res.json({
+      message: "KeyString added successfully",
+      allKeyStrings: appendix.keyStrings,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server Error", error: err.message });
+  }
+});
+
+
+// Keystring deleted api 
+router.delete("/:projectId/databases/:parentId/keystrings/:keyStringId/delete-key-string", async (req, res) => {
+  try {
+    const { projectId, parentId, keyStringId } = req.params;
+
+    const project = await cln_prior_report_schema.findById(projectId);
+    if (!project) {
+      return res.status(404).json({ message: "Project not found" });
+    }
+
+    let appendix = project.stages.appendix1[0];
+    if (!appendix) {
+      return res.status(404).json({ message: "Appendix1 not found" });
+    }
+
+    const dbEntry = appendix.keyStrings.find(db => db._id === parentId);
+    if (!dbEntry) {
+      return res.status(404).json({ message: "Database not found" });
+    }
+
+    dbEntry.keyStrings = dbEntry.keyStrings.filter(ks => ks._id !== keyStringId);
+
+    await project.save();
+
+    res.json({
+      message: "KeyString deleted successfully",
+      allKeyStrings: appendix.keyStrings,
+    });
+  } catch (err) {
+    console.error("Delete Error:", err);
+    res.status(500).json({ message: "Server Error", error: err.message });
+  }
+});
+
+
 
 
 

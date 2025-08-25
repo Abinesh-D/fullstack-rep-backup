@@ -127,10 +127,13 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 
-const TextCell = ({ text, relatedRef }) => {
+const TextCell = ({ text, relatedRef, isCell }) => {
   const [expanded, setExpanded] = useState(false);
   const isLong = text.length > 50;
-  const displayedText = expanded || !isLong ? text : text.slice(0, relatedRef ? 30 :80) + " ...";
+  const value = isCell ? 30 : 80;
+
+  const displayedText = expanded || !isLong? text : text.slice(0, relatedRef ? value : value * 2) + " ...";
+
 
   return (
     <div>
@@ -241,7 +244,7 @@ export const generateTableColumns = ({
         columnDef.cell = ({ row }) => {
           const rowData = row.original;
           const text = rowData[col.accessorKey] || "";
-          return <TextCell text={text} relatedRef={relatedRef} />;
+          return <TextCell text={text} relatedRef={relatedRef} isCell={isCell} />;
         };
       }
 

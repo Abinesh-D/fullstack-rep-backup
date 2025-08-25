@@ -42,7 +42,8 @@ const MappingProjectCreation = () => {
     const releventBiblioGoogleData = useSelector(state => state.patentSlice.liveGoogleRelevantData);
     const relatedBiblioGoogleData = useSelector(state => state.patentSlice.liveGoogleRelatedData);
 
-    const [activeTab, setactiveTab] = useState(4);
+    // Control screen here
+    const [activeTab, setactiveTab] = useState(5);
     const [passedSteps, setPassedSteps] = useState([1]);
 
     const [relevantForm, setRelevantForm] = useState({
@@ -115,6 +116,12 @@ const MappingProjectCreation = () => {
     const [keyString, setKeyString] = useState("");
     const [keyStringsList, setKeyStringsList] = useState([]);
 
+    const valllll= keyStringsList.slice(1).filter(ft => ft.keyStrings.length > 0)
+
+    console.log('keyStringsList', keyStringsList.slice(1));
+    console.log('valllll', valllll)
+
+
     const [keyStringNpl, setKeyStringNpl] = useState("");
     const [keyStringsNplList, setKeyStringsNplList] = useState("");
 
@@ -125,7 +132,6 @@ const MappingProjectCreation = () => {
     const [dataAvailabilityValue, setDataAvailabilityValue] = useState([]);
 
     const [appendix2Patents, setAppendix2Patents] = useState([]);
-
     const [appendix2PatentsSaved, setAppendix2PatentsSaved] = useState("");
 
     const [appendix2NPL, setAppendix2NPL] = useState("");
@@ -471,17 +477,35 @@ const MappingProjectCreation = () => {
 
 
 
+    // const onKeyStringsLevelDeletes = async () => {
+    //     try {
+    //         const response = await axios.delete(
+    //             `http://localhost:8080/live/projectname/appendix1/keystring/${id}/${selectedRow.fieldName}/${selectedRow._id}`
+    //         );
+    //         setAppendix1KeyStringsLevelValue(response.data || []);
+
+    //     } catch (err) {
+    //         console.error("Error deleting key string:", err);
+    //     }
+    // };
+
+
     const onKeyStringsLevelDeletes = async () => {
         try {
             const response = await axios.delete(
-                `http://localhost:8080/live/projectname/appendix1/keystring/${id}/${selectedRow.fieldName}/${selectedRow._id}`
+                `http://localhost:8080/live/projectname/${id}/databases/${selectedRow.parentId}/keystrings/${selectedRow._id}/delete-key-string`
             );
-            setAppendix1KeyStringsLevelValue(response.data || []);
 
-        } catch (err) {
-            console.error("Error deleting key string:", err);
+            console.log("Deleted:", response.data.allKeyStrings);
+
+            setKeyStringsList(response.data.allKeyStrings);
+        } catch (error) {
+            console.error("Error deleting key string:", error);
+            alert(error.response?.data?.message || "Failed to delete key string");
         }
     };
+
+
 
 
 
@@ -563,41 +587,42 @@ const MappingProjectCreation = () => {
         }
     };
 
-    const handleSaveKeyString = async () => {
-        if (!keyString.trim()) return;
+    // const handleSaveKeyString = async () => {
+    //     if (!keyString.trim()) return;
 
-        try {
-            const response = await axios.post(
-                `http://localhost:8080/live/projectname/add-key-string/${id}`, { keyStringsText: keyString },
-                { headers: { "Content-Type": "application/json" } }
+    //     try {
+    //         const response = await axios.post(
+    //             `http://localhost:8080/live/projectname/add-key-string/${id}`, { keyStringsText: keyString },
+    //             { headers: { "Content-Type": "application/json" } }
 
-            );
+    //         );
 
-            const appendixData = response.data.stages.appendix1[0]?.keyStrings;
-            setKeyStringsList(appendixData);
-            setKeyString("");
-        } catch (err) {
-            console.error("Error saving Key String:", err);
-        }
-    };
+    //         const appendixData = response.data.stages.appendix1[0]?.keyStrings;
+    //         console.log('response', response)
+    //         setKeyStringsList(appendixData);
+    //         setKeyString("");
+    //     } catch (err) {
+    //         console.error("Error saving Key String:", err);
+    //     }
+    // };
 
-    const handleDeleteKeyString = async () => {
-        try {
-            const response = await axios.delete(
-                `http://localhost:8080/live/projectname/delete-key-string/${id}/${selectedRow._id}`
-            );
+    // const handleDeleteKeyString = async () => {
+    //     try {
+    //         const response = await axios.delete(
+    //             `http://localhost:8080/live/projectname/delete-key-string/${id}/${selectedRow._id}`
+    //         );
 
-            if (response.status === 200) {
-                setKeyStringsList(response.data.stages.appendix1[0].keyStrings);
+    //         if (response.status === 200) {
+    //             setKeyStringsList(response.data.stages.appendix1[0].keyStrings);
 
-            }
-        } catch (err) {
-            console.error("Error deleting Key String:", err);
-        } finally {
-            setActiveModal(null);
-            setSelectedRow(null);
-        }
-    };
+    //         }
+    //     } catch (err) {
+    //         console.error("Error deleting Key String:", err);
+    //     } finally {
+    //         setActiveModal(null);
+    //         setSelectedRow(null);
+    //     }
+    // };
 
     const handleSaveKeyStringNpl = async () => {
         if (!keyStringNpl.trim()) return;
@@ -1272,10 +1297,10 @@ const MappingProjectCreation = () => {
             message: "Are you sure you want to delete this Key word and its relevant text?",
             onConfirm: handleRelevantWordsDelete,
         },
-        keyString: {
-            message: "Are you sure you want to delete this Key String?",
-            onConfirm: handleDeleteKeyString,
-        },
+        // keyString: {
+        //     message: "Are you sure you want to delete this Key String?",
+        //     onConfirm: handleDeleteKeyString,
+        // },
         keyStringNpl: {
             message: "Are you sure you want to delete this Key String (Npl)?",
             onConfirm: handleDeleteKeyStringNpl,
@@ -1535,9 +1560,10 @@ const MappingProjectCreation = () => {
 
                                                         keyString={keyString}
                                                         keyStringsList={keyStringsList}
+                                                        setKeyStringsList={setKeyStringsList}
                                                         onKeyStringsDelete={onKeyStringsDelete}
                                                         setKeyString={setKeyString}
-                                                        handleSaveKeyString={handleSaveKeyString}
+                                                        // handleSaveKeyString={handleSaveKeyString}
 
                                                         keyStringNpl={keyStringNpl}
                                                         setKeyStringNpl={setKeyStringNpl}
@@ -1560,6 +1586,7 @@ const MappingProjectCreation = () => {
                                                         onKeyStringsDeletes={onSourceDeleted}
                                                         appendix1KeyStringsLevelValue={appendix1KeyStringsLevelValue}
                                                         setAppendix1KeyStringsLevelValue={setAppendix1KeyStringsLevelValue}
+
                                                     />
                                                 </TabPane>
 
@@ -1573,6 +1600,9 @@ const MappingProjectCreation = () => {
                                                         appendix2NPLSaved={appendix2NPLSaved}
                                                         setAppendix2NPL={setAppendix2NPL}
                                                         handleSaveAppendix2NPL={handleSaveAppendix2NPL}
+
+                                                        dynamicFieldValues={keyStringsList}
+
                                                     />
                                                 </TabPane>
 

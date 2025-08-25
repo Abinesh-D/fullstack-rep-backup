@@ -23,6 +23,7 @@ import {
     saveAppendix2NPL,
     handleSaveKeyStringAdditional,
     Additional_Search_Text,
+    updateKeyStrings,
 } from "../StaticValues/StaticData";
 
 
@@ -52,6 +53,7 @@ const MappingProjectList = () => {
     const [reportData, setReportData] = useState([]);
     const [mode, setMode] = useState(null);
     const [selectedProjectId, setSelectedProjectId] = useState(null);
+    const [loading, setLoading] = useState(false);
 
 
     const toggle = (mode, editRow) => {
@@ -68,8 +70,11 @@ const MappingProjectList = () => {
             setProjectType(editRow.projectType);
             setProjectTypeId(editRow.projectTypeId);
             setSelectedProjectId(editRow._id)
+            
         }
         setModal(!modal);
+        setLoading(false);
+
     }
 
 
@@ -108,6 +113,7 @@ const MappingProjectList = () => {
 
 
     const handleProjectCreate = async () => {
+          setLoading(true); 
         const payload = {
             projectName,
             projectType,
@@ -158,12 +164,16 @@ const MappingProjectList = () => {
                             setKeyStringsAdditionalList: () => { },
                             setKeyStringAdditional: () => { }
                         });
+
+                    await updateKeyStrings(createdProjectId);
                 }
 
                 toggle();
                 fetchProjects();
             } catch (err) {
                 console.error("❌ Creation failed:", err);
+            } finally {
+                 setLoading(false); 
             }
         }
     };
@@ -358,6 +368,7 @@ const MappingProjectList = () => {
                                 mode={mode}
                                 isOpen={modal}
                                 toggle={toggle}
+                                loading={loading}
                                 projectName={projectName}
                                 setProjectName={setProjectName}
                                 projectType={projectType}

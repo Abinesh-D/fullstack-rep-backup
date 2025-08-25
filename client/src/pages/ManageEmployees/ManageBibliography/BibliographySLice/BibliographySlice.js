@@ -618,6 +618,7 @@ export const handleNonPatentDeleteSlice = async (id, _id) => {
 
 
 
+
 export const { setPatentData, setEspaceApiData, setBulkESPData, resetPatentData, setGoogleApiData, setLensOrgApiData, setFreePatentApiData,
   setPatentLoading, setLensPageUrl, setFetchESPData, setESPData, setFetchLegalStatus, setClassifyData, setChatBoxData,
   setGooglePatentData, setReleventBiblioGoogleData, setRelatedBiblioGoogleData, setFullReportData, setReportRowData,

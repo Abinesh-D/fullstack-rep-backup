@@ -97,7 +97,11 @@ const SingleKeyStringSchema = new Schema({
 const keyStringSchema = new mongoose.Schema({
   _id: { type: String, default: uuidv4 },
   keyString: { type: String, required: true },
-  hitCount: { type: Number, default: 0 }
+  hitCount: { type: Number, default: 0 },
+  databaseName: { type: String, default: "" },
+  parentId: { type: String, default: "" },
+
+
 });
 
 const databaseSchema = new mongoose.Schema({

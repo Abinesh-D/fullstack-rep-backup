@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Row, Col, Label, Button } from "reactstrap";
 import SavedSuccess from "../../../../components/Common/SavedSuccess";
 import { useSelector } from "react-redux";
@@ -12,9 +12,19 @@ const Appendix2 = ({
     setAppendix2NPL,
     appendix2NPLSaved,
     handleSaveAppendix2NPL,
+
+    dynamicFieldValues,
 }) => {
     const singleProject = useSelector(state => state.patentSlice.singleProject);
 
+    if (dynamicFieldValues) {
+        const fieldValues = dynamicFieldValues.slice(1).filter(tb => tb.keyStrings.length > 0)
+        console.log('dynamicFieldValues', dynamicFieldValues)
+        console.log('fieldValues', fieldValues)
+
+    }
+
+    
     const appendixFields = [
         {
             id: "appendix2-patents",
