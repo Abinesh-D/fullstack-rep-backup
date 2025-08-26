@@ -121,14 +121,7 @@ export const handleWordReportDownload = async ({
     relevantAndNplCombined
 }) => {
 
-    console.log('appendix1.keyStrings.slice(1)', appendix1.keyStrings.slice(1))
     const flatFormatedmap = appendix1.keyStrings.slice(1).filter(ft => ft.keyStrings.length > 0);
-
-    console.log('flatFormatedmap', flatFormatedmap.flatMap(f => f.keyStrings).length)
-
-
-
-
 
     const typeId1 = getProjectValue.projectTypeId === "0001";
     const typeId2 = getProjectValue.projectTypeId === "0002";

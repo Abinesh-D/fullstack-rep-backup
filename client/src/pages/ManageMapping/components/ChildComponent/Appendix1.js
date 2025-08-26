@@ -68,14 +68,30 @@ const Appendix1 = ({
     const [inputError, setInputError] = useState("");
     const [allKeyStrings, setAllKeyStrings] = useState([]);
 
+    // useEffect(() => {
+    //     if (keyStringsList && keyStringsList.length > 0) {
+    //         const allFlatValues = keyStringsList.slice(1).flatMap(ks => ks.keyStrings);
+    //         setSources(keyStringsList);
+    //         setSelectedSource(keyStringsList[1]);
+    //         setAllKeyStrings(allFlatValues);
+    //     }
+    // }, [keyStringsList]);
+
     useEffect(() => {
         if (keyStringsList && keyStringsList.length > 0) {
             const allFlatValues = keyStringsList.slice(1).flatMap(ks => ks.keyStrings);
             setSources(keyStringsList);
-            setSelectedSource(keyStringsList[1]);
+
+            setSelectedSource(prev =>
+                prev && keyStringsList.some(src => src._id === prev._id)
+                    ? prev
+                    : keyStringsList[1]
+            );
+
             setAllKeyStrings(allFlatValues);
         }
     }, [keyStringsList]);
+
 
 
 
@@ -158,7 +174,6 @@ const Appendix1 = ({
 
     const handleSourceChange = (e) => {
         const value = e.target.value;
-        console.log('value', value, sources)
         if (value === sources[0]._id) {
             toggleModal();
         } else {
@@ -170,7 +185,6 @@ const Appendix1 = ({
 
     const handleInputChange = (e) => {
         const value = e.target.value;
-        console.log('value', value)
         setNewDatabase(value);
 
         if (sources.some((s) => s.dbId.toLowerCase() === value.trim().toLowerCase())) {
@@ -204,9 +218,8 @@ const Appendix1 = ({
             setNewDatabase("");
             setModalOpen(false);
             setInputError("");
-            setAppendix2PatentsDynamicField(res.data.keyStrings);
         } catch (err) {
-            setInputError(err.response?.data?.message || "Error adding database");
+            console.log('err', err)
         }
     };
 
@@ -235,6 +248,7 @@ const Appendix1 = ({
             setAllKeyStrings(allFlatValues);
             setKeyStrings("");
             setHitCount(0);
+            setKeyStringsList(res.data.allKeyStrings);
         } catch (err) {
             console.error(err);
         }
@@ -341,7 +355,6 @@ const Appendix1 = ({
                                         onChange={handleSourceChange}
                                         style={{ border: "1px solid blue" }}
                                     >
-                                        {/* <option value="">-- Select Database --</option> */}
                                         {sources?.map((source) => (
                                             <option key={source._id} value={source._id}>
                                                 {source.databaseName}

@@ -187,7 +187,6 @@ export const computeFamId = (espData = []) => {
     return result;
 };
 
-
 export const mappedValue = (espData = [], famId = []) => {
     return espData.map((map) => {
         try {
@@ -297,17 +296,40 @@ export const mappedValue = (espData = [], famId = []) => {
             const familyMembers = safeArray(
                 map?.family?.["world-patent-data"]?.["patent-family"]?.["family-member"]
             );
+            // const familyMembersData = familyMembers.map((fm) => {
+            //     const publications = safeArray(fm?.["publication-reference"]?.["document-id"]);
+            //     const publicationInfo = publications
+            //         .filter((doc) => doc?.["$"]?.["document-id-type"] === "docdb")
+            //         .map((doc) => `${doc["country"]}${doc["doc-number"]}${doc["kind"]}`)
+            //         .join("");
+            //     return {
+            //         familyId: fm?.["$"]?.["family-id"] || "",
+            //         familyPatent: publicationInfo,
+            //     };
+            // });
+
             const familyMembersData = familyMembers.map((fm) => {
                 const publications = safeArray(fm?.["publication-reference"]?.["document-id"]);
-                const publicationInfo = publications
+
+                let publicationInfo = publications
                     .filter((doc) => doc?.["$"]?.["document-id-type"] === "docdb")
-                    .map((doc) => `${doc["country"]}${doc["doc-number"]}${doc["kind"]}`)
-                    .join("");
-                return {
-                    familyId: fm?.["$"]?.["family-id"] || "",
-                    familyPatent: publicationInfo,
-                };
-            });
+                    .map((doc) => ({
+                        familyId: fm?.["$"]?.["family-id"] || "",
+                        familyPatent: `${doc["country"]}${doc["doc-number"]}${doc["kind"]}`.trim().toUpperCase(),
+                    }));
+
+                const uniqueInfo = Array.from(
+                    new Map(publicationInfo.map(item => [item.familyPatent, item])).values()
+                );
+
+                let filteredInfo = uniqueInfo;
+                if (map?.patentNumber) {
+                    const patentNumber = map.patentNumber.trim().toUpperCase();
+                    filteredInfo = uniqueInfo.filter(item => item.familyPatent !== patentNumber);
+                }
+
+                return filteredInfo;
+            }).flat();
 
             return {
                 patentNumber: safeText(map.patentNumber),

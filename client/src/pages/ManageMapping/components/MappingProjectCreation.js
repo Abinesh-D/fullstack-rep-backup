@@ -116,12 +116,6 @@ const MappingProjectCreation = () => {
     const [keyString, setKeyString] = useState("");
     const [keyStringsList, setKeyStringsList] = useState([]);
 
-    const valllll= keyStringsList.slice(1).filter(ft => ft.keyStrings.length > 0)
-
-    console.log('keyStringsList', keyStringsList.slice(1));
-    console.log('valllll', valllll)
-
-
     const [keyStringNpl, setKeyStringNpl] = useState("");
     const [keyStringsNplList, setKeyStringsNplList] = useState("");
 
@@ -201,6 +195,8 @@ const MappingProjectCreation = () => {
 
     const [selectedRow, setSelectedRow] = useState(null);
 
+    const [selectedRows, setSelectedRows] = useState([]);
+
     const [activeModal, setActiveModal] = useState(null);
 
     const onDeleteClick = (rowData) => {
@@ -251,22 +247,6 @@ const MappingProjectCreation = () => {
         setActiveModal("relevantWords");
     }
 
-    // const handleRelatedReferenceDelete = async () => {
-    //     try {
-    //         const response = await axios.delete(`http://localhost:8080/live/projectname/delete-related/${id}/${selectedRow._id}`);
-    //         if (response.status === 200) {
-    //             const updatedRelatedRef = response.data.stages.relatedReferences;
-    //             setRelatedFormData(updatedRelatedRef);
-    //         }
-    //     } catch (error) {
-    //         console.error("Error deleting related reference:", error);
-    //     } finally {
-    //         setActiveModal(null);
-    //         setSelectedRow(null);
-    //     }
-    // };
-
-    const [selectedRows, setSelectedRows] = useState([]);
 
     const handleRelatedReferenceDelete = async () => {
         try {
@@ -752,9 +732,7 @@ const MappingProjectCreation = () => {
     };
 
 
-
-
-
+   
     const handleSaveAppendix2Patents = async () => {
         if (!appendix2Patents) return;
 
