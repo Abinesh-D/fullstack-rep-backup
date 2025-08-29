@@ -99,8 +99,9 @@ const feedbackPatentNumber = require("./routes/livePatentRoute/feedbackRoute");
 app.use("/live/feedback", feedbackPatentNumber);
 
 
-
-
+// TExt translation route
+const translationRoute = require("./routes/utilsRoute/translationRoute");
+app.use("/text/translate", translationRoute);
 
 
 

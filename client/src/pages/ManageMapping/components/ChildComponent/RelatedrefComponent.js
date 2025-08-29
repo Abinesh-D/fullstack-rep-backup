@@ -188,7 +188,6 @@ const RelatedRefComponent = ({
 
     return (
         <>
-        <NplCrossRef />
 
 
         

@@ -1,3 +1,5 @@
+import { handleTranslateText } from "../../ManageEmployees/ManageBibliography/BibliographySLice/BibliographySlice";
+
 export const mapFamilyMemberData = (data) => {
     const familyMembers = data?.familyData?.["world-patent-data"]?.["patent-family"]?.["family-member"];
 
@@ -30,7 +32,12 @@ export const mapFamilyMemberData = (data) => {
     return mappedFamilyData;
 };
 
-
+export const trasnlatedText = async (text) => {
+    if (!text) return '';
+    const textTRanslated = await handleTranslateText(text);
+    console.log('textTRanslated', textTRanslated)
+    return textTRanslated.translation;
+}
 
 export const getEnglishAbstract = (biblio) => {
     const abstractArray = biblio?.['world-patent-data']?.['exchange-documents']?.['exchange-document']?.abstract;

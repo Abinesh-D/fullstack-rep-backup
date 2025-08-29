@@ -3,6 +3,8 @@ const router = express.Router();
 const cln_prior_report_schema = require("../../models/livePatentScema/cln_prior_report_schema")
 const { v4: uuidv4 } = require("uuid");
 const axios = require("axios");
+const xml2js = require("xml2js");
+
 
 
 const cloudinary = require("cloudinary").v2;
@@ -1257,29 +1259,43 @@ router.post("/add-key-string-npl/:id", async (req, res) => {
 
 
 // GET /api/crossref/:doi
+
 router.get("/nplcorssref/:doi", async (req, res) => {
   try {
     const { doi } = req.params;
-
     const url = `https://api.crossref.org/works/${encodeURIComponent(doi)}`;
 
     const response = await axios.get(url);
-
     const data = response.data.message;
+
+    let abstractText = "N/A";
+    if (data.abstract) {
+      try {
+        const parser = new xml2js.Parser();
+        const parsed = await parser.parseStringPromise(`<root>${data.abstract}</root>`);
+        abstractText = parsed.root["jats:p"] ? parsed.root["jats:p"][0] : data.abstract;
+      } catch (err) {
+        console.error("Error parsing JATS XML:", err);
+        abstractText = data.abstract;
+      }
+    }
 
     const formattedData = {
       title: data.title ? data.title[0] : "N/A",
       authors: data.author
-        ? data.author.map(a => `${a.given || ""} ${a.family || ""}`)
+        ? data.author.map((a) => `${a.given || ""} ${a.family || ""}`)
         : [],
       publisher: data.publisher || "N/A",
       publishedDate: data["published-print"]
         ? data["published-print"]["date-parts"][0].join("-")
         : data["published-online"]
-        ? data["published-online"]["date-parts"][0].join("-")
-        : "N/A",
-      doi: data.DOI,
-      URL: data.type,
+          ? data["published-online"]["date-parts"][0].join("-")
+          : "N/A",
+      doi: data.DOI || "N/A",
+      URL: data.URL || "N/A",
+      abstract: abstractText,
+      type: data.type || "N/A",
+      language: data.language || "N/A",
     };
 
     res.json({ success: true, data: formattedData, fullData: data });
@@ -1288,6 +1304,43 @@ router.get("/nplcorssref/:doi", async (req, res) => {
     res.status(500).json({ success: false, message: "Error fetching Crossref data" });
   }
 });
+
+
+
+// router.get("/nplcorssref/:doi", async (req, res) => {
+//   try {
+//     const { doi } = req.params;
+
+//     const url = `https://api.crossref.org/works/${encodeURIComponent(doi)}`;
+
+//     const response = await axios.get(url);
+
+//     const data = response.data.message;
+
+//     const formattedData = {
+//       title: data.title ? data.title[0] : "N/A",
+//       authors: data.author
+//         ? data.author.map(a => `${a.given || ""} ${a.family || ""}`)
+//         : [],
+//       publisher: data.publisher || "N/A",
+//       publishedDate: data["published-print"]
+//         ? data["published-print"]["date-parts"][0].join("-")
+//         : data["published-online"]
+//         ? data["published-online"]["date-parts"][0].join("-")
+//         : "N/A",
+//       doi: data.DOI || "N/A",
+//       URL: data.URL || "N/A",
+//       abstract: data.abstract || "N/A",
+//       type  : data.type || "N/A",
+//       language: data.language || "N/A",
+//     };
+
+//     res.json({ success: true, data: formattedData, fullData: data});
+//   } catch (error) {
+//     console.error("Error fetching Crossref data:", error.message);
+//     res.status(500).json({ success: false, message: "Error fetching Crossref data" });
+//   }
+// });
 
 
 

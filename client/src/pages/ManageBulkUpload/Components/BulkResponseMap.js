@@ -264,6 +264,7 @@ export const mappedValue = (espData = [], famId = []) => {
                 .filter(Boolean)
                 .join("; ");
 
+                console.log('applicantNames', applicantNames)
                 
 // ---------------------------------------------------
 

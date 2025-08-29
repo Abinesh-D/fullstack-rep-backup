@@ -1,6 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { BASE_URL } from '../../../../config';
+import { BASE_URL, LINGVA_BASE_URL } from '../../../../config';
 import urlSocket from '../../../../helpers/urlSocket';
 
 const initialState = {
@@ -612,6 +612,24 @@ export const handleNonPatentDeleteSlice = async (id, _id) => {
     return response;
   } catch (error) {
     console.error("Error deleting NPL:", error);
+    throw error;
+  }
+};
+
+
+
+
+export const handleTranslateText = async (text) => {
+  if (!text) {
+    return "";
+  }
+
+  try {
+    const url = `${LINGVA_BASE_URL}/auto/en/${encodeURIComponent(text)}`;
+    const response = await axios.get(url);
+    return response.data;
+  } catch (error) {
+    console.error("Error translating text:", error);
     throw error;
   }
 };

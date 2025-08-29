@@ -2,6 +2,7 @@ import React, { useMemo, useEffect  } from "react";
 import { Row, Col, Label, Button } from "reactstrap";
 import SavedSuccess from "../../../../components/Common/SavedSuccess";
 import { useSelector } from "react-redux";
+import { handleTranslateText } from "../../../ManageEmployees/ManageBibliography/BibliographySLice/BibliographySlice";
 
 const Appendix2 = ({
     appendix2Patents,
@@ -15,6 +16,7 @@ const Appendix2 = ({
     dynamicFieldValues,
 }) => {
     const singleProject = useSelector(state => state.patentSlice.singleProject);
+
 
     const mappedDbName = useMemo(() => {
         if (dynamicFieldValues) {

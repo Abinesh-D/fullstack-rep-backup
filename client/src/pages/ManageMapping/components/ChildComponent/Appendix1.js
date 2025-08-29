@@ -365,8 +365,6 @@ const Appendix1 = ({
                                 </div>
                             </Col>
 
-                            {
-                                singleProject.projectTypeId === "0002" && (
                                     <>
                                         <Col lg="12">
                                             <div className="mb-3">
@@ -386,8 +384,7 @@ const Appendix1 = ({
                                             </div>
                                         </Col>
                                     </>
-                                )
-                            }
+ 
 
 
                         </Row>

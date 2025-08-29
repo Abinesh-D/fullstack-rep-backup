@@ -33,6 +33,7 @@ const MappingProjectCreation = () => {
     const navigate = useNavigate();
 
     const data = useSelector(state => state.patentSlice.liveEpoRelevantData);
+    console.log('data', data)
     const relatedData = useSelector(state => state.patentSlice.liveEpoRelatedData);
 
     const fullReportData = useSelector(state => state.patentSlice.fullReportData);
@@ -43,7 +44,7 @@ const MappingProjectCreation = () => {
     const relatedBiblioGoogleData = useSelector(state => state.patentSlice.liveGoogleRelatedData);
 
     // Control screen here
-    const [activeTab, setactiveTab] = useState(5);
+    const [activeTab, setactiveTab] = useState(2);
     const [passedSteps, setPassedSteps] = useState([1]);
 
     const [relevantForm, setRelevantForm] = useState({
@@ -142,6 +143,7 @@ const MappingProjectCreation = () => {
     });
 
     const [nplPatentFormData, setNplPatentFormData] = useState({
+        nplDoi: "",
         nplTitle: "",
         url: "",
         nplPublicationDate: "",
@@ -152,6 +154,7 @@ const MappingProjectCreation = () => {
 
     const nonPatentLiteratureForm = () => {
         setNplPatentFormData({
+            nplDoi: "",
             nplTitle: "",
             url: "",
             nplPublicationDate: "",
@@ -347,10 +350,6 @@ const MappingProjectCreation = () => {
     };
 
 
-
-
-
-
     // const handleNonPatentDelete = async () => {
     //     try {
     //         const response = await axios.delete(
@@ -498,9 +497,7 @@ const MappingProjectCreation = () => {
 
     const handleNplChange = (e) => {
         const { id, value } = e.target;
-
         const key = id.replace("npl-", "");
-
         setNplPatentFormData((prevData) => ({
             ...prevData,
             [key]: value,
@@ -802,9 +799,13 @@ const MappingProjectCreation = () => {
     };
 
 
+
     const { title, publicationUrl, googlePublicationUrl, abstractData, aplDate, pubDate, priorityDates, inventorNames, applicantNames,
         classificationsSymbol, classData, familyMemData, formattedDescriptions, ipcClass, cpcClass
     } = usePatentData(data, "relevant", relevantForm.patentNumber);
+
+
+
 
     useEffect(() => {
         const isAnyMissing = [
@@ -1483,6 +1484,7 @@ const MappingProjectCreation = () => {
                                                         setrelevantFormData={setrelevantFormData}
                                                         // setRelevantAndNplUpdatedData={handleRelevantAndNplCombinedSubmit}
                                                         relevantAndNplUpdatedData={relevantAndNplUpdatedData}
+                                                        setNplPatentFormData={setNplPatentFormData}
 
                                                     />
 

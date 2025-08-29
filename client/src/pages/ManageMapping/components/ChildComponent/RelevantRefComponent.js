@@ -42,7 +42,8 @@ const RelevantRefComponent = ({
     handleRelevatFormInputChange,
     resetRelevantForm,
     setrelevantFormData,
-    relevantAndNplUpdatedData
+    relevantAndNplUpdatedData,
+    setNplPatentFormData
 }) => {
 
     const patentSlice = useSelector(state => state.patentSlice);
@@ -376,7 +377,6 @@ const RelevantRefComponent = ({
                     showSaved={relevantRefSaved}
                     handleValidationError={setErrorValidation}
                     relevantApiTrue={patentSlice.relevantApiTrue}
-                    
                 />
                 // <Form onSubmit={handleRelevantSubmit}>
                 //     <Row>
@@ -678,6 +678,7 @@ const RelevantRefComponent = ({
                 handleNplSubmit={handleNplSubmit}
                 nonPatentFormData={nonPatentFormData}
                 nplColumns={nplColumns}
+                setNplPatentFormData={setNplPatentFormData} 
                 // relevantExcerpts={relevantExcerpts}
             />
 

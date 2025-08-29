@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useEffect, useState } from "react";
 import {
     getEnglishAbstract,
     convertDescriptionToKeyValue,
@@ -7,6 +7,7 @@ import {
     extractIPCCode,
     getCleanPartyNames,
     mapFamilyMemberData,
+    trasnlatedText,
 } from "./patentUtils.js";
 
 const usePatentData = (data, type, pubNumber) => {
@@ -42,23 +43,44 @@ const usePatentData = (data, type, pubNumber) => {
     }, [biblioData]);
 
 
+    // const inventionTitle = () => {
+    //     const titleData = biblioData?.['invention-title'];
+
+    //     if (Array.isArray(titleData)) {
+    //         const enTitle = titleData.find(t => t?.$?.lang === 'en');
+    //         if (enTitle) {
+    //             return enTitle._ || '';
+    //         }
+    //         return titleData[0]._ || '';
+    //     }
+    //     else if (titleData?.$?.lang === 'en') {
+    //         return titleData._ || '';
+    //     }
+    //     return titleData?._ || '';
+
+    // }
+
+    // const title = inventionTitle();
+
     const inventionTitle = () => {
         const titleData = biblioData?.['invention-title'];
 
         if (Array.isArray(titleData)) {
             const enTitle = titleData.find(t => t?.$?.lang === 'en');
             if (enTitle) {
-                return enTitle._ || '';
+                return { text: enTitle?._ || '', lang: enTitle?.$?.lang || '' };
             }
-            return titleData[0]._ || '';
+            return { text: titleData[0]?._ || '', lang: titleData[0]?.$?.lang || '' };
         }
-        else if (titleData?.$?.lang === 'en') {
-            return titleData._ || '';
+        else if (titleData) {
+            return { text: titleData?._ || '', lang: titleData?.$?.lang || '' };
         }
-        return titleData?._ || '';
-    }
+        return { text: '', lang: '' }; 
+    };
 
-    const title = inventionTitle();
+    const { text: title, lang } = inventionTitle();
+
+
 
     const formatDate = (dateStr) =>
         dateStr && /^\d{8}$/.test(dateStr)
@@ -86,7 +108,7 @@ const usePatentData = (data, type, pubNumber) => {
         return formatDate(epodocDate);
     }, [biblioData]);
 
-    
+
     const priorityDates = useMemo(() => getPriorityDates(biblioData), [biblioData]);
 
     const classifications = useMemo(() => {
@@ -129,7 +151,7 @@ const usePatentData = (data, type, pubNumber) => {
     const classificationsSymbol = `${ipcrFormatted}${ipcFormatted}${classifications.cpc}`;
     const famData = mapFamilyMemberData(data);
 
-    const familyMemData = famData?.filter(ptn=> ptn.familyPatent !== data.patentNumber)?.map(f => f?.familyPatent).join(', ');
+    const familyMemData = famData?.filter(ptn => ptn.familyPatent !== data.patentNumber)?.map(f => f?.familyPatent).join(', ');
 
     if (type === "relevant") {
         return {
