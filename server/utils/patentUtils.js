@@ -1,4 +1,23 @@
-function mapFamilyMemberData(data) {
+const { lingaTranslateText } = require("./lingvaServiceTranslator");
+
+const safeArray = (value) => (Array.isArray(value) ? value : value ? [value] : []);
+const safeText = (val) => (typeof val === "string" ? val : val?._ || "");
+
+function formatDate(dateStr) {
+    return dateStr && /^\d{8}$/.test(dateStr)
+        ? `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6)}`
+        : "";
+}
+
+function capitalize(str) {
+    return str
+        .toLowerCase()
+        .replace(/\b\w/g, (ch) => ch.toUpperCase())
+        .trim();
+}
+
+
+function mapFamilyMemberData(data, patentNumber) {
     const familyMembers = data?.["world-patent-data"]?.["patent-family"]?.["family-member"];
 
     const familyMembersArray = Array.isArray(familyMembers)
@@ -7,44 +26,60 @@ function mapFamilyMemberData(data) {
             ? [familyMembers]
             : [];
 
-    const mappedFamilyData = familyMembersArray.map((familyMember) => {
-        let publications = familyMember?.["publication-reference"]?.["document-id"];
+    const mappedFamilyData = familyMembersArray
+        .map((familyMember) => {
+            let publications = familyMember?.["publication-reference"]?.["document-id"];
 
-        const publicationsArray = Array.isArray(publications)
-            ? publications
-            : publications
-                ? [publications]
-                : [];
+            const publicationsArray = Array.isArray(publications)
+                ? publications
+                : publications
+                    ? [publications]
+                    : [];
 
-        const publicationInfo = publicationsArray
-            .filter(doc => doc?.["$"]?.["document-id-type"] === "docdb")
-            .map(doc => `${doc?.["country"] || ''}${doc?.["doc-number"] || ''}${doc?.["kind"] || ''}`)
-            .join(', ');
+            const publicationInfo = publicationsArray
+                .filter(doc => doc?.["$"]?.["document-id-type"] === "docdb")
+                .map(doc => `${doc?.["country"] || ''}${doc?.["doc-number"] || ''}${doc?.["kind"] || ''}`)
+                .join("; ");
 
-        return {
-            familyId: familyMember?.["$"]?.["family-id"] || '',
-            familyPatent: publicationInfo
-        };
-    });
+            return {
+                familyId: familyMember?.["$"]?.["family-id"] || '',
+                familyPatent: publicationInfo
+            };
+        })
+        .filter(item => item.familyPatent && !item.familyPatent.split("; ").includes(patentNumber));
 
     return mappedFamilyData;
-};
+}
+
 
 function extractIPCCode(bibliographicData) {
     const ipcrRaw = bibliographicData?.["classifications-ipcr"]?.["classification-ipcr"];
     const ipc = bibliographicData?.["classification-ipc"]?.text || "";
 
+    const cleanIPC = (code) =>
+        code
+            ?.replace(/\s+/g, " ")
+            .replace(/(\d)\/\s*(\d+)/g, "$1/$2")
+            .replace(/\s*A\s*I\s*$/i, "")
+            .trim();
+
+
     let ipcrText = "";
     if (ipcrRaw) {
         const classifications = Array.isArray(ipcrRaw) ? ipcrRaw : [ipcrRaw];
         ipcrText = classifications
-            .map((item) => item?.text?.replace(/\s+/g, " ").trim())
+            .map((item) => cleanIPC(item?.text))
             .filter(Boolean)
-            .join(", ");
+            .join("; ");
     }
 
-    const ipcFormatted = ipc ? `${ipc}, ` : "";
-    const ipcrFormatted = ipcrText ? `${ipcrText}, ` : "";
+    const ipcFormatted = ipc
+        ? ipc
+            .split(",")
+            .map((c) => cleanIPC(c))
+            .filter(Boolean)
+            .join("; ")
+        : "";
 
     const patentClassifications = bibliographicData?.["patent-classifications"]?.["patent-classification"];
     let cpc = "";
@@ -59,7 +94,9 @@ function extractIPCCode(bibliographicData) {
             if (scheme === "CPCI") {
                 const { section, class: cls, subclass, "main-group": mainGroup, subgroup } = item;
                 const cpcCode = `${section || ""}${cls || ""}${subclass || ""}${mainGroup || ""}/${subgroup || ""}`;
-                cpcSet.add(cpcCode.trim());
+                if (cpcCode.trim()) {
+                    cpcSet.add(cpcCode.trim());
+                }
             } else if (scheme === "UC") {
                 if (item["classification-symbol"]) {
                     usSet.add(item["classification-symbol"].trim());
@@ -67,22 +104,15 @@ function extractIPCCode(bibliographicData) {
             }
         });
 
-        cpc = [...cpcSet].join(", ");
+        cpc = [...cpcSet].join("; ");
         usClassification = [...usSet].join(", ");
     }
+
     return {
-        ipcFormatted,
-        ipcrFormatted,
-        ipcClass: `${ipcrFormatted}${ipcFormatted},`,
+        ipcClass: [ipcrText, ipcFormatted].filter(Boolean).join("; "),
         cpc,
         US_Classification: usClassification,
     };
-}
-
-function formatDate(dateStr) {
-    return dateStr && /^\d{8}$/.test(dateStr)
-        ? `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6)}`
-        : "";
 }
 
 function getApplicationDate(biblioData) {
@@ -130,11 +160,25 @@ function getPriorityDates(biblioData) {
     return "";
 }
 
-const safeArray = (value) => (Array.isArray(value) ? value : value ? [value] : []);
+async function inventionTitle(biblioData) {
+    const titleData = biblioData?.["invention-title"];
+    if (!titleData) return "";
 
-const safeText = (val) => (typeof val === "string" ? val : val?._ || "");
+    if (Array.isArray(titleData)) {
+        const enTitle = titleData.find(t => t?.$?.lang === "en");
+        if (enTitle) return enTitle._ || "";
 
-function getInventorNames(biblioData) {
+        return await lingaTranslateText(titleData[0]._ || "");
+    }
+
+    if (titleData?.$?.lang === "en") {
+        return titleData._ || "";
+    }
+
+    return await lingaTranslateText(titleData?._ || "");
+}
+
+async function getInventorNames(biblioData) {
     const inventorsData = safeArray(biblioData?.parties?.inventors?.inventor);
 
     const inventorOriginal = inventorsData.filter(
@@ -144,20 +188,44 @@ function getInventorNames(biblioData) {
         (i) => i?.$?.["data-format"] === "epodoc"
     );
 
-    const finalInventors =
-        inventorOriginal.length > 0 ? inventorOriginal : inventorEpodoc;
+    let finalInventors = inventorOriginal.length > 0 ? inventorOriginal : inventorEpodoc;
 
-    return finalInventors
+    const names = finalInventors
         .map((i) =>
-            safeText(i?.["inventor-name"]?.name)
-                ?.replace(/,+$/g, "")
-                .trim()
+            safeText(i?.["inventor-name"]?.name)?.replace(/,+$/g, "").trim()
         )
-        .filter(Boolean)
-        .join("; ");
+        .filter(Boolean);
+
+    if (!names.length) return "";
+
+    const formattedNames = names.map((n) => {
+        let parts = n.split(",").map(p => p.trim()).filter(Boolean);
+
+        if (parts.length === 2) {
+            let [last, first] = parts;
+            return `${capitalize(first)} ${capitalize(last)}`;
+        }
+
+        return capitalize(n);
+    });
+
+    const uniqueNames = Array.from(
+        new Set(formattedNames.map(n => n.toLowerCase()))
+    ).map(lower => formattedNames.find(n => n.toLowerCase() === lower));
+
+    const joinedNames = uniqueNames.join("; ");
+
+    let translated = await lingaTranslateText(joinedNames);
+    translated = (translated || joinedNames)
+        .replace(/,+/g, ";")
+        .replace(/;+/g, ";")
+        .replace(/\s*;\s*/g, "; ")
+        .trim();
+
+    return translated;
 }
 
-function getApplicantNames(biblioData) {
+async function getApplicantNames(biblioData) {
     const applicantsData = safeArray(biblioData?.parties?.applicants?.applicant);
 
     const applicantOriginal = applicantsData.filter(
@@ -170,14 +238,26 @@ function getApplicantNames(biblioData) {
     const finalApplicants =
         applicantOriginal.length > 0 ? applicantOriginal : applicantEpodoc;
 
-    return finalApplicants
+    const names = finalApplicants
         .map((a) =>
             safeText(a?.["applicant-name"]?.name)
                 ?.replace(/,+$/g, "")
+                ?.replace(/,/g, " ")
+                .replace(/\s+/g, " ") 
                 .trim()
         )
         .filter(Boolean)
-        .join("; ");
+        .map((n) => capitalize(n));
+
+    if (!names.length) return "";
+
+    const uniqueNames = Array.from(
+        new Set(names.map((n) => n.toLowerCase()))
+    ).map((lower) => names.find((n) => n.toLowerCase() === lower));
+
+    const joinedNames = uniqueNames.join("; ");
+
+    return await lingaTranslateText(joinedNames);
 }
 
 function getEnglishAbstract(biblio) {
@@ -191,65 +271,42 @@ function getEnglishAbstract(biblio) {
     return null;
 };
 
-function inventionTitle(biblioData) {
-    const titleData = biblioData?.['invention-title'];
-
-    if (Array.isArray(titleData)) {
-        const enTitle = titleData.find(t => t?.$?.lang === 'en');
-        if (enTitle) {
-            return enTitle._ || '';
-        }
-        return titleData[0]._ || '';
-    }
-    else if (titleData?.$?.lang === 'en') {
-        return titleData._ || '';
-    }
-    return titleData?._ || '';
-}
 
 
+function consvertIpc(text) {
+    const match = text?.match(/[A-H][0-9]{2}[A-Z]\s*\d+\/\s*\d+/);
+    return match ? match[0].replace(/\s+/g, '') : '';
+};
 
-// function getEnglishAbstract(biblio) {
-//     try {
-//         const abstracts = biblio?.['world-patent-data']?.['exchange-documents']?.['exchange-document']?.['abstract'];
-//         if (!abstracts) return "";
+function getIPCClasses(biblioData) {
+    const ipcrRaw = biblioData?.['classifications-ipcr']?.['classification-ipcr'];
+    const ipcRaw = biblioData?.['classification-ipc']?.text || '';
 
-//         if (Array.isArray(abstracts)) {
-//             const enAbstract = abstracts.find(abs => abs?.$?.lang === "en");
-//             return enAbstract?._ || "";
-//         }
-//         return abstracts?._ || "";
-//     } catch {
-//         return "";
-//     }
-// }
+    const ipcrCodes = Array.isArray(ipcrRaw)
+        ? ipcrRaw.map(item => consvertIpc(item?.text)).filter(Boolean)
+        : ipcrRaw
+            ? [consvertIpc(ipcrRaw?.text)].filter(Boolean)
+            : [];
 
+    const ipcCodes = ipcRaw
+        ? ipcRaw
+            .split(/[;,]/)
+            .map(code => consvertIpc(code))
+            .filter(Boolean)
+        : [];
 
+    const allIPC = [...new Set([...ipcrCodes, ...ipcCodes])];
 
+    return allIPC.join('; ');
+};
 
-
-
-// function convertDescriptionToKeyValue(descriptionText = '') {
-//     const result = {};
-//     const matches = descriptionText.matchAll(/\[\d{4}\][\s\S]*?(?=\[\d{4}\]|$)/g);
-
-//     for (const match of matches) {
-//         const entry = match[0].trim();
-//         const keyMatch = entry.match(/^\[(\d{4})\]/);
-//         if (keyMatch) {
-//             const key = keyMatch[1];
-//             const value = entry.replace(/^\[\d{4}\]/, '').trim();
-//             result[key] = value;
-//         }
-//     }
-//     return result;
-// };
 
 
 
 module.exports = {
     getEnglishAbstract,
     extractIPCCode,
+    getIPCClasses,
     // getCleanPartyNames,
     // extractPartyNames,
     // convertDescriptionToKeyValue,

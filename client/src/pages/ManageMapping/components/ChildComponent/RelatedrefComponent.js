@@ -12,6 +12,7 @@ import { computeFamId, mappedValue, mapRelatedData } from "../../../ManageBulkUp
 import { generateTableColumns } from "../../../../components/Common/commonReport/columnUtils";
 import axios from "axios";
 import NplCrossRef from "./NplCrossRef";
+import NonPatentLiteratureForm from "./NonPatentLiteratureForm";
 
 const RelatedRefComponent = ({
     relatedLoading,
@@ -31,6 +32,12 @@ const RelatedRefComponent = ({
     setSelectedRows,
 
 
+    nplPatentFormData,
+    handleNplChange,
+    handleNplSubmit,
+    nonPatentFormData,
+    setNplPatentFormData,
+    onNplDeleteClick,
 }) => {
 
     const id = sessionStorage.getItem("_id");
@@ -44,6 +51,21 @@ const RelatedRefComponent = ({
     const [apiResponseReceived, setApiResponseReceived] = useState(false);
     const [submitLoading, setSubmitLoading] = useState(false);
     const [generateLoading, setGenerateLoading] = useState(false);
+
+
+
+      const nplColumns = useMemo(() =>
+            generateTableColumns({
+                columnsConfig: [
+                    { header: "Title / Product Name", accessorKey: "nplTitle" },
+                    { header: "Publication Date", accessorKey: "nplPublicationDate" },
+                ],
+                includeSerialNo: true,
+                includeActions: true,
+                onDeleteClick: onNplDeleteClick,
+                deleteTooltip: "Delete Non-Patent",
+            })
+            , [nonPatentFormData]);
 
 
     useEffect(() => {
@@ -382,6 +404,17 @@ const RelatedRefComponent = ({
                     />
                 )}
             </div>
+
+
+            <NonPatentLiteratureForm
+                nplPatentFormData={nplPatentFormData}
+                handleNplChange={handleNplChange}
+                handleNplSubmit={handleNplSubmit}
+                nonPatentFormData={nonPatentFormData}
+                nplColumns={nplColumns}
+                setNplPatentFormData={setNplPatentFormData}
+            // relevantExcerpts={relevantExcerpts}
+            />
 
         </>
     );

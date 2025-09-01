@@ -34,9 +34,9 @@ export const mapFamilyMemberData = (data) => {
 
 export const trasnlatedText = async (text) => {
     if (!text) return '';
-    const textTRanslated = await handleTranslateText(text);
-    console.log('textTRanslated', textTRanslated)
-    return textTRanslated.translation;
+    // const textTRanslated = await handleTranslateText(text);
+    // console.log('textTRanslated', textTRanslated)
+    // return textTRanslated.translation;
 }
 
 export const getEnglishAbstract = (biblio) => {

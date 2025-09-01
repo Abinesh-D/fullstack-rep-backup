@@ -374,14 +374,14 @@ export const fetchLegalStatusData = async (patentNumber, dispatch) => {
 
 // ------------------ REPORT MAKING API'S ----------------------
 
-// RELEVANT DATA API
+// RELEVANT AND RELATED DATA API
 
 export const EPO_API_DATA = async (patentNumber, dispatch, type) => {
   try {
     const trimmedNumber = patentNumber.trim();
     if (!trimmedNumber) throw new Error("Patent number is required.");
 
-    const response = await axios.get(`${BASE_URL}/live/espbiblio/${trimmedNumber}`);
+    const response = await axios.get(`${BASE_URL}/live/espbiblio/${trimmedNumber}?type=${encodeURIComponent(type)}`);
     console.log(response.data, "response for EPO API");
 
     if (response.status === 200 && response.data) {
@@ -410,6 +410,42 @@ export const EPO_API_DATA = async (patentNumber, dispatch, type) => {
     throw error;
   }
 };
+
+
+// export const EPO_API_DATA = async (patentNumber, dispatch, type) => {
+//   try {
+//     const trimmedNumber = patentNumber.trim();
+//     if (!trimmedNumber) throw new Error("Patent number is required.");
+
+//     const response = await axios.get(`${BASE_URL}/live/espbiblio/${trimmedNumber}`);
+//     console.log(response.data, "response for EPO API");
+
+//     if (response.status === 200 && response.data) {
+//       if (type === 'relevant') {
+//         dispatch(setRelevantApiTrue(true));
+//         dispatch(setLiveEpoRelevantData(response.data));
+
+//       } else if (type === 'related') {
+//         dispatch(setRelatedApiTrue(true));
+//         dispatch(setLiveEpoRelatedData(response.data));
+//       }
+
+//       return response.data;
+//     } else {
+//       throw new Error("Patent data not found or invalid response.");
+//     }
+
+//   } catch (error) {
+
+//     if (type === 'relevant') {
+//       dispatch(setLiveEpoRelevantData([]));
+//     } else if (type === 'related') {
+//       dispatch(setLiveEpoRelatedData([]));
+//     }
+//     console.error("❌ Patent fetch error:", error.message || error);
+//     throw error;
+//   }
+// };
 
 
 // LIVE GOOGLE API CALL

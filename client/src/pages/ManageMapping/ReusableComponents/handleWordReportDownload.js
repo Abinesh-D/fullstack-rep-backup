@@ -1245,8 +1245,8 @@ export const handleWordReportDownload = async ({
                                     isParagraphChildren: true,
                                 },
                                 { label: "Title", value: capitalizeEachWord(pub.title) },
-                                { label: "Inventor", value: capitalizeEachWord((pub.inventors || []).join(", ")) },
-                                { label: "Assignee", value: capitalizeEachWord((pub.assignee || []).join(", ")) },
+                                { label: "Inventor(s)", value: capitalizeEachWord((pub.inventors || []).join(", ")) },
+                                { label: "Assignee(s)", value: capitalizeEachWord((pub.assignee || []).join(", ")) },
                                 {
                                     label: "Family Members",
                                     value: getFamilyMembersParagraphChildren(
@@ -1261,11 +1261,11 @@ export const handleWordReportDownload = async ({
                                 // usClass,
                             ];
                             const rightTableRows = [
-                                { label: "Grant/Publication Date", value: sanitizeText(pub.grantDate) },
-                                { label: "Filing/Application Date", value: sanitizeText(pub.filingDate) },
+                                { label: "Publication Date", value: sanitizeText(pub.grantDate) },
+                                { label: "Application Date", value: sanitizeText(pub.filingDate) },
                                 { label: "Priority Date", value: sanitizeText(pub.priorityDate) },
                                 {
-                                    label: "Classification(IPC)",
+                                    label: "IPC",
                                     value: getFamilyMembersParagraphChildren(
                                         {
                                             FamilyMembers: pub.ipcClassifications,
@@ -1276,7 +1276,7 @@ export const handleWordReportDownload = async ({
                                     isParagraphChildren: true,
                                 },
                                 {
-                                    label: "Classification(CPC)",
+                                    label: "CPC",
                                     value: getFamilyMembersParagraphChildren(
                                         {
                                             FamilyMembers: pub.cpcClassifications,

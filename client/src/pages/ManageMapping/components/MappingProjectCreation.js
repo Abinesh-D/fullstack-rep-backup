@@ -33,11 +33,9 @@ const MappingProjectCreation = () => {
     const navigate = useNavigate();
 
     const data = useSelector(state => state.patentSlice.liveEpoRelevantData);
-    console.log('data', data)
     const relatedData = useSelector(state => state.patentSlice.liveEpoRelatedData);
 
     const fullReportData = useSelector(state => state.patentSlice.fullReportData);
-
     const introduction = fullReportData.filter(fil => fil._id === id)[0]?.stages?.introduction || [];
 
     const releventBiblioGoogleData = useSelector(state => state.patentSlice.liveGoogleRelevantData);
@@ -474,9 +472,6 @@ const MappingProjectCreation = () => {
             const response = await axios.delete(
                 `http://localhost:8080/live/projectname/${id}/databases/${selectedRow.parentId}/keystrings/${selectedRow._id}/delete-key-string`
             );
-
-            console.log("Deleted:", response.data.allKeyStrings);
-
             setKeyStringsList(response.data.allKeyStrings);
         } catch (error) {
             console.error("Error deleting key string:", error);
@@ -575,7 +570,6 @@ const MappingProjectCreation = () => {
     //         );
 
     //         const appendixData = response.data.stages.appendix1[0]?.keyStrings;
-    //         console.log('response', response)
     //         setKeyStringsList(appendixData);
     //         setKeyString("");
     //     } catch (err) {
@@ -800,25 +794,25 @@ const MappingProjectCreation = () => {
 
 
 
-    const { title, publicationUrl, googlePublicationUrl, abstractData, aplDate, pubDate, priorityDates, inventorNames, applicantNames,
-        classificationsSymbol, classData, familyMemData, formattedDescriptions, ipcClass, cpcClass
-    } = usePatentData(data, "relevant", relevantForm.patentNumber);
+    // const { title, publicationUrl, googlePublicationUrl, abstractData, aplDate, pubDate, priorityDates, inventorNames, applicantNames,
+    //     classData, classData, familyMemData, formattedDescriptions, ipcClass, cpcClass
+    // } = usePatentData(data, "relevant", relevantForm.patentNumber);
 
 
 
 
     useEffect(() => {
         const isAnyMissing = [
-            inventorNames,
-            title,
-            applicantNames,
-            pubDate,
-            aplDate,
-            priorityDates,
-            classificationsSymbol,
-            // familyMemData,
-            abstractData,
-            // filteredDescriptions
+            data.inventorNames,
+            data.title,
+            data.applicantNames,
+            data.pubDate,
+            data.aplDate,
+            data.priorityDates,
+            data.classData,
+            // data.familyMemData,
+            data.abstractData,
+            // data.filteredDescriptions
         ].some(
             (val) =>
                 val === undefined ||
@@ -839,16 +833,16 @@ const MappingProjectCreation = () => {
             })();
         }
     }, [
-        inventorNames,
-        title,
-        applicantNames,
-        pubDate,
-        aplDate,
-        priorityDates,
-        classificationsSymbol,
-        // familyMemData,
-        abstractData,
-        // filteredDescriptions
+        data.inventorNames,
+        data.title,
+        data.applicantNames,
+        data.pubDate,
+        data.aplDate,
+        data.priorityDates,
+        data.classData,
+        // data.familyMemData,
+        data.abstractData,
+        // data.filteredDescriptions
     ]);
 
     const googleClassCPC = releventBiblioGoogleData.classifications?.map(map => map.leafCode).join(', ');
@@ -881,7 +875,7 @@ const MappingProjectCreation = () => {
         }
     };
 
-    const relatedApiData = usePatentData(relatedData, "related");
+    // const relatedData = usePatentData(relatedData, "related");
 
     useEffect(() => {
         const isAnyMissing = [
@@ -890,18 +884,18 @@ const MappingProjectCreation = () => {
             // relatedFamilyData,
             // memoPubDate,
 
-            relatedApiData.relatedPublicationUrl,
-            relatedApiData.relatedTitle,
-            relatedApiData.relatedAssignee,
-            relatedApiData.relatedInventor,
-            relatedApiData.relatedPublicationDate,
-            relatedApiData.relatedPriorityDate,
-            relatedApiData.relatedFamilyMembers,
+            relatedData.relatedPublicationUrl,
+            relatedData.relatedTitle,
+            relatedData.relatedAssignee,
+            relatedData.relatedInventor,
+            relatedData.relatedPublicationDate,
+            relatedData.relatedPriorityDate,
+            relatedData.relatedFamilyMembers,
 
             // applicantNames,
             // aplDate,
             // priorityDates,
-            // classificationsSymbol,
+            // classData,
             // abstractData,
             // filteredDescriptions
         ].some(
@@ -925,13 +919,13 @@ const MappingProjectCreation = () => {
         }
     }, [
 
-        relatedApiData.relatedPublicationUrl,
-        relatedApiData.relatedTitle,
-        relatedApiData.relatedAssignee,
-        relatedApiData.relatedInventor,
-        relatedApiData.relatedPublicationDate,
-        relatedApiData.relatedPriorityDate,
-        relatedApiData.relatedFamilyMembers,
+        relatedData.relatedPublicationUrl,
+        relatedData.relatedTitle,
+        relatedData.relatedAssignee,
+        relatedData.relatedInventor,
+        relatedData.relatedPublicationDate,
+        relatedData.relatedPriorityDate,
+        relatedData.relatedFamilyMembers,
 
 
 
@@ -944,7 +938,7 @@ const MappingProjectCreation = () => {
         // applicantNames,
         // aplDate,
         // priorityDates,
-        // classificationsSymbol,
+        // classData,
         // abstractData,
         // filteredDescriptions
     ]);
@@ -955,10 +949,10 @@ const MappingProjectCreation = () => {
             ([key, value]) => key === "patentNumber" || value === ""
         );
 
-        const cpcArray = cpcClass.split(",").map(item => item.trim()).filter(Boolean);
-        const ipcArray = ipcClass.split(",").map(item => item.trim()).filter(Boolean);
+        const cpcArray = data?.cpcClass?.split(",").map(item => item.trim()).filter(Boolean);
+        const ipcArray = data?.ipcClass?.split(",").map(item => item.trim()).filter(Boolean);
 
-        const filteredCPC = cpcArray.filter(cpc => !ipcArray.includes(cpc))?.join(', ');
+        const filteredCPC = cpcArray?.filter(cpc => !ipcArray.includes(cpc))?.join(', ');
 
         if (
             (data?.patentNumber || releventBiblioGoogleData?.patentNumber) &&
@@ -970,62 +964,56 @@ const MappingProjectCreation = () => {
                 patentNumber: relevantForm.patentNumber.trim(),
 
                 publicationUrl:
-                    publicationUrl ||
+                    data.publicationUrl ||
                     releventBiblioGoogleData?.pageUrl ||
                     "",
                 googlePublicationUrl:
-                    googlePublicationUrl ||
+                    data.googlePublicationUrl ||
                     releventBiblioGoogleData?.pageUrl ||
                     "",
 
                 title:
-                    title ||
+                    data.title ||
                     releventBiblioGoogleData?.title?.trim() ||
                     "",
 
                 abstract:
-                    abstractData?.trim() ||
+                    data.abstractData?.trim() ||
                     releventBiblioGoogleData?.abstract?.trim() ||
                     "",
 
                 filingDate:
-                    aplDate ||
+                    data.aplDate ||
                     releventBiblioGoogleData?.applicationDate ||
                     "",
 
                 grantDate:
-                    pubDate ||
+                    data.pubDate ||
                     releventBiblioGoogleData?.publicationDate ||
                     "",
 
                 priorityDate:
-                    priorityDates ||
+                    data.priorityDates ||
                     releventBiblioGoogleData?.priorityDate ||
                     "",
 
-                assignee: (applicantNames ||
+                assignee: (data.applicantNames ||
                     releventBiblioGoogleData?.assignees ||
                     "")
                     .split(",")
                     .map(a => a.trim())
                     .filter(Boolean),
 
-                inventors: typeof (inventorNames || releventBiblioGoogleData?.inventors) === "string"
-                    ? (inventorNames || releventBiblioGoogleData?.inventors)
-                        .split(";")
+                inventors: typeof (data.inventorNames || releventBiblioGoogleData?.inventors) === "string"
+                    ? (data.inventorNames || releventBiblioGoogleData?.inventors)
+                        .split(",")
                         .map(i => i.trim())
                         .filter(Boolean)
+                        .join("; ")
                     : [],
 
-                classifications: (classificationsSymbol ||
-                    googleClassCPC ||
-                    "")
-                    .split(",")
-                    .map(c => c.trim())
-                    .filter(Boolean),
-
                 ipcClassifications: (
-                    ipcClass ||
+                    data?.cpcClass ||
                     googleClassCPC ||
                     "")
                     .split(",")
@@ -1040,17 +1028,18 @@ const MappingProjectCreation = () => {
                     .map(c => c.trim())
                     .filter(Boolean),
 
-                usClassification: (classData?.US_Classification ||
+                usClassification: (data?.classData?.US_Classification ||
                     releventBiblioGoogleData?.usClassification ||
                     "")
                     .split(",")
                     .map(u => u.trim())
                     .filter(Boolean),
 
-                familyMembers: (familyMemData || "")
-                    .split(",")
+                familyMembers: (data?.familyMemData || [])
+                    .map(f => f.familyPatent)
+                    .filter(Boolean)
                     .map(f => f.trim())
-                    .filter(Boolean),
+                    .join("; "),
 
                 analystComments: relevantForm.analystComments || "",
                 relevantExcerpts: relevantForm.relevantExcerpts || ""
@@ -1060,6 +1049,63 @@ const MappingProjectCreation = () => {
         }
     }, [data, releventBiblioGoogleData]);
 
+
+    useEffect(() => {
+        const allFieldsExceptPatentEmpty = Object.entries(relatedForm).every(
+            ([key, value]) => key === "publicationNumber" || value === ""
+        );
+
+        if (
+            (relatedData?.publicationNumber || releventBiblioGoogleData?.publicationNumber) &&
+            relatedForm.publicationNumber && allFieldsExceptPatentEmpty
+        ) {
+            const combinedForm = {
+                publicationNumber: relatedData.publicationNumber,
+
+                relatedPublicationUrl:
+                    relatedData.relatedPublicationUrl ||
+                    relatedBiblioGoogleData?.pageUrl ||
+                    "",
+
+                relatedTitle:
+                    relatedData.relatedTitle ||
+                    relatedBiblioGoogleData?.title?.trim() ||
+                    "",
+
+                relatedPublicationDate:
+                    relatedData.relatedPublicationDate ||
+                    relatedBiblioGoogleData?.publicationDate ||
+                    "",
+
+                relatedAssignee: (relatedData.relatedAssignee ||
+                    relatedBiblioGoogleData?.assignees ||
+                    ""
+                )
+                    .split(",")
+                    .map(a => a.trim())
+                    .filter(Boolean),
+
+                relatedInventor: (relatedData.relatedInventor ||
+                    relatedBiblioGoogleData?.inventors ||
+                    "")
+                    .split(";")
+                    .map(i => i.trim())
+                    .filter(Boolean),
+
+
+                relatedFamilyMembers: (relatedData.relatedFamilyMembers || "")
+                    .map(f => f.familyPatent.trim())
+                    .filter(Boolean)
+                    .join("; "),
+
+                relatedPriorityDate: (relatedData.relatedPriorityDate ||
+                    relatedBiblioGoogleData.priorityDate || ""
+                )
+            };
+
+            setRelatedForm(combinedForm);
+        }
+    }, [relatedData, relatedBiblioGoogleData]);
 
 
     const handleRelevantSubmit = async (e) => {
@@ -1148,62 +1194,6 @@ const MappingProjectCreation = () => {
     };
 
 
-    useEffect(() => {
-        const allFieldsExceptPatentEmpty = Object.entries(relatedForm).every(
-            ([key, value]) => key === "publicationNumber" || value === ""
-        );
-
-        if (
-            (relatedData?.patentNumber || releventBiblioGoogleData?.patentNumber) &&
-            relatedForm.publicationNumber && allFieldsExceptPatentEmpty
-        ) {
-            const combinedForm = {
-                publicationNumber: relatedData.patentNumber.trim(),
-
-                relatedPublicationUrl:
-                    relatedApiData.relatedPublicationUrl ||
-                    relatedBiblioGoogleData?.pageUrl ||
-                    "",
-
-                relatedTitle:
-                    relatedApiData.relatedTitle ||
-                    relatedBiblioGoogleData?.title?.trim() ||
-                    "",
-
-                relatedPublicationDate:
-                    relatedApiData.relatedPublicationDate ||
-                    relatedBiblioGoogleData?.publicationDate ||
-                    "",
-
-                relatedAssignee: (relatedApiData.relatedAssignee ||
-                    relatedBiblioGoogleData?.assignees ||
-                    ""
-                )
-                    .split(",")
-                    .map(a => a.trim())
-                    .filter(Boolean),
-
-                relatedInventor: (relatedApiData.relatedInventor ||
-                    relatedBiblioGoogleData?.inventors ||
-                    "")
-                    .split(";")
-                    .map(i => i.trim())
-                    .filter(Boolean),
-
-
-                relatedFamilyMembers: (relatedApiData.relatedFamilyMembers || "")
-                    .split(",")
-                    .map(f => f.trim())
-                    .filter(Boolean),
-                relatedPriorityDate: (relatedApiData.relatedPriorityDate ||
-                    relatedBiblioGoogleData.priorityDate || ""
-                )
-            };
-
-            setRelatedForm(combinedForm);
-        }
-    }, [relatedData, relatedBiblioGoogleData]);
-
 
     const handleRelatedSubmit = async (e) => {
         e.preventDefault();
@@ -1236,7 +1226,7 @@ const MappingProjectCreation = () => {
     const handleReportDownload = async () => {
         try {
             const getProjectValue = await fetchProjectById(id);
-            console.log('getProjectValue', getProjectValue)
+            console.log('getProjectValue', getProjectValue);
             handleWordReportDownload({
                 introduction: getProjectValue.stages.introduction[0] || [],
                 relevantReferences: getProjectValue.stages.relevantReferences.publicationDetails || [],
@@ -1520,6 +1510,13 @@ const MappingProjectCreation = () => {
 
                                                         selectedRows={selectedRows}
                                                         setSelectedRows={setSelectedRows}
+
+                                                        nplPatentFormData={nplPatentFormData}
+                                                        handleNplChange={handleNplChange}
+                                                        handleNplSubmit={handleNplSubmit}
+                                                        nonPatentFormData={nonPatentFormData}
+                                                        setNplPatentFormData={setNplPatentFormData}
+                                                        onNplDeleteClick={onNplDeleteClick}
                                                     />
                                                 </TabPane>
 

@@ -1,26 +1,12 @@
 const axios = require("axios");
 
-const api = axios.create({
-    baseURL: process.env.LINGVA_BASE_URL,
-    timeout: 5000,
-    headers: {
-        "User-Agent": "Lingva-Client/1.0",
-    },
-});
-
 async function lingaTranslateText(text) {
-    if (!text || typeof text !== "string") {
-        throw new Error("Text must be a non-empty string");
-    }
-
     try {
-        const url = `/auto/en/${encodeURIComponent(text)}`;
-        const { data } = await api.get(url);
+        const url = `https://lingva.ml/api/v1/auto/en/${encodeURIComponent(text)}`;
+        const response = await axios.get(url);
 
-        return {
-            translation: data.translation,
-            detectedSource: data.info?.detectedSource || "unknown",
-        };
+        const translated = response.data?.translation;
+        return translated && translated.trim() !== "" ? translated : text;
     } catch (error) {
         if (error.response) {
             console.error("Lingva API error:", error.response.status, error.response.data);
@@ -29,9 +15,10 @@ async function lingaTranslateText(text) {
         } else {
             console.error("Lingva API request error:", error.message);
         }
-        throw new Error("Failed to fetch translation");
+        return text;
     }
 }
+
 
 module.exports = { lingaTranslateText };
 

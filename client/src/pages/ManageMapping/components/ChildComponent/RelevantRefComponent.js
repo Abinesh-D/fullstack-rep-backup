@@ -148,11 +148,6 @@ const RelevantRefComponent = ({
     //     , [relevantFormData]);
     const [selectedRows, setSelectedRows] = useState([]);
 
-    const handleDeleteSelected = () => {
-        console.log("Deleting selected rows:", selectedRows);
-    };
-
-
     const columns = useMemo(
         () =>
             generateTableColumns({
@@ -164,7 +159,7 @@ const RelevantRefComponent = ({
                 ],
                 includeSerialNo: true,
                 includeActions: true,
-                onDeleteClick: (row) => console.log("Delete single:", row),
+                onDeleteClick: onDeleteClick,
                 selectedRows,
                 setSelectedRows,
                 allRows: relevantFormData,
@@ -185,6 +180,181 @@ const RelevantRefComponent = ({
             deleteTooltip: "Delete Non-Patent",
         })
         , [nonPatentFormData]);
+
+
+    const handleClearInputFields = () => {
+        resetRelevantForm();
+        dispatch(setRelevantApiTrue(false));
+    };
+
+
+
+    return (
+        <>
+            <>
+                <ToastContainer
+                    position="top-right"
+                    autoClose={3000}
+                    hideProgressBar={false}
+                    newestOnTop
+                    closeOnClick
+                    rtl={false}
+                    pauseOnFocusLoss
+                    draggable
+                    pauseOnHover
+                />
+            </>
+            <Row className="align-items-center mb-4">
+                <Col className="d-flex align-items-center">
+                    <h4 className="fw-bold m-0">Relevant References</h4>
+                </Col>
+                <Col className="d-flex justify-content-end">
+                    <Button color="warning" onClick={() => setFeedbackOpen(true)} className="d-flex align-items-center">
+                        💬 Feedback
+                    </Button>
+                </Col>
+            </Row>
+
+            {
+                <FeedbackModal
+                    isOpen={feedbackOpen}
+                    toggle={() => setFeedbackOpen(!feedbackOpen)}
+                />
+            }
+
+
+
+            {loading ? (
+                <div className="blur-loading-overlay text-center mt-4">
+                    <Spinner color="primary" />
+                    <p className="mt-2 text-primary">Loading Relevant References...</p>
+                </div>
+            ) : (
+                <PatentBibliographicForm
+                    formState={relevantForm}
+                    onInputChange={handleRelevatFormInputChange}
+                    onSubmit={handleRelevantSubmit}
+                    onClear={handleClearInputFields}
+                    onFetch={handleFetchPatentData}
+                    showSaved={relevantRefSaved}
+                    handleValidationError={setErrorValidation}
+                    relevantApiTrue={patentSlice.relevantApiTrue}
+                />
+               
+            )}
+
+
+
+
+            {!isEmptyArray(relevantFormData) && (
+                <TableContainer
+                    columns={columns}
+                    data={relevantFormData || []}
+                    isPagination={true}
+                    isCustomPageSize={true}
+                    SearchPlaceholder="Search..."
+                    tableClass="align-middle table-nowrap table-hover dt-responsive nowrap w-100 dataTable no-footer dtr-inline"
+                    theadClass="table-light"
+                    paginationWrapper="dataTables_paginate paging_simple_numbers pagination-rounded"
+                    pagination="pagination"
+                />
+
+            )}
+
+
+            <NonPatentLiteratureForm
+                nplPatentFormData={nplPatentFormData}
+                handleNplChange={handleNplChange}
+                handleNplSubmit={handleNplSubmit}
+                nonPatentFormData={nonPatentFormData}
+                nplColumns={nplColumns}
+                setNplPatentFormData={setNplPatentFormData} 
+                // relevantExcerpts={relevantExcerpts}
+            />
+
+
+            <>
+                <Row style={{
+                    backgroundColor: "#fff3cd",
+                    border: "1px solid #ffeeba", borderRadius: "8px", padding: "0.5rem",
+                    alignItems: "center",
+                }}
+                >
+                    <Col lg="2" className="mt-3 mt-lg-0">
+                        <Button color="secondary" onClick={toggleCanvas}>
+                            Reorder Now
+                        </Button>
+                    </Col>
+                    <Col lg="10">
+                        <div style={{ flex: '1 1 auto', color: '#dc3545', fontWeight: 500 }}>
+                            ⚠️ Don't forget to <strong>Reorder</strong> — otherwise your <strong>Relevant</strong> and <strong>NPL</strong>
+                            reference will not appear in the generated Word report.
+                        </div>
+                    </Col>
+                </Row>
+            </>
+
+            <RelevantReferenceOffCanvas
+                isOpen={isCanvasOpen}
+                toggle={toggleCanvas}
+                data={tableData}
+                setTableData={setTableData}
+                columns={relevantAndNplColumns}
+                handleUpdate={handleRelevantAndNplCombinedSubmit}
+            />
+
+            {patentSlice.singleProject.projectTypeId === "0001" &&
+                <>
+                    <h4 className="fw-bold mb-4 mt-4">Overall Summary of Search and Prior Arts</h4>
+                    <Row>
+                        <Col lg="12">
+                            <div className="mb-3">
+                                <Label for="overall-summary">Overall Summary</Label>
+                                <textarea
+                                    id="overall-summary"
+                                    className="form-control"
+                                    rows="3"
+                                    placeholder="Enter Overall Summary"
+                                    value={overallSummary}
+                                    onChange={(e) => setOverallSummary(e.target.value)}
+                                />
+                            </div>
+                        </Col>
+                    </Row>
+                    <Row>
+                        <Col lg="2">
+                            <div className="mb-3">
+                                <Button onClick={handleOverAllSummarySave} color="warning" className="w-100">
+                                    Save Summary
+                                </Button>
+                            </div>
+                        </Col>
+                        <Col className="">
+                            <SavedSuccess show={summarySaved} message="Summary Saved!" />
+                        </Col>
+                    </Row>
+                </>
+            }
+        </>
+    );
+};
+
+export default RelevantRefComponent;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -320,65 +490,45 @@ const RelevantRefComponent = ({
 
 
 
-    const handleClearInputFields = () => {
-        resetRelevantForm();
-        dispatch(setRelevantApiTrue(false));
-    };
 
 
 
-    return (
-        <>
-            <>
-                <ToastContainer
-                    position="top-right"
-                    autoClose={3000}
-                    hideProgressBar={false}
-                    newestOnTop
-                    closeOnClick
-                    rtl={false}
-                    pauseOnFocusLoss
-                    draggable
-                    pauseOnHover
-                />
-            </>
-            <Row className="align-items-center mb-4">
-                <Col className="d-flex align-items-center">
-                    <h4 className="fw-bold m-0">Relevant References</h4>
-                </Col>
-                <Col className="d-flex justify-content-end">
-                    <Button color="warning" onClick={() => setFeedbackOpen(true)} className="d-flex align-items-center">
-                        💬 Feedback
-                    </Button>
-                </Col>
-            </Row>
-
-            {
-                <FeedbackModal
-                    isOpen={feedbackOpen}
-                    toggle={() => setFeedbackOpen(!feedbackOpen)}
-                />
+            {/* {patentSlice.singleProject.projectTypeId === "0002" && (
+                <NonPatentLiteratureForm
+                    nplPatentFormData={nplPatentFormData}
+                    handleNplChange={handleNplChange}
+                    handleNplSubmit={handleNplSubmit}
+                    nonPatentFormData={nonPatentFormData}
+                    nplColumns={nplColumns}
+                />)
             }
 
+            {(patentSlice.singleProject.projectTypeId === "0002") && (
+
+                <>
+                    <Row style={{
+                            backgroundColor: "#fff3cd",
+                            border: "1px solid #ffeeba",borderRadius: "8px",padding: "0.5rem",
+                            alignItems: "center",
+                        }}
+                    >   
+                        <Col lg="2" className="mt-3 mt-lg-0">
+                            <Button color="secondary" onClick={toggleCanvas}>
+                                Reorder Now
+                            </Button>
+                        </Col>
+                        <Col lg="10">
+                            <div style={{ flex: '1 1 auto', color: '#dc3545', fontWeight: 500 }}>
+                                ⚠️ Don't forget to <strong>Reorder</strong> — otherwise your <strong>Relevant</strong> and <strong>NPL</strong> 
+                                reference will not appear in the generated Word report.
+                            </div>
+                        </Col>
+                    </Row>
+                </>
+            )} */}
 
 
-            {loading ? (
-                <div className="blur-loading-overlay text-center mt-4">
-                    <Spinner color="primary" />
-                    <p className="mt-2 text-primary">Loading Relevant References...</p>
-                </div>
-            ) : (
-                <PatentBibliographicForm
-                    formState={relevantForm}
-                    onInputChange={handleRelevatFormInputChange}
-                    onSubmit={handleRelevantSubmit}
-                    onClear={handleClearInputFields}
-                    onFetch={handleFetchPatentData}
-                    showSaved={relevantRefSaved}
-                    handleValidationError={setErrorValidation}
-                    relevantApiTrue={patentSlice.relevantApiTrue}
-                />
-                // <Form onSubmit={handleRelevantSubmit}>
+ // <Form onSubmit={handleRelevantSubmit}>
                 //     <Row>
                 //         <p className="text-info">
                 //             ℹ️ Enter the <strong>Patent Number</strong> and click <strong>Submit</strong> to auto fetch bibliographic info.
@@ -616,137 +766,3 @@ const RelevantRefComponent = ({
                 //         </Col>
                 //     </Row>
                 // </Form>
-            )}
-
-
-
-
-            {!isEmptyArray(relevantFormData) && (
-                <TableContainer
-                    columns={columns}
-                    data={relevantFormData || []}
-                    isPagination={true}
-                    isCustomPageSize={true}
-                    SearchPlaceholder="Search..."
-                    tableClass="align-middle table-nowrap table-hover dt-responsive nowrap w-100 dataTable no-footer dtr-inline"
-                    theadClass="table-light"
-                    paginationWrapper="dataTables_paginate paging_simple_numbers pagination-rounded"
-                    pagination="pagination"
-                />
-
-            )}
-
-
-            {/* {patentSlice.singleProject.projectTypeId === "0002" && (
-                <NonPatentLiteratureForm
-                    nplPatentFormData={nplPatentFormData}
-                    handleNplChange={handleNplChange}
-                    handleNplSubmit={handleNplSubmit}
-                    nonPatentFormData={nonPatentFormData}
-                    nplColumns={nplColumns}
-                />)
-            }
-
-            {(patentSlice.singleProject.projectTypeId === "0002") && (
-
-                <>
-                    <Row style={{
-                            backgroundColor: "#fff3cd",
-                            border: "1px solid #ffeeba",borderRadius: "8px",padding: "0.5rem",
-                            alignItems: "center",
-                        }}
-                    >   
-                        <Col lg="2" className="mt-3 mt-lg-0">
-                            <Button color="secondary" onClick={toggleCanvas}>
-                                Reorder Now
-                            </Button>
-                        </Col>
-                        <Col lg="10">
-                            <div style={{ flex: '1 1 auto', color: '#dc3545', fontWeight: 500 }}>
-                                ⚠️ Don't forget to <strong>Reorder</strong> — otherwise your <strong>Relevant</strong> and <strong>NPL</strong> 
-                                reference will not appear in the generated Word report.
-                            </div>
-                        </Col>
-                    </Row>
-                </>
-            )} */}
-
-
-            <NonPatentLiteratureForm
-                nplPatentFormData={nplPatentFormData}
-                handleNplChange={handleNplChange}
-                handleNplSubmit={handleNplSubmit}
-                nonPatentFormData={nonPatentFormData}
-                nplColumns={nplColumns}
-                setNplPatentFormData={setNplPatentFormData} 
-                // relevantExcerpts={relevantExcerpts}
-            />
-
-
-            <>
-                <Row style={{
-                    backgroundColor: "#fff3cd",
-                    border: "1px solid #ffeeba", borderRadius: "8px", padding: "0.5rem",
-                    alignItems: "center",
-                }}
-                >
-                    <Col lg="2" className="mt-3 mt-lg-0">
-                        <Button color="secondary" onClick={toggleCanvas}>
-                            Reorder Now
-                        </Button>
-                    </Col>
-                    <Col lg="10">
-                        <div style={{ flex: '1 1 auto', color: '#dc3545', fontWeight: 500 }}>
-                            ⚠️ Don't forget to <strong>Reorder</strong> — otherwise your <strong>Relevant</strong> and <strong>NPL</strong>
-                            reference will not appear in the generated Word report.
-                        </div>
-                    </Col>
-                </Row>
-            </>
-
-            <RelevantReferenceOffCanvas
-                isOpen={isCanvasOpen}
-                toggle={toggleCanvas}
-                data={tableData}
-                setTableData={setTableData}
-                columns={relevantAndNplColumns}
-                handleUpdate={handleRelevantAndNplCombinedSubmit}
-            />
-
-            {patentSlice.singleProject.projectTypeId === "0001" &&
-                <>
-                    <h4 className="fw-bold mb-4 mt-4">Overall Summary of Search and Prior Arts</h4>
-                    <Row>
-                        <Col lg="12">
-                            <div className="mb-3">
-                                <Label for="overall-summary">Overall Summary</Label>
-                                <textarea
-                                    id="overall-summary"
-                                    className="form-control"
-                                    rows="3"
-                                    placeholder="Enter Overall Summary"
-                                    value={overallSummary}
-                                    onChange={(e) => setOverallSummary(e.target.value)}
-                                />
-                            </div>
-                        </Col>
-                    </Row>
-                    <Row>
-                        <Col lg="2">
-                            <div className="mb-3">
-                                <Button onClick={handleOverAllSummarySave} color="warning" className="w-100">
-                                    Save Summary
-                                </Button>
-                            </div>
-                        </Col>
-                        <Col className="">
-                            <SavedSuccess show={summarySaved} message="Summary Saved!" />
-                        </Col>
-                    </Row>
-                </>
-            }
-        </>
-    );
-};
-
-export default RelevantRefComponent;

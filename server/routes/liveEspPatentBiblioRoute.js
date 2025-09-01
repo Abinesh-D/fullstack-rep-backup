@@ -4,7 +4,7 @@ const { getPatentData } = require("../utils/patentService");
 
 router.get("/:patentNumber", async (req, res) => {
   const { patentNumber } = req.params;
-  const { type = "relevant" } = req.query;
+  const { type } = req.query;
 
   if (!patentNumber) {
     return res.status(400).json({ error: "Patent number is required" });

@@ -4,6 +4,7 @@ const xml2js = require("xml2js");
 const {
     // getEnglishAbstract,
     // convertDescriptionToKeyValue,
+    getIPCClasses,
     getPriorityDates,
     extractIPCCode,
     mapFamilyMemberData,
@@ -12,6 +13,7 @@ const {
     getPublicationDate,
     getInventorNames,
     getApplicantNames,
+    getExtractIPCCode,
 } = require("./patentUtils");
 
 require("dotenv").config();
@@ -77,7 +79,7 @@ function formatPatentNumberWithDot(patentNumber) {
     return formatted;
 }
 
-async function getPatentData(patentNumber, type = "relevant") {
+async function getPatentData(patentNumber, type) {
     const formattedNumber = formatPatentNumberWithDot(patentNumber);
     const token = await getAccessToken();
 
@@ -112,17 +114,21 @@ async function getPatentData(patentNumber, type = "relevant") {
     // const priorityDates = getPriorityDates(bibliographicData);
     const classifications = extractIPCCode(bibliographicData);
 
-    const inventorNames = getInventorNames(bibliographicData);
-    const applicantNames = getApplicantNames(bibliographicData);
+    const classificationsIPC = getIPCClasses(bibliographicData);
 
-    const familyMemData = mapFamilyMemberData(familyData);
-    // const formattedDescriptions = convertDescriptionToKeyValue(descriptionText);
+    const inventorNames = await getInventorNames(bibliographicData);
 
-    // Build publication URLs
-    const publicationUrl = `https://worldwide.espacenet.com/patent/search?q=${formattedNumber}`;
-    const googlePublicationUrl = `https://patents.google.com/patent/${formattedNumber}`;
+    const applicantNames = await getApplicantNames(bibliographicData);
 
-    const title = inventionTitle(bibliographicData);
+    // const familyMEmbersData = mapFamilyMemberData(familyData);
+
+    const familyMemData = await mapFamilyMemberData(familyData, patentNumber);
+
+    const publicationUrl = `https://worldwide.espacenet.com/patent/search?q=${patentNumber}`;
+    const googlePublicationUrl = `https://patents.google.com/patent/${patentNumber}`;
+
+    const title = await inventionTitle(bibliographicData);
+
     const priorityDates = getPriorityDates(bibliographicData);
     const applicationDate = getApplicationDate(bibliographicData);
     const publicationDate = getPublicationDate(bibliographicData);
@@ -141,7 +147,8 @@ async function getPatentData(patentNumber, type = "relevant") {
             pubDate: publicationDate,
             classData: classifications,
             cpcClass: classifications.cpc,
-            ipcClass: classifications.ipcClass,
+            ipcClass: classificationsIPC,
+            bibliographicData,
             // formattedDescriptions,
             // abstractData,
             // familyData: familyData,
@@ -149,6 +156,7 @@ async function getPatentData(patentNumber, type = "relevant") {
         };
     } else if (type === "related") {
         return {
+            publicationNumber: patentNumber,
             relatedTitle: title,
             relatedInventor: inventorNames,
             relatedAssignee: applicantNames,
@@ -156,6 +164,7 @@ async function getPatentData(patentNumber, type = "relevant") {
             relatedFamilyMembers: familyMemData,
             relatedPublicationUrl: publicationUrl,
             relatedPublicationDate: publicationDate,
+            bibliographicData,  
 
         };
     }

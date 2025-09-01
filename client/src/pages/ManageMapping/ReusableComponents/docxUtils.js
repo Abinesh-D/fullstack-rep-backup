@@ -268,14 +268,32 @@ export const createSingleColumnTableRows = (rows) => {
 };
 
 
+
 /* ---------------------------------- Family Member Utility ---------------------------------- */
 
+
+
+
 export const getFamilyMembersParagraphChildren = (data) => {
-    const familyMembers = data.FamilyMembers || [];
+    let familyMembers = data?.FamilyMembers || [];
+
+    if (Array.isArray(familyMembers)) {
+        familyMembers = familyMembers.flatMap(item =>
+            typeof item === "string"
+                ? item.split(/[;,]/).map(m => m.trim()).filter(Boolean)
+                : []
+        );
+    } else if (typeof familyMembers === "string") {
+        familyMembers = familyMembers
+            .split(/[;,]/)
+            .map((m) => m.trim())
+            .filter(Boolean);
+    }
+
     const displayLimit = 3;
     const totalCount = familyMembers.length;
 
-    const displayedMembers = familyMembers.slice(0, displayLimit).join(", ");
+    const displayedMembers = familyMembers.slice(0, displayLimit).join("; ");
     const remainingCount = totalCount - displayLimit;
     const remainingText = remainingCount > 0 ? `+${remainingCount} more` : null;
 
@@ -287,9 +305,9 @@ export const getFamilyMembersParagraphChildren = (data) => {
     ];
 
     if (remainingText) {
-         children.push(
+        children.push(
             new TextRun({
-                text: ", ",
+                text: "; ",
                 ...textStyle.arial10,
             })
         );
@@ -298,7 +316,7 @@ export const getFamilyMembersParagraphChildren = (data) => {
                 link: data.hyperLink,
                 children: [
                     new TextRun({
-                        text: ` ${sanitizeText(remainingText)}`,
+                        text: sanitizeText(remainingText),
                         ...textStyle.arial10BoldBlue,
                         underline: true,
                     }),
@@ -309,6 +327,52 @@ export const getFamilyMembersParagraphChildren = (data) => {
 
     return children;
 };
+
+
+
+
+
+
+// export const getFamilyMembersParagraphChildren = (data) => {
+//     const familyMembers = data?.FamilyMembers || [];
+//     const displayLimit = 3;
+//     const totalCount = familyMembers.length;
+//     console.log('totalCount', totalCount);
+//     console.log('data?.FamilyMembers', data?.FamilyMembers)
+//     const displayedMembers = familyMembers.slice(0, displayLimit).join("; ");
+//     const remainingCount = totalCount - displayLimit;
+//     const remainingText = remainingCount > 0 ? `+${remainingCount} more` : null;
+
+//     const children = [
+//         new TextRun({
+//             text: sanitizeText(displayedMembers || "N/A"),
+//             ...textStyle.arial10,
+//         }),
+//     ];
+
+//     if (remainingText) {
+//          children.push(
+//             new TextRun({
+//                 text: ", ",
+//                 ...textStyle.arial10,
+//             })
+//         );
+//         children.push(
+//             new ExternalHyperlink({
+//                 link: data.hyperLink,
+//                 children: [
+//                     new TextRun({
+//                         text: ` ${sanitizeText(remainingText)}`,
+//                         ...textStyle.arial10BoldBlue,
+//                         underline: true,
+//                     }),
+//                 ],
+//             })
+//         );
+//     }
+
+//     return children;
+// };
 
 /* ---------------------------------- TOC Configurations ---------------------------------- */
 export const getTocConfig = (relevantReferences = []) => [

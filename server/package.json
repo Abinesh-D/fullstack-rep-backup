@@ -16,7 +16,7 @@
     "@google-cloud/translate": "^9.0.1",
     "@vitalets/google-translate-api": "^9.2.1",
     "apollo-server-express": "^3.13.0",
-    "axios": "^1.8.4",
+    "axios": "^1.11.0",
     "axios-retry": "^4.5.0",
     "cheerio": "^1.0.0",
     "cloudinary": "^2.7.0",
