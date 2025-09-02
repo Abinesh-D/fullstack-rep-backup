@@ -7,7 +7,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { setRelevantApiTrue } from "../../../ManageEmployees/ManageBibliography/BibliographySLice/BibliographySlice";
 import FeedbackModal from "../../ReusableComponents/FeedbackModal";
 import NonPatentLiteratureForm from "./NonPatentLiteratureForm";
-import RelevantReferenceOffCanvas from '../../../../components/Common/commonReport/RelevantReferenceOffCanvas';
+import CustomOffCanvas from '../../../../components/Common/commonReport/CustomOffCanvas';
 import axios from "axios";
 import SavedSuccess from "../../../../components/Common/SavedSuccess";
 import PatentBibliographicForm from "./PatentBibliographicForm";
@@ -51,6 +51,8 @@ const RelevantRefComponent = ({
 
     const [feedbackOpen, setFeedbackOpen] = useState(false);
     const [tableData, setTableData] = useState([]);
+    console.log('tableData', tableData)
+
     const [isCanvasOpen, setIsCanvasOpen] = useState(false);
 
     const toggleCanvas = () => setIsCanvasOpen(!isCanvasOpen);
@@ -61,7 +63,7 @@ const RelevantRefComponent = ({
     const nonPatentModified = nonPatentFormData.map((item) => ({
         patentNumber: item.nplTitle,
         publicationUrl: item.nplPublicationUrl,
-        source: item.url,
+        assignee: item.url,
         analystComments: item.comments,
         filingDate: item.nplPublicationDate,
         _id: item._id,
@@ -124,8 +126,7 @@ const RelevantRefComponent = ({
             columnsConfig: [
                 { header: "Publication Number / Title", accessorKey: "patentNumber" },
                 { header: "Publication Date", accessorKey: "filingDate" },
-                { header: "Grant Date", accessorKey: "grantDate" },
-                { header: "Priority Date", accessorKey: "priorityDate" },
+                { header: "Author(s) / Assignee(s)", accessorKey: "assignee" },
             ],
             includeSerialNo: true,
             includeActions: false,
@@ -172,6 +173,7 @@ const RelevantRefComponent = ({
         generateTableColumns({
             columnsConfig: [
                 { header: "Title / Product Name", accessorKey: "nplTitle" },
+                { header: "Source / Author(s)", accessorKey: "url" },
                 { header: "Publication Date", accessorKey: "nplPublicationDate" },
             ],
             includeSerialNo: true,
@@ -268,7 +270,7 @@ const RelevantRefComponent = ({
                 handleNplSubmit={handleNplSubmit}
                 nonPatentFormData={nonPatentFormData}
                 nplColumns={nplColumns}
-                setNplPatentFormData={setNplPatentFormData} 
+                setNplPatentFormData={setNplPatentFormData}
                 // relevantExcerpts={relevantExcerpts}
             />
 
@@ -294,14 +296,35 @@ const RelevantRefComponent = ({
                 </Row>
             </>
 
-            <RelevantReferenceOffCanvas
+            {/* <CustomOffCanvas
                 isOpen={isCanvasOpen}
                 toggle={toggleCanvas}
                 data={tableData}
                 setTableData={setTableData}
                 columns={relevantAndNplColumns}
                 handleUpdate={handleRelevantAndNplCombinedSubmit}
+            /> */}
+
+            <CustomOffCanvas
+                isOpen={isCanvasOpen}
+                toggle={toggleCanvas}
+                title="Relevant References & NPL"
+                subtitle={
+                    <>
+                        Reorder to assign roll numbers for <strong>Relevant and NPL References.</strong>
+                    </>
+                }
+                legendItems={[
+                    { label: "Relevant Reference", color: "#fafecf" },
+                    { label: "NPL Reference", color: "antiquewhite" },
+                    { label: "Dragging", color: "white" },
+                ]}
+                data={tableData}
+                columns={relevantAndNplColumns}
+                setTableData={setTableData}
+                handleUpdate={handleRelevantAndNplCombinedSubmit}
             />
+
 
             {patentSlice.singleProject.projectTypeId === "0001" &&
                 <>

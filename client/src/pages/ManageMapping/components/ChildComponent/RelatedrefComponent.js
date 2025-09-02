@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useRef } from "react";
 import { Row, Col, Button, Card, Nav, NavLink, NavItem, TabContent, TabPane, Label, Spinner } from "reactstrap";
 import TableContainer from "../../ReusableComponents/TableContainer";
 import { isEmptyArray } from "formik";
@@ -10,9 +10,13 @@ import classnames from "classnames";
 import RelatedReferenceForm from "./RelatedReferenceForm";
 import { computeFamId, mappedValue, mapRelatedData } from "../../../ManageBulkUpload/Components/BulkResponseMap";
 import { generateTableColumns } from "../../../../components/Common/commonReport/columnUtils";
-import axios from "axios";
-import NplCrossRef from "./NplCrossRef";
 import NonPatentLiteratureForm from "./NonPatentLiteratureForm";
+import axios from "axios"
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import CustomOffCanvas from "../../../../components/Common/commonReport/CustomOffCanvas";
+
+
 
 const RelatedRefComponent = ({
     relatedLoading,
@@ -28,16 +32,17 @@ const RelatedRefComponent = ({
     resetRelatedForm,
     setRelatedFormData,
 
-    selectedRows,
-    setSelectedRows,
+    // selectedRows,
+    // setSelectedRows,
 
-
-    nplPatentFormData,
-    handleNplChange,
+    nplPublicationFormData,
+    handleNplPublicationChange,
     handleNplSubmit,
-    nonPatentFormData,
-    setNplPatentFormData,
-    onNplDeleteClick,
+    nonPublicationFormData,
+    setNplPublicationFormData,
+    onNplPublicationDeleteClick,
+    relatedAndNplCombined,
+    onRelatedAndNplDelete,
 }) => {
 
     const id = sessionStorage.getItem("_id");
@@ -52,20 +57,115 @@ const RelatedRefComponent = ({
     const [submitLoading, setSubmitLoading] = useState(false);
     const [generateLoading, setGenerateLoading] = useState(false);
 
+    const [selectedRows, setSelectedRows] = useState([]);
 
 
-      const nplColumns = useMemo(() =>
+    const [tableData, setTableData] = useState([]);
+    console.log('tableData', tableData)
+    const [isCanvasOpen, setIsCanvasOpen] = useState(false);
+
+    const toggleCanvas = () => setIsCanvasOpen(!isCanvasOpen);
+
+    const prevRelatedRef = useRef([]);
+    const prevNonPatentRef = useRef([]);
+
+    const nonPatentModified = nonPublicationFormData.map((item) => ({
+        publicationNumber: item.nplTitle,
+        relatedPublicationUrl: item.nplPublicationUrl,
+        relatedAssignee: item.url,
+        relatedInventor: item.comments,
+        relatedPublicationDate: item.nplPublicationDate,
+        _id: item._id,
+        nplId: true,
+        relatedTitle: item.excerpts
+    }));
+
+    const combinedDataValue = useMemo(() => {
+        const currentCombined = [...relatedFormData, ...nonPatentModified];
+
+        const hasChanged = (
+            prevRelatedRef.current.length !== relatedFormData.length ||
+            prevNonPatentRef.current.length !== nonPatentModified.length ||
+            JSON.stringify(prevRelatedRef.current) !== JSON.stringify(relatedFormData) ||
+            JSON.stringify(prevNonPatentRef.current) !== JSON.stringify(nonPatentModified)
+        );
+
+        if (relatedAndNplCombined?.length > 0 && !hasChanged) {
+            return [...relatedAndNplCombined];
+        } else {
+            return currentCombined;
+        }
+    }, [relatedFormData, nonPublicationFormData, relatedAndNplCombined]);
+
+    useEffect(() => {
+        prevRelatedRef.current = relatedFormData;
+        prevNonPatentRef.current = nonPatentModified;
+    }, [relatedFormData, nonPublicationFormData]);
+
+    useEffect(() => {
+        setTableData(combinedDataValue);
+    }, [combinedDataValue]);
+
+
+
+
+    const handleRelatedAndNplCombinedSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            const response = await axios.post(
+                `http://localhost:8080/live/projectname/add-relevantandnpl-data/${patentSlice.singleProject._id}`,
+                { tableData },
+                { headers: { "Content-Type": "application/json" } }
+            );
+            if (response.status === 200) {
+                const updatedDetails = response.data.stages.relevantReferences.relevantAndNplCombined;
+                setTableData(updatedDetails);
+                toggleCanvas();
+                toast.success("Order Saved");
+            }
+
+        } catch (error) {
+            console.error("❌ Error saving publication detail:", error);
+        }
+    };
+
+
+
+
+
+    const nplColumns = useMemo(() =>
+        generateTableColumns({
+            columnsConfig: [
+                { header: "Title / Product Name", accessorKey: "nplTitle" },
+                { header: "Source / Author(s)", accessorKey: "url" },
+                { header: "Publication Date", accessorKey: "nplPublicationDate" },
+            ],
+            includeSerialNo: true,
+            includeActions: true,
+            onDeleteClick: onNplPublicationDeleteClick,
+            deleteTooltip: "Delete Non-Patent",
+        })
+        , [nonPublicationFormData]);
+
+
+    const columns = useMemo(
+        () =>
             generateTableColumns({
                 columnsConfig: [
-                    { header: "Title / Product Name", accessorKey: "nplTitle" },
-                    { header: "Publication Date", accessorKey: "nplPublicationDate" },
+                    { header: "Publication Number / Title", accessorKey: "publicationNumber" },
+                    { header: "Publication Date", accessorKey: "relatedPublicationDate" },
+                    { header: "Author(s) / Assignee(s)", accessorKey: "relatedAssignee" },
                 ],
                 includeSerialNo: true,
-                includeActions: true,
-                onDeleteClick: onNplDeleteClick,
-                deleteTooltip: "Delete Non-Patent",
-            })
-            , [nonPatentFormData]);
+                includeActions: false,
+                onDeleteClick: onRelatedAndNplDelete,
+                selectedRows,
+                setSelectedRows,
+                allRows: relatedFormData,
+            }),
+        [relatedAndNplCombined, selectedRows]
+    );
+
 
 
     useEffect(() => {
@@ -140,56 +240,6 @@ const RelatedRefComponent = ({
 
 
 
-    // const relatedColumns = useMemo(() => [
-    //     {
-    //         header: "S. No.",
-    //         accessorKey: "serial_number",
-    //         cell: ({ row }) => <span>{row.index + 1}</span>,
-    //         enableColumnFilter: false,
-    //         enableSorting: false,
-    //     },
-    //     {
-    //         header: "Publication Number",
-    //         accessorKey: "publicationNumber",
-    //         enableColumnFilter: false,
-    //         enableSorting: true,
-    //     },
-    //     {
-    //         header: "Priority Date",
-    //         accessorKey: "relatedPriorityDate",
-    //         enableColumnFilter: false,
-    //         enableSorting: true,
-    //     },
-    //     {
-    //         header: "Publication Date",
-    //         accessorKey: "relatedPublicationDate",
-    //         enableColumnFilter: false,
-    //         enableSorting: true,
-    //     },
-
-    //     {
-    //         header: "Actions",
-    //         cell: ({ row }) => {
-    //             const rowData = row.original;
-    //             return (
-    //                 <div className="d-flex justify-content-center align-items-center gap-3">
-    //                     <Link
-    //                         to="#"
-    //                         data-bs-toggle="tooltip"
-    //                         data-bs-placement="top"
-    //                         title="Delete Publication"
-    //                         onClick={() => onRelatedDelete(rowData)}
-    //                     >
-    //                         <i className="mdi mdi-delete text-danger font-size-18"></i>
-    //                     </Link>
-    //                 </div>
-    //             );
-    //         },
-    //     },
-    // ], [relatedFormData]);
-
-
-
     const bulkmappedValue = mappedValue(patentSlice.multiRelated, famId);
 
 
@@ -210,9 +260,20 @@ const RelatedRefComponent = ({
 
     return (
         <>
+            <>
+                <ToastContainer
+                    position="top-right"
+                    autoClose={3000}
+                    hideProgressBar={false}
+                    newestOnTop
+                    closeOnClick
+                    rtl={false}
+                    pauseOnFocusLoss
+                    draggable
+                    pauseOnHover
+                />
+            </>
 
-
-        
             <Row className="align-items-center mb-2">
                 <Col className="d-flex align-items-center">
                     <h4 className="fw-bold m-0">Related References</h4>
@@ -361,24 +422,6 @@ const RelatedRefComponent = ({
                     </Col>
                 </Row>
             </div>
-
-            {/* {
-                !isEmptyArray(relatedFormData) && (
-                    <TableContainer
-                        columns={relatedColumns}
-                        data={relatedFormData || []}
-                        isPagination={true}
-                        isCustomPageSize={true}
-                        SearchPlaceholder="Search..."
-                        tableClass="align-middle table-nowrap table-hover dt-responsive nowrap w-100 dataTable no-footer dtr-inline"
-                        theadClass="table-light"
-                        paginationWrapper="dataTables_paginate paging_simple_numbers pagination-rounded"
-                        pagination="pagination"
-                        related={true}
-                    />
-                )
-            } */}
-
             <div>
                 {selectedRows.length > 0 && (
                     <button
@@ -407,15 +450,57 @@ const RelatedRefComponent = ({
 
 
             <NonPatentLiteratureForm
-                nplPatentFormData={nplPatentFormData}
-                handleNplChange={handleNplChange}
+                nplPatentFormData={nplPublicationFormData}
+                handleNplChange={handleNplPublicationChange}
                 handleNplSubmit={handleNplSubmit}
-                nonPatentFormData={nonPatentFormData}
+                nonPatentFormData={nonPublicationFormData}
                 nplColumns={nplColumns}
-                setNplPatentFormData={setNplPatentFormData}
+                setNplPatentFormData={setNplPublicationFormData}
             // relevantExcerpts={relevantExcerpts}
             />
 
+
+
+            <>
+                <Row style={{
+                    backgroundColor: "#fff3cd",
+                    border: "1px solid #ffeeba", borderRadius: "8px", padding: "0.5rem",
+                    alignItems: "center",
+                }}
+                >
+                    <Col lg="2" className="mt-3 mt-lg-0">
+                        <Button color="secondary" onClick={toggleCanvas}>
+                            Reorder Now
+                        </Button>
+                    </Col>
+                    <Col lg="10">
+                        <div style={{ flex: '1 1 auto', color: '#dc3545', fontWeight: 500 }}>
+                            ⚠️ Don't forget to <strong>Reorder</strong> — otherwise your <strong>Related</strong> and <strong>NPL</strong>
+                            reference will not appear in the generated Word report.
+                        </div>
+                    </Col>
+                </Row>
+            </>
+
+            <CustomOffCanvas
+                isOpen={isCanvasOpen}
+                toggle={toggleCanvas}
+                title="Related References & NPL"
+                subtitle={
+                    <>
+                        Reorder to assign roll numbers for <strong>Related and NPL References.</strong>
+                    </>
+                }
+                legendItems={[
+                    { label: "Related Reference", color: "#fafecf" },
+                    { label: "NPL Reference", color: "antiquewhite" },
+                    { label: "Dragging", color: "white" },
+                ]}
+                data={tableData}
+                columns={columns}
+                setTableData={setTableData}
+                handleUpdate={handleRelatedAndNplCombinedSubmit}
+            />
         </>
     );
 };

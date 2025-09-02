@@ -343,22 +343,32 @@ router.delete("/delete-publication/:documentId/:publicationId", async (req, res)
 // Non - Patent Literatures
 router.post("/add-npl/:id", async (req, res) => {
   const { id } = req.params;
-  const nplData = req.body;
+  const { nplData, relatedSubmit } = req.body;
+  console.log(relatedSubmit, "relatedSubmit");
+
+  const targetArray = relatedSubmit ? "stages.relatedReferences.nonPatentLiteratures" : "stages.relevantReferences.nonPatentLiteratures";
 
   try {
     const updatedProject = await cln_prior_report_schema.findByIdAndUpdate(
       id,
-      { $push: { "stages.relevantReferences.nonPatentLiteratures": nplData } },
+      { $push: { [targetArray]: nplData } },
       { new: true, runValidators: true }
     );
 
     if (!updatedProject) {
-      return res.status(404).json({ message: " Project not found" });
+      return res.status(404).json({ message: "Project not found" });
     }
 
-    res.status(200).json(updatedProject);
+    const updProject = relatedSubmit
+      ? updatedProject.stages.relatedReferences.nonPatentLiteratures
+      : updatedProject.stages.relevantReferences.nonPatentLiteratures;
+
+    res.status(200).json({
+      updProject,
+      type: relatedSubmit ? "relatedTrue" : undefined,
+    });
   } catch (error) {
-    console.error(" Error adding NPL:", error);
+    console.error("Error adding NPL:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 });
@@ -367,13 +377,16 @@ router.post("/add-npl/:id", async (req, res) => {
 // Delete Non - Patent
 router.delete("/delete-npl/:projectId/:nplId", async (req, res) => {
   const { projectId, nplId } = req.params;
+  const { relatedDelete } = req.body;
+
+  const commonPath = relatedDelete ? "stages.relatedReferences.nonPatentLiteratures" : "stages.relevantReferences.nonPatentLiteratures";
 
   try {
     const updatedProject = await cln_prior_report_schema.findByIdAndUpdate(
       projectId,
       {
         $pull: {
-          "stages.relevantReferences.nonPatentLiteratures": { _id: nplId }
+          [commonPath]: { _id: nplId }
         }
       },
       { new: true }
@@ -383,7 +396,11 @@ router.delete("/delete-npl/:projectId/:nplId", async (req, res) => {
       return res.status(404).json({ message: " Project not found" });
     }
 
-    res.status(200).json(updatedProject);
+    const deletedNpls = relatedDelete
+      ? updatedProject.stages.relatedReferences.nonPatentLiteratures
+      : updatedProject.stages.relevantReferences.nonPatentLiteratures;
+
+    res.status(200).json({ deletedNpls, type: relatedDelete ? "relatedTrue" : undefined });
   } catch (error) {
     console.error(" Error deleting NPL:", error);
     res.status(500).json({ message: "Server error", error: error.message });
@@ -425,7 +442,7 @@ router.post("/add-related/:id", async (req, res) => {
   try {
     const updatedProject = await cln_prior_report_schema.findByIdAndUpdate(
       id,
-      { $push: { "stages.relatedReferences": relatedData } },
+      { $push: { "stages.relatedReferences.publicationDetails": relatedData } },
       { new: true, runValidators: true }
     );
 
@@ -452,7 +469,7 @@ router.get("/get-related/:id", async (req, res) => {
       return res.status(404).json({ message: " Project not found" });
     }
 
-    const relatedReferences = project.stages.relatedReferences;
+    const relatedReferences = project.stages.relatedReferences.publicationDetails;
     res.status(200).json(relatedReferences);
   } catch (error) {
     console.error(" Error fetching related references:", error);
@@ -482,7 +499,7 @@ router.delete("/delete-related/:projectId", async (req, res) => {
 
     const updatedProject = await cln_prior_report_schema.findByIdAndUpdate(
       projectId,
-      { $pull: { "stages.relatedReferences": { _id: { $in: idsToDelete } } } },
+      { $pull: { "stages.relatedReferences.publicationDetails": { _id: { $in: idsToDelete } } } },
       { new: true }
     );
 

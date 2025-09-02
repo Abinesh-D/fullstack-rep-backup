@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import TableContainer from "../../ReusableComponents/TableContainer";
-import axios from "axios";
+import { nplReusableDataFetch } from "../../../ManageEmployees/ManageBibliography/BibliographySLice/BibliographySlice";
 import DynamicForm from "../../ReusableComponents/DynamicNplForm";
 
 const NonPatentLiteratureForm = ({
@@ -12,6 +12,7 @@ const NonPatentLiteratureForm = ({
     setNplPatentFormData,
 }) => {
     const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
 
     const handleCrossrefSuccess = (data) => {
         setNplPatentFormData((prev) => ({
@@ -26,19 +27,15 @@ const NonPatentLiteratureForm = ({
         }));
     };
 
-    const fetchCrossref = async () => {
-        const doiNumber = (nplPatentFormData["nplDoi"] || "").trim();
-        if (!doiNumber) return;
-        try {
-            setError("");
-            const response = await axios.get(
-                `http://localhost:8080/live/projectname/nplcorssref/${encodeURIComponent(doiNumber)}`
-            );
-            const data = response.data.data;
-            if (handleCrossrefSuccess) handleCrossrefSuccess(data);
-        } catch (err) {
-            setError("Failed to fetch data. Please check DOI.");
-        }
+    const handleFetch = async (formData) => {
+        setLoading(true);
+        await nplReusableDataFetch({
+            endpoint: "nplcorssref",
+            queryParam: (formData?.nplDoi || "").trim(),
+            setError,
+            onSuccess: handleCrossrefSuccess,
+            loadingSetter: setLoading,
+        });
     };
 
     const fieldGroups = [
@@ -55,7 +52,11 @@ const NonPatentLiteratureForm = ({
                 label: "",
                 type: "button",
                 colSize: 2,
-                buttonProps: { color: "success", text: "Fetch", onClick: fetchCrossref },
+                buttonProps: {
+                    color: "success",
+                    text: "Fetch",
+                    onClick: handleFetch,
+                },
             },
             {
                 id: "nplTitle",
@@ -111,15 +112,17 @@ const NonPatentLiteratureForm = ({
     return (
         <>
             <h4 className="mt-3 fw-bold mb-3">Non-Patent Literatures (NPL)</h4>
+
             <DynamicForm
                 fieldGroups={fieldGroups}
                 formData={nplPatentFormData}
                 onChange={handleNplChange}
                 onSubmit={handleNplSubmit}
                 submitButton={{ label: "+ NPL", color: "info" }}
+                loading={loading}
             />
 
-            {!(!Array.isArray(nonPatentFormData) || nonPatentFormData.length === 0) && (
+            {Array.isArray(nonPatentFormData) && nonPatentFormData.length > 0 && (
                 <TableContainer
                     columns={nplColumns}
                     data={nonPatentFormData || []}
@@ -151,6 +154,160 @@ export default NonPatentLiteratureForm;
 
 
 
+
+// import React, { useState } from "react";
+// import TableContainer from "../../ReusableComponents/TableContainer";
+// import axios from "axios";
+// import DynamicForm from "../../ReusableComponents/DynamicNplForm";
+// import { nplReusableDataFetch } from "../../../ManageEmployees/ManageBibliography/BibliographySLice/BibliographySlice";
+
+// const NonPatentLiteratureForm = ({
+//     nplPatentFormData,
+//     handleNplChange,
+//     handleNplSubmit,
+//     nonPatentFormData,
+//     nplColumns,
+//     setNplPatentFormData,
+// }) => {
+//     const [error, setError] = useState("");
+
+//     const handleCrossrefSuccess = (data) => {
+//         setNplPatentFormData((prev) => ({
+//             ...prev,
+//             nplTitle: data.title || "",
+//             url: data.authors?.join(", ") || "",
+//             nplPublicationDate: data.publishedDate
+//                 ? new Date(data.publishedDate).toLocaleDateString("en-GB")
+//                 : "",
+//             nplPublicationUrl: data.URL || "",
+//             excerpts: data.abstract || "",
+//         }));
+//     };
+
+
+//     const fieldGroups = [
+//         [
+//             {
+//                 id: "nplDoi",
+//                 label: "DOI",
+//                 placeholder: "Enter DOI Number",
+//                 type: "text",
+//                 colSize: 4,
+//             },
+//             {
+//                 id: "fetchButton",
+//                 label: "",
+//                 type: "button",
+//                 colSize: 2,
+//                 buttonProps: { color: "success", text: "Fetch", onClick: nplReusableDataFetch },
+//             },
+//             {
+//                 id: "nplTitle",
+//                 label: "Title / Product Name",
+//                 placeholder: "Enter Title / Product Name",
+//                 type: "text",
+//                 colSize: 6,
+//             },
+//         ],
+//         [
+//             {
+//                 id: "url",
+//                 label: "Source/Author(s)",
+//                 placeholder: "Enter Source",
+//                 type: "text",
+//                 colSize: 4,
+//             },
+//             {
+//                 id: "nplPublicationDate",
+//                 label: "Publication Date",
+//                 placeholder: "dd-mm-yyyy",
+//                 type: "text",
+//                 colSize: 2,
+//             },
+//             {
+//                 id: "nplPublicationUrl",
+//                 label: "Url",
+//                 placeholder: "Enter URL",
+//                 type: "text",
+//                 colSize: 6,
+//             },
+//         ],
+//         [
+//             {
+//                 id: "comments",
+//                 label: "Analyst Comments",
+//                 placeholder: "Enter Comments",
+//                 type: "textarea",
+//                 rows: 3,
+//                 colSize: 12,
+//             },
+//             {
+//                 id: "excerpts",
+//                 label: "Relevant Excerpts",
+//                 placeholder: "Enter Relevant Excerpts",
+//                 type: "textarea",
+//                 rows: 3,
+//                 colSize: 12,
+//             },
+//         ],
+//     ];
+
+//     return (
+//         <>
+//             <h4 className="mt-3 fw-bold mb-3">Non-Patent Literatures (NPL)</h4>
+//             <DynamicForm
+//                 fieldGroups={fieldGroups}
+//                 formData={nplPatentFormData}
+//                 onChange={handleNplChange}
+//                 onSubmit={handleNplSubmit}
+//                 submitButton={{ label: "+ NPL", color: "info" }}
+//             />
+
+//             {!(!Array.isArray(nonPatentFormData) || nonPatentFormData.length === 0) && (
+//                 <TableContainer
+//                     columns={nplColumns}
+//                     data={nonPatentFormData || []}
+//                     isPagination={true}
+//                     isCustomPageSize={true}
+//                     SearchPlaceholder="Search..."
+//                     tableClass="align-middle table-nowrap table-hover dt-responsive nowrap w-100 dataTable no-footer dtr-inline"
+//                     theadClass="table-light"
+//                     paginationWrapper="dataTables_paginate paging_simple_numbers pagination-rounded"
+//                     pagination="pagination"
+//                 />
+//             )}
+//         </>
+//     );
+// };
+
+// export default NonPatentLiteratureForm;
+
+
+
+
+
+
+
+
+
+
+
+
+
+//   const fetchCrossref = async () => {
+//         const doiNumber = (nplPatentFormData["nplDoi"] || "").trim();
+//         if (!doiNumber) return;
+//         try {
+//             setError("");
+//             const response = await axios.get(
+//                 `http://localhost:8080/live/projectname/nplcorssref/${encodeURIComponent(doiNumber)}`
+//             );
+//             const data = response.data.data;
+//             if (handleCrossrefSuccess) handleCrossrefSuccess(data);
+//         } catch (err) {
+//             setError("Failed to fetch data. Please check DOI.");
+//         }
+//     };
 
 
 

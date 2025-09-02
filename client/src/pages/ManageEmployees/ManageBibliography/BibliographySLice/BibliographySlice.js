@@ -530,7 +530,7 @@ export const fetchRelatedReferences = async (id) => {
     try {
         const res = await axios.get(`http://localhost:8080/live/projectname/get-related/${id}`);
         if (res.status === 200) {
-          return res.data;
+          return res.data || [] ;
         }
     } catch (error) {
         console.error("❌ Error fetching related references:", error);
@@ -538,23 +538,11 @@ export const fetchRelatedReferences = async (id) => {
 };
 
 
-
-// Delete Related Ref 
-export const deleteRelatedReference = async (relatedId, id) => {
-    try {
-        await axios.delete(`http://localhost:8080/live/projectname/delete-related/${id}/${relatedId}`);
-    } catch (error) {
-        console.error("❌ Error deleting related reference:", error);
-    }
-};
-
-
-
 // Related Ref Bulk Excel Save APi
 export const saveExcelRelatedReferences = async (id, relatedData) => {
   try {
     const res = await axios.post(`http://localhost:8080/live/projectname/add-related/${id}`, relatedData);
-    return res.data.stages.relatedReferences;
+    return res.data.stages.relatedReferences.publicationDetails || [];
   } catch (err) {
     console.error("❌ Error saving related references:", err);
     alert("Failed to save references. Check console for details.");
@@ -642,15 +630,21 @@ export const handleSaveKeyString = async ({
 // };
 
 
-export const handleNonPatentDeleteSlice = async (id, _id) => {
+export const handleNonPatentDeleteSlice = async (id, _id, relatedDelete) => {
   try {
-    const response = await urlSocket.delete(`/live/projectname/delete-npl/${id}/${_id}`);
+    const response = await urlSocket.delete(`/live/projectname/delete-npl/${id}/${_id}`,
+      {
+        data: { relatedDelete } ,
+        headers: { "Content-Type": "application/json" }
+      }
+    );
     return response;
   } catch (error) {
     console.error("Error deleting NPL:", error);
     throw error;
   }
 };
+
 
 
 
@@ -671,6 +665,47 @@ export const handleTranslateText = async (text) => {
 };
 
 
+
+export const nplReusableDataFetch = async ({
+  nplPatentFormData,
+  setError,
+  doiNumber,
+  handleCrossrefSuccess,
+  endpoint,
+  queryParam,
+  onSuccess,
+  loadingSetter
+}) => {
+
+  if (!queryParam) return;
+
+  try {
+    setError("");
+    const response = await axios.get(
+      `http://localhost:8080/live/projectname/${endpoint}/${encodeURIComponent(queryParam)}`
+    );
+
+    const data = response.data.data;
+    if (data) loadingSetter(false);
+    if (onSuccess) onSuccess(data);
+  } catch (err) {
+    console.error("Fetch error:", err);
+    setError("Failed to fetch data. Please check input.");
+  }
+
+  // const doiNumber = (nplPatentFormData["nplDoi"] || "").trim();
+  // if (!doiNumber) return;
+  // try {
+  //   setError("");
+  //   const response = await axios.get(
+  //     `http://localhost:8080/live/projectname/nplcorssref/${encodeURIComponent(doiNumber)}`
+  //   );
+  //   const data = response.data.data;
+  //   if (handleCrossrefSuccess) handleCrossrefSuccess(data);
+  // } catch (err) {
+  //   setError("Failed to fetch data. Please check DOI.");
+  // }
+};
 
 
 export const { setPatentData, setEspaceApiData, setBulkESPData, resetPatentData, setGoogleApiData, setLensOrgApiData, setFreePatentApiData,

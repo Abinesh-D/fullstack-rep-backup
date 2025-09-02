@@ -132,7 +132,7 @@ export const handleWordReportDownload = async ({
     const tocConfig = getTocConfig(relevantReferences);
     const tocConfigSummary = getTocConfigSummary(relevantAndNplCombined);
 
-    const relatedReferencesTable = createRelatedReferencesTable(relatedReferences);
+    const relatedReferencesTable = createRelatedReferencesTable(relatedReferences[0]?.publicationDetails);
 
     const totalColumns = introduction?.executiveSummaryTotalColumn ?? 0;
 

@@ -46,8 +46,40 @@ const relevantAndNplCombined = new Schema({
 });
 
 
+const relatedAndNplCombined = new Schema({
+  _id: { type: String, default: uuidv4 },
+  nplId: { type: Boolean, default: false },
+  patentNumber: { type: String, default: "" },
+  publicationUrl: { type: String, default: "" },
+  title: { type: String, default: "" },
+  source: { type: String, default: "" },
+  abstract: { type: String, default: "" },
+  filingDate: { type: String, default: "" },
+  priorityDate: { type: String, default: "" },
+  grantDate: { type: String, default: "" },
+  assignee: { type: [String], default: [] },
+  inventors: { type: [String], default: [] },
+  classifications: { type: [String], default: [] },
+  ipcClassifications: { type: [String], default: [] },
+  cpcClassifications: { type: [String], default: [] },
+  usClassification: { type: [String], default: [] },
+  familyMembers: { type: [String], default: [] },
+  analystComments: { type: [String], default: [] },
+  relevantExcerpts: { type: [String], default: [] },
+});
+
 
 const nonPatentLiteratureSchema = new Schema({
+  _id: { type: String, default: uuidv4 },
+  nplTitle: String,
+  url: String,
+  nplPublicationDate: { type: String, default: "" },
+  nplPublicationUrl: { type: String, default: "" },
+  comments: [String],
+  excerpts: [String]
+});
+
+const nplSchema = new Schema({
   _id: { type: String, default: uuidv4 },
   nplTitle: String,
   url: String,
@@ -205,7 +237,11 @@ const appendix2 = new Schema({
         relevantAndNplCombined: {type: [relevantAndNplCombined], default: [] },
         overallSummary: { type: [String], default: [] },
       },
-      relatedReferences: { type: [relatedReferenceSchema], default: [] },
+      relatedReferences: {
+        publicationDetails: { type: [relatedReferenceSchema], default: [] },
+        nonPatentLiteratures: { type: [nplSchema], default: [] },
+        relatedAndNplCombined: {type: [relatedAndNplCombined], default: [] },
+      },
       appendix1: { type: [appendix1Schema], default: [] },
       appendix2: { type: [appendix2]},
     }

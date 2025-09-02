@@ -110,6 +110,8 @@ const MappingProjectCreation = () => {
     const [findLoading, setFindLoading] = useState(false);
 
     const [relevantAndNplUpdatedData, setRelevantAndNplUpdatedData] = useState([]);
+    const [relatedAndNplCombined, setRelatedAndNplCombined] = useState([]);
+
     const [appendix1KeyStringsLevelValue, setAppendix1KeyStringsLevelValue] = useState([]);
 
     const [keyString, setKeyString] = useState("");
@@ -140,6 +142,7 @@ const MappingProjectCreation = () => {
         // projectImageUrl: [],
     });
 
+    // Relevant References - Non Patent Literature
     const [nplPatentFormData, setNplPatentFormData] = useState({
         nplDoi: "",
         nplTitle: "",
@@ -162,9 +165,34 @@ const MappingProjectCreation = () => {
         });
     }
 
+    // Related References - Non Patent Literature
+    const [nplPublicationFormData, setNplPublicationFormData] = useState({
+        nplDoi: "",
+        nplTitle: "",
+        url: "",
+        nplPublicationDate: "",
+        nplPublicationUrl: "",
+        comments: "",
+        excerpts: "",
+    });
+
+    const nonPublicationLiteratureForm = () => {
+        setNplPublicationFormData({
+            nplDoi: "",
+            nplTitle: "",
+            url: "",
+            nplPublicationDate: "",
+            nplPublicationUrl: "",
+            comments: "",
+            excerpts: "",
+        });
+    }
+
     const [nonPatentFormData, setNonPatentFormData] = useState([]);
+    const [nonPublicationFormData, setNonPublicationFormData] = useState([]);
 
     const [relevantFormData, setrelevantFormData] = useState([]);
+    const [relatedFormData, setRelatedFormData] = useState([]);
 
     const [relatedForm, setRelatedForm] = useState({
         publicationNumber: "",
@@ -192,7 +220,6 @@ const MappingProjectCreation = () => {
         })
     }
 
-    const [relatedFormData, setRelatedFormData] = useState([]);
 
     const [selectedRow, setSelectedRow] = useState(null);
 
@@ -209,6 +236,11 @@ const MappingProjectCreation = () => {
         setSelectedRow(rowData);
         setActiveModal("nonPatent");
     };
+
+    const onNplPublicationDeleteClick = (rowData) => {
+        setSelectedRow(rowData);
+        setActiveModal("nonPublication");
+    }
 
     const onRelatedDelete = (rowData) => {
         setSelectedRow(rowData);
@@ -266,7 +298,7 @@ const MappingProjectCreation = () => {
             );
 
             if (response.status === 200) {
-                const updatedRelatedRef = response.data.stages.relatedReferences;
+                const updatedRelatedRef = response.data.stages.relatedReferences.publicationDetails || [];
                 setRelatedFormData(updatedRelatedRef);
                 setSelectedRows([]);
             }
@@ -331,13 +363,19 @@ const MappingProjectCreation = () => {
         }
     };
 
-    const handleNonPatentDelete = async () => {
+    const handleNonPatentDelete = async (relatedDelete) => {
+        console.log('relatedDelete', relatedDelete)
         try {
-            const response = await handleNonPatentDeleteSlice(id, selectedRow._id);
-
+            const response = await handleNonPatentDeleteSlice(id, selectedRow._id, relatedDelete);
+            console.log('response.data', response.data)
             if (response.status === 200) {
-                const updatedNPLs = response.data.stages.relevantReferences.nonPatentLiteratures;
-                setNonPatentFormData(updatedNPLs);
+                const updatedNPLs = response.data.deletedNpls;
+
+                if (response.data.type) {
+                    setNonPublicationFormData(updatedNPLs);
+                } else {
+                    setNonPatentFormData(updatedNPLs);
+                }
             }
         } catch (error) {
             console.error("Error deleting NPL:", error);
@@ -427,9 +465,11 @@ const MappingProjectCreation = () => {
                         // projectImageUrl: singleProject.stages.introduction?.[0]?.projectImageUrl || [],
                     });
                     setRelevantAndNplUpdatedData(singleProject.stages.relevantReferences?.relevantAndNplCombined);
-
+                    setRelatedAndNplCombined(singleProject.stages.relatedReferences?.relatedAndNplCombined);
+                    
                     setrelevantFormData(singleProject.stages.relevantReferences?.publicationDetails || []);
                     setNonPatentFormData(singleProject.stages.relevantReferences?.nonPatentLiteratures || []);
+                    setNonPublicationFormData(singleProject.stages.relatedReferences?.nonPatentLiteratures || []);
                     setOverallSummary(singleProject.stages.relevantReferences?.overallSummary || "");
                     setBaseSearchTermsList(singleProject.stages.appendix1?.[0]?.baseSearchTerms || []);
                     setRelevantWordsList(singleProject.stages.appendix1?.[0]?.baseSearchTerms || []);
@@ -498,6 +538,15 @@ const MappingProjectCreation = () => {
             [key]: value,
         }));
     };
+    const handleNplPublicationChange = (e) => {
+        const { id, value } = e.target;
+        const key = id.replace("npl-", "");
+        setNplPublicationFormData((prevData) => ({
+            ...prevData,
+            [key]: value,
+        }));
+    };
+
 
 
     const handleSaveBaseSearchTerm = async () => {
@@ -594,6 +643,15 @@ const MappingProjectCreation = () => {
     //         setSelectedRow(null);
     //     }
     // };
+
+
+    const onRelatedAndNplDelete = async ()=> {
+        try {
+            
+        } catch (error) {
+            
+        }
+    }
 
     const handleSaveKeyStringNpl = async () => {
         if (!keyStringNpl.trim()) return;
@@ -1132,28 +1190,40 @@ const MappingProjectCreation = () => {
         }
     };
 
-    const handleNplSubmit = async (e) => {
+    const handleNplSubmit = async (e, relatedSubmit) => {
         e.preventDefault();
-        if (!nplPatentFormData.nplTitle.trim()) return;
+        console.log('relatedSubmit', relatedSubmit);
+        const nplCommonData = relatedSubmit ? nplPublicationFormData : nplPatentFormData;
+        if (!nplCommonData.nplTitle.trim()) return;
 
         try {
-            const response = await axios.post(
-                `http://localhost:8080/live/projectname/add-npl/${id}`,
-                nplPatentFormData,
+            const response = await axios.post(`http://localhost:8080/live/projectname/add-npl/${id}`,
+                {
+                    nplData: nplCommonData,
+                    relatedSubmit: relatedSubmit
+                },
                 { headers: { "Content-Type": "application/json" } }
             );
-
+            console.log('response.data', response.data);
             if (response.status === 200) {
-                nonPatentLiteratureForm();
-                const updatedNplData = response.data.stages.relevantReferences.nonPatentLiteratures;
-                setNonPatentFormData(updatedNplData);
-
+                const updatedNplData = response.data.updProject;
+                if (response.data.type) {
+                    setNonPublicationFormData(updatedNplData);
+                    nonPublicationLiteratureForm()
+                } else {
+                    setNonPatentFormData(updatedNplData);
+                    nonPatentLiteratureForm();
+                }
             }
         } catch (error) {
             console.error("Error saving NPL:", error);
         }
     };
 
+    const handleNplPublicationSubmit = async (e) => {
+        e.preventDefault();
+        if (!nplPublicationFormData.nplTitle.trim()) return;
+    }
 
     const handleOverAllSummarySave = async () => {
         const summaryData = {
@@ -1206,7 +1276,7 @@ const MappingProjectCreation = () => {
 
             if (response.status === 200) {
                 resetRelatedForm();
-                setRelatedFormData(response.data.stages.relatedReferences);
+                setRelatedFormData(response.data.stages.relatedReferences?.publicationDetails || []);
                 setRelatedRefSaved(true);
                 setTimeout(() => setRelatedRefSaved(false), 2000);
             }
@@ -1253,6 +1323,10 @@ const MappingProjectCreation = () => {
         nonPatent: {
             message: "Are you sure you want to delete this Non-Patent?",
             onConfirm: handleNonPatentDelete,
+        },
+        nonPublication: {
+            message: "Are you sure you want to delete this Non-Patent?",
+            onConfirm: () => handleNonPatentDelete("relatedTrue"),
         },
         relatedReference: {
             message: "Are you sure you want to delete this Related reference?",
@@ -1314,8 +1388,9 @@ const MappingProjectCreation = () => {
                     <Row >
                         <Col lg="12">
                             <Card>
-                                <CardBody>
-                                    {
+                                <CardBody style={{position: "relative"}}>
+
+                                    {/* {
                                         reportData && (
                                             <Row>
                                                 <Col lg="6">
@@ -1323,8 +1398,8 @@ const MappingProjectCreation = () => {
                                                         {reportData.projectName} /-- {reportData.projectType}
                                                     </p>
                                                 </Col>
-                                                {relevantFormData.length > 0 && (
-                                                    <Col lg="2" style={{ padding: "0 6px" }}>
+                                                {!relevantFormData.length > 0 && (
+                                                    <Col lg="1" style={{ padding: "0 6px" }}>
                                                         <div style={{
                                                             background: "#f3e8ff",
                                                             color: "#6b21a8",
@@ -1339,7 +1414,7 @@ const MappingProjectCreation = () => {
                                                 )}
 
                                                 {nonPatentFormData.length > 0 && (
-                                                    <Col lg="2" style={{ padding: "0 6px" }}>
+                                                    <Col lg="1" style={{ padding: "0 6px" }}>
                                                         <div style={{
                                                             background: "#fff4e5",
                                                             color: "#d97706",
@@ -1353,8 +1428,8 @@ const MappingProjectCreation = () => {
                                                     </Col>
                                                 )}
 
-                                                {relatedFormData.length > 0 && (
-                                                    <Col lg="2" style={{ padding: "0 6px" }}>
+                                                {!relatedFormData.length > 0 && (
+                                                    <Col lg="1" style={{ padding: "0 6px" }}>
                                                         <div style={{
                                                             background: "#eef2ff",
                                                             color: "#4338ca",
@@ -1367,9 +1442,112 @@ const MappingProjectCreation = () => {
                                                         </div>
                                                     </Col>
                                                 )}
+                                                <Col lg="1" style={{ padding: "0 6px" }}>
+                                                    <div style={{
+                                                        background: "#f3e8ff",
+                                                        color: "#6b21a8",
+                                                        padding: "4px 8px",
+                                                        borderRadius: "4px",
+                                                        fontWeight: 600,
+                                                        textAlign: "center"
+                                                    }}>
+                                                        NPL(Related) - {23}
+                                                    </div>
+                                                </Col>
+                                            </Row>
+                                        )
+                                    } */}
+
+                                    {
+                                        reportData && (
+                                            <Row>
+                                                <Col lg="4">
+                                                    <p
+                                                        style={{
+                                                            fontSize: "10px",
+                                                            color: "#198754",
+                                                            fontWeight: "600",
+                                                            backgroundColor: "#f1fdf7",
+                                                            padding: "8px 12px",
+                                                            borderRadius: "6px",
+                                                            display: "inline-block",
+                                                        }}
+                                                    >
+                                                        {reportData.projectName} /-- {reportData.projectType}
+                                                    </p>
+                                                </Col>
+
+                                                {relevantFormData.length > 0 && (
+                                                    <Col lg="2" style={{ padding: "0 6px" }}>
+                                                        <div
+                                                            style={{
+                                                                background: "#f3e8ff",
+                                                                color: "#6b21a8",
+                                                                padding: "4px 8px",
+                                                                borderRadius: "4px",
+                                                                fontWeight: 600,
+                                                                textAlign: "center",
+                                                            }}
+                                                        >
+                                                            Relevant Ref - {relevantFormData.length}
+                                                        </div>
+                                                    </Col>
+                                                )}
+
+                                                {nonPatentFormData.length > 0 && (
+                                                    <Col lg="2" style={{ padding: "0 6px" }}>
+                                                        <div
+                                                            style={{
+                                                                background: "#fff4e5",
+                                                                color: "#d97706",
+                                                                padding: "4px 8px",
+                                                                borderRadius: "4px",
+                                                                fontWeight: 600,
+                                                                textAlign: "center",
+                                                            }}
+                                                        >
+                                                            NPL(Relevant) - {nonPatentFormData.length}
+                                                        </div>
+                                                    </Col>
+                                                )}
+
+                                                {relatedFormData.length > 0 && (
+                                                    <Col lg="2" style={{ padding: "0 6px" }}>
+                                                        <div
+                                                            style={{
+                                                                background: "#eef2ff",
+                                                                color: "#4338ca",
+                                                                padding: "4px 8px",
+                                                                borderRadius: "4px",
+                                                                fontWeight: 600,
+                                                                textAlign: "center",
+                                                            }}
+                                                        >
+                                                            Related Ref - {relatedFormData.length}
+                                                        </div>
+                                                    </Col>
+                                                )}
+                                                {
+                                                    nonPublicationFormData.length > 0 && (
+                                                        <Col lg="2" style={{ padding: "0 6px" }}>
+                                                            <div
+                                                                style={{
+                                                                    background: "#E91E63",
+                                                                    color: "#FFFFFF",
+                                                                    padding: "4px 8px",
+                                                                    borderRadius: "4px",
+                                                                    fontWeight: 600,
+                                                                    textAlign: "center",
+                                                                }}
+                                                            >
+                                                                NPL(Related) - {nonPublicationFormData.length}
+                                                            </div>
+                                                        </Col>
+                                                    )}
                                             </Row>
                                         )
                                     }
+
                                     <div className="wizard clearfix">
                                         <div className="steps clearfix">
                                             <ul>
@@ -1480,19 +1658,6 @@ const MappingProjectCreation = () => {
 
                                                 </TabPane>
 
-                                                <>
-                                                    {activeModal && (
-                                                        <DeleteModal
-                                                            show={true}
-                                                            toggle={() => setActiveModal(null)}
-                                                            message={modalConfig[activeModal].message}
-                                                            onConfirm={() => {
-                                                                modalConfig[activeModal].onConfirm();
-                                                                setActiveModal(null);
-                                                            }}
-                                                        />
-                                                    )}
-                                                </>
                                                 <TabPane tabId={3}>
                                                     <RelatedRefComponent
                                                         relatedLoading={relatedLoading}
@@ -1511,12 +1676,15 @@ const MappingProjectCreation = () => {
                                                         selectedRows={selectedRows}
                                                         setSelectedRows={setSelectedRows}
 
-                                                        nplPatentFormData={nplPatentFormData}
-                                                        handleNplChange={handleNplChange}
-                                                        handleNplSubmit={handleNplSubmit}
-                                                        nonPatentFormData={nonPatentFormData}
-                                                        setNplPatentFormData={setNplPatentFormData}
-                                                        onNplDeleteClick={onNplDeleteClick}
+                                                        nplPublicationFormData={nplPublicationFormData}
+                                                        handleNplPublicationChange={handleNplPublicationChange}
+                                                        // handleNplPublicationSubmit={handleNplPublicationSubmit}
+                                                        handleNplSubmit={(e) => handleNplSubmit(e, "relatedTrue")}
+                                                        nonPublicationFormData={nonPublicationFormData}
+                                                        setNplPublicationFormData={setNplPublicationFormData}
+                                                        onNplPublicationDeleteClick={onNplPublicationDeleteClick}
+                                                        relatedAndNplCombined={relatedAndNplCombined}
+                                                        onRelatedAndNplDelete={onRelatedAndNplDelete}
                                                     />
                                                 </TabPane>
 
@@ -1632,8 +1800,22 @@ const MappingProjectCreation = () => {
                             </Card>
                         </Col>
                     </Row>
-                </Container>
+                </Container>                
             </div>
+
+            <>
+                {activeModal && (
+                    <DeleteModal
+                        show={true}
+                        toggle={() => setActiveModal(null)}
+                        message={modalConfig[activeModal].message}
+                        onConfirm={() => {
+                            modalConfig[activeModal].onConfirm();
+                            setActiveModal(null);
+                        }}
+                    />
+                )}
+            </>
         </React.Fragment>
     )
 }
