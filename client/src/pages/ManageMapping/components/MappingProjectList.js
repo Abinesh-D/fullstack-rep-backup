@@ -120,6 +120,8 @@ const MappingProjectList = () => {
             projectTypeId,
         };
 
+        console.log('payload', payload)
+
         if (mode === "1") {
             try {
                 await axios.put(

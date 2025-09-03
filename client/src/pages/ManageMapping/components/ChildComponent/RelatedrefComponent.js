@@ -61,7 +61,6 @@ const RelatedRefComponent = ({
 
 
     const [tableData, setTableData] = useState([]);
-    console.log('tableData', tableData)
     const [isCanvasOpen, setIsCanvasOpen] = useState(false);
 
     const toggleCanvas = () => setIsCanvasOpen(!isCanvasOpen);
@@ -144,11 +143,12 @@ const RelatedRefComponent = ({
             includeActions: true,
             onDeleteClick: onNplPublicationDeleteClick,
             deleteTooltip: "Delete Non-Patent",
+            isCell: true
         })
         , [nonPublicationFormData]);
 
 
-    const columns = useMemo(
+    const relatedAndNplColumns = useMemo(
         () =>
             generateTableColumns({
                 columnsConfig: [
@@ -497,7 +497,7 @@ const RelatedRefComponent = ({
                     { label: "Dragging", color: "white" },
                 ]}
                 data={tableData}
-                columns={columns}
+                columns={relatedAndNplColumns}
                 setTableData={setTableData}
                 handleUpdate={handleRelatedAndNplCombinedSubmit}
             />

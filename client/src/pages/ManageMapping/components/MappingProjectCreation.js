@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
     Card, CardBody, Col, Container, NavItem, NavLink, Row, TabContent, TabPane,
 } from "reactstrap";
@@ -22,6 +22,7 @@ import Appendix2 from "./ChildComponent/Appendix2";
 import { handleWordReportDownload } from "../ReusableComponents/handleWordReportDownload";
 import DeleteModal from "../ReusableComponents/ResuableDeleteComp";
 import usePatentData from "../ReusableFunctionsLogic/usePatentData";
+import { isEmptyArray } from "formik";
 
 
 const MappingProjectCreation = () => {
@@ -1002,16 +1003,34 @@ const MappingProjectCreation = () => {
     ]);
 
 
+    // const filteredCPC = useMemo(() => {
+    //     const cpcArray = data?.cpcClass ? data.cpcClass.split(/[;,]/).map(item => item.trim()).filter(Boolean) : [];
+    //     const ipcArray = data?.ipcClass ? data.ipcClass.split(/[;,]/).map(item => item.trim()).filter(Boolean) : [];
+
+    //     if (cpcArray.length === 0) {
+    //         return ipcArray.join(", ");
+    //     }
+
+    //     const uniqueCPCSet = new Set(cpcArray.map(cpc => cpc.toUpperCase()));
+    //     const normalizedIPCSet = new Set(ipcArray.map(ipc => ipc.toUpperCase()));
+
+    //     const uniqueCPC = Array.from(uniqueCPCSet).filter(
+    //         cpc => !normalizedIPCSet.has(cpc)
+    //     );
+
+    //     return uniqueCPC.length ? uniqueCPC.join(", ") : ipcArray.join(", ");
+    // }, [data?.cpcClass, data?.ipcClass]);
+
+    
     useEffect(() => {
         const allFieldsExceptPatentEmpty = Object.entries(relevantForm).every(
             ([key, value]) => key === "patentNumber" || value === ""
         );
+        // const cpcArray = data?.cpcClass?.split(",").map(item => item.trim()).filter(Boolean);
+        // const ipcArray = data?.ipcClass?.split(",").map(item => item.trim()).filter(Boolean);
 
-        const cpcArray = data?.cpcClass?.split(",").map(item => item.trim()).filter(Boolean);
-        const ipcArray = data?.ipcClass?.split(",").map(item => item.trim()).filter(Boolean);
-
-        const filteredCPC = cpcArray?.filter(cpc => !ipcArray.includes(cpc))?.join(', ');
-
+        // const filteredCPC = cpcArray?.filter(cpc => !ipcArray.includes(cpc))?.join(', ');
+ 
         if (
             (data?.patentNumber || releventBiblioGoogleData?.patentNumber) &&
             relevantForm.patentNumber &&
@@ -1071,7 +1090,7 @@ const MappingProjectCreation = () => {
                     : [],
 
                 ipcClassifications: (
-                    data?.cpcClass ||
+                    data?.ipcClass ||
                     googleClassCPC ||
                     "")
                     .split(",")
@@ -1079,7 +1098,7 @@ const MappingProjectCreation = () => {
                     .filter(Boolean),
 
                 cpcClassifications: (
-                    filteredCPC ||
+                    data?.finalCPC ||
                     googleClassCPC ||
                     "")
                     .split(",")
@@ -1219,11 +1238,6 @@ const MappingProjectCreation = () => {
             console.error("Error saving NPL:", error);
         }
     };
-
-    const handleNplPublicationSubmit = async (e) => {
-        e.preventDefault();
-        if (!nplPublicationFormData.nplTitle.trim()) return;
-    }
 
     const handleOverAllSummarySave = async () => {
         const summaryData = {

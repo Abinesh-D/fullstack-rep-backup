@@ -51,7 +51,6 @@ const RelevantRefComponent = ({
 
     const [feedbackOpen, setFeedbackOpen] = useState(false);
     const [tableData, setTableData] = useState([]);
-    console.log('tableData', tableData)
 
     const [isCanvasOpen, setIsCanvasOpen] = useState(false);
 
@@ -164,6 +163,7 @@ const RelevantRefComponent = ({
                 selectedRows,
                 setSelectedRows,
                 allRows: relevantFormData,
+                isCell: true
             }),
         [relevantFormData, selectedRows]
     );
@@ -180,6 +180,7 @@ const RelevantRefComponent = ({
             includeActions: true,
             onDeleteClick: onNplDeleteClick,
             deleteTooltip: "Delete Non-Patent",
+            isCell: true
         })
         , [nonPatentFormData]);
 

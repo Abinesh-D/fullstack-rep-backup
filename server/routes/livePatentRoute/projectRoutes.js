@@ -23,6 +23,7 @@ const upload = multer({ storage });
 
 router.post("/", async (req, res) => {
   try {
+    console.log('req.body', req.body)
     const newProject = new cln_prior_report_schema(req.body);
     const saved = await newProject.save();
     res.status(201).json(saved);
@@ -109,7 +110,7 @@ router.get("/get-introduction/:id", async (req, res) => {
     const introduction = project.stages?.introduction;
 
     if (!introduction || Object.keys(introduction).length === 0) {
-      return res.status(200).json({ message: "ℹ️ No introduction data found", introduction: null });
+      return res.status(200).json({ message: "No introduction data found", introduction: null });
     }
 
     res.status(200).json(introduction);
@@ -344,7 +345,6 @@ router.delete("/delete-publication/:documentId/:publicationId", async (req, res)
 router.post("/add-npl/:id", async (req, res) => {
   const { id } = req.params;
   const { nplData, relatedSubmit } = req.body;
-  console.log(relatedSubmit, "relatedSubmit");
 
   const targetArray = relatedSubmit ? "stages.relatedReferences.nonPatentLiteratures" : "stages.relevantReferences.nonPatentLiteratures";
 

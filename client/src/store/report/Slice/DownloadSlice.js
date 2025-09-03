@@ -16,7 +16,6 @@ export const { } = downloadSlice.actions;
 
 export const handleDownload_bar = (value,datakeys_name,datakeys,data) => {
     let url;
-    datakeys_name
     const newKeys = {
         label: datakeys_name,
         value: datakeys,

@@ -9,17 +9,54 @@ router.get("/:patentNumber", async (req, res) => {
   if (!patentNumber) {
     return res.status(400).json({ error: "Patent number is required" });
   }
-
   try {
-    const patentData = await getPatentData(patentNumber, type);
-    res.status(200).json(patentData);
+    const patentData = await getPatentData(patentNumber, type || "relevant");
+
+    if (!patentData) {
+      return res.status(404).json({ error: "Patent data not found" });
+    }
+    res.json(patentData);
   } catch (error) {
-    console.error(`🔴 Error in /patents/${patentNumber}`, error.message);
-    res.status(500).json({ error: "Failed to fetch bibliographic or family data." });
+    console.error(`🔴 Error fetching ${patentNumber}:`, error.message);
+    res
+      .status(500)
+      .json({ error: "Failed to fetch bibliographic or family data." });
   }
 });
 
 module.exports = router;
+
+
+
+
+
+
+
+
+
+
+// const express = require("express");
+// const router = express.Router();
+// const { getPatentData } = require("../utils/patentService");
+
+// router.get("/:patentNumber", async (req, res) => {
+//   const { patentNumber } = req.params;
+//   const { type } = req.query;
+
+//   if (!patentNumber) {
+//     return res.status(400).json({ error: "Patent number is required" });
+//   }
+
+//   try {
+//     const patentData = await getPatentData(patentNumber, type);
+//     res.status(200).json(patentData);
+//   } catch (error) {
+//     console.error(`🔴 Error in /patents/${patentNumber}`, error.message);
+//     res.status(500).json({ error: "Failed to fetch bibliographic or family data." });
+//   }
+// });
+
+// module.exports = router;
 
 
 
