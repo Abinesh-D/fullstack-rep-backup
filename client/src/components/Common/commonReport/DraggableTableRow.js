@@ -2,6 +2,7 @@ import React from 'react';
 import { Draggable } from 'react-beautiful-dnd';
 
 const DraggableTableRow = ({ row, index, children }) => {
+  console.log('row', row)
   return (
     <Draggable draggableId={row._id.toString()} index={index}>
       {(provided, snapshot) => {

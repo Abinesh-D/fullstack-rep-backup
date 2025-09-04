@@ -1,6 +1,6 @@
 // biblioMapper.js
 const { lingaTranslateText } = require("./lingvaServiceTranslator");
-const { formatDate, capitalize, safeArray, safeText, convertIpc } = require("./commonResusableFunctions");
+const { formatDate, capitalize, safeArray, safeText, convertIpc, normalizeNames } = require("./commonResusableFunctions");
 
 function mapFamilyMemberData(data, patentNumber) {
     const familyMembers = data?.["world-patent-data"]?.["patent-family"]?.["family-member"];
@@ -164,14 +164,10 @@ async function getInventorNames(biblioData) {
     ).map(lower => formattedNames.find(n => n.toLowerCase() === lower));
 
     const joinedNames = uniqueNames.join("; ");
-
-    let translated = await lingaTranslateText(joinedNames);
-    translated = (translated || joinedNames)
-        .replace(/,+/g, ";")
-        .replace(/;+/g, ";")
-        .replace(/\s*;\s*/g, "; ")
-        .trim();
-
+    const normalizedNames = normalizeNames(joinedNames);
+console.log('normalizedNames', normalizedNames)
+    const translated = await lingaTranslateText(normalizedNames);
+    console.log('translated', translated)
     return translated;
 }
 

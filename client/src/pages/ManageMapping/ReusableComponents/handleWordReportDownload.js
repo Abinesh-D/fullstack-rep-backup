@@ -132,7 +132,7 @@ export const handleWordReportDownload = async ({
     const tocConfig = getTocConfig(relevantReferences);
     const tocConfigSummary = getTocConfigSummary(relevantAndNplCombined);
 
-    const relatedReferencesTable = createRelatedReferencesTable(relatedReferences[0]?.publicationDetails);
+    const relatedReferencesTable = createRelatedReferencesTable(relatedReferences.publicationDetails);
 
     const totalColumns = introduction?.executiveSummaryTotalColumn ?? 0;
 
@@ -302,7 +302,7 @@ export const handleWordReportDownload = async ({
                             columnSpan: 3,
                             children: [
                                 new Paragraph({
-                                    alignment: AlignmentType.CENTER,
+                                    alignment: AlignmentType.CENTER,    
                                     spacing: { before: 30, after: 30 },
                                     children: [
                                         createTextRun(`Key Strings – ${db.databaseName}`, textStyle.arial10, {
@@ -313,6 +313,42 @@ export const handleWordReportDownload = async ({
                                 }),
                             ],
                         }),
+
+                        // new TableCell({
+                        //     borders: commonBorders,
+                        //     shading: { fill: "353839" },
+                        //     columnSpan: 3,
+                        //     children: [
+                        //         new Paragraph({
+                        //             alignment: AlignmentType.CENTER,    
+                        //             spacing: { before: 30, after: 30 },
+                        //             children: [
+                        //                 createTextRun("Database", textStyle.arial10, {
+                        //                     bold: true,
+                        //                     color: "FFFFFF",
+                        //                 }),
+                        //             ],
+                        //         }),
+                        //     ],
+                        // }),
+                        //  new TableCell({
+                        //     borders: commonBorders,
+                        //     shading: { fill: "353839" },
+                        //     columnSpan: 3,
+                        //     children: [
+                        //         new Paragraph({
+                        //             alignment: AlignmentType.CENTER,    
+                        //             spacing: { before: 30, after: 30 },
+                        //             children: [
+                        //                 createTextRun("Hits", textStyle.arial10, {
+                        //                     bold: true,
+                        //                     color: "FFFFFF",
+                        //                 }),
+                        //             ],
+                        //         }),
+                        //     ],
+                        // }),
+
                     ],
                 });
 
@@ -337,7 +373,7 @@ export const handleWordReportDownload = async ({
                             // Key String
                             new TableCell({
                                 borders: commonBorders,
-                                width: { size: 70, type: WidthType.PERCENTAGE },
+                                width: { size: 80, type: WidthType.PERCENTAGE },
                                 children: [
                                     new Paragraph({
                                         alignment: AlignmentType.LEFT,
@@ -349,6 +385,36 @@ export const handleWordReportDownload = async ({
                                     }),
                                 ],
                             }),
+                            // new TableCell({
+                            //     borders: commonBorders,
+                            //     width: { size: 10, type: WidthType.PERCENTAGE },
+                            //     children: [
+                            //         new Paragraph({
+                            //             alignment: AlignmentType.LEFT,
+                            //             indent: { left: 80 },
+                            //             spacing: { before: 20, after: 20 },
+                            //             children: [
+                            //                 createTextRun(keyStr.databaseName || "", textStyle.arial10),
+                            //             ],
+                            //         }),
+                            //     ],
+                            // }),
+
+                            // new TableCell({
+                            //     borders: commonBorders,
+                            //     width: { size: 5, type: WidthType.PERCENTAGE },
+                            //     children: [
+                            //         new Paragraph({
+                            //             alignment: AlignmentType.LEFT,
+                            //             indent: { left: 80 },
+                            //             spacing: { before: 20, after: 20 },
+                            //             children: [
+                            //                 createTextRun(keyStr.hitCount || "", textStyle.arial10),
+                            //             ],
+                            //         }),
+                            //     ],
+                            // }),
+
                         ],
                     });
 
@@ -886,6 +952,7 @@ export const handleWordReportDownload = async ({
         ? relevantAndNplCombined
         : relevantReferences;
 
+        console.log('publications', publications)
     const appendixTable = createTwoColumnTickTable({
         leftTitle: "Patents" || "",
         rightTitle: "Non-patent Literature" || "",
@@ -1221,8 +1288,6 @@ export const handleWordReportDownload = async ({
                                             ],
                                         }),
 
-                                        ...(typeId1
-                                            ? [
                                                 new TextRun({ text: "  " }),
                                                 new TextRun({ text: "[Google Patents Link: ", bold: true }),
                                                 new ExternalHyperlink({
@@ -1237,8 +1302,25 @@ export const handleWordReportDownload = async ({
                                                     ],
                                                 }),
                                                 new TextRun({ text: "]", bold: true }),
-                                            ]
-                                            : []),
+
+                                        // ...(typeId1
+                                        //     ? [
+                                        //         new TextRun({ text: "  " }),
+                                        //         new TextRun({ text: "[Google Patents Link: ", bold: true }),
+                                        //         new ExternalHyperlink({
+                                        //             link: pub.googlePublicationUrl || "",
+                                        //             children: [
+                                        //                 new TextRun({
+                                        //                     text: pub.patentNumber?.toUpperCase() || "N/A",
+                                        //                     style: "Hyperlink",
+                                        //                     color: "0000FF",
+                                        //                     underline: { type: UnderlineType.SINGLE },
+                                        //                 }),
+                                        //             ],
+                                        //         }),
+                                        //         new TextRun({ text: "]", bold: true }),
+                                        //     ]
+                                        //     : []),
 
 
                                     ],
@@ -1309,6 +1391,7 @@ export const handleWordReportDownload = async ({
                                     spacing: { after: 20 },
                                 }),
 
+                                
 
                                 ...generateBibliographicSection({
                                     pub,
@@ -1318,7 +1401,6 @@ export const handleWordReportDownload = async ({
                                     rightTableRows,
                                     createSingleColumnTableRows,
                                 }),
-
                                 // new Paragraph({ children: [], spacing: { after: 200 } }),
                             ];
                         })

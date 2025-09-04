@@ -841,7 +841,6 @@ module.exports = { getPatentData };
 
 //     const bibliographicData = biblioData?.["world-patent-data"]?.["exchange-documents"]?.["exchange-document"]?.["bibliographic-data"]
 
-//     console.log( "biblio", biblioData?.["world-patent-data"]?.["exchange-documents"]?.["exchange-document"]?.["bibliographic-data"])
 //     // ✅ Apply utils to clean/transform the data
 //     return {
 //         patentNumber,

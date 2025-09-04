@@ -149,10 +149,7 @@ const Appendix1 = ({
             columnsConfig: [
                 { header: "Key Strings", accessorKey: "keyString" },
                 { header: "Database", accessorKey: "databaseName" },
-                ...(singleProject.projectTypeId === "0002"
-                    ? [{ header: "Hits", accessorKey: "hitCount" }]
-                    : []
-                )
+                { header: "Hits", accessorKey: "hitCount" }
             ],
 
             includeSerialNo: true,
@@ -222,6 +219,7 @@ const Appendix1 = ({
             console.log('err', err)
         }
     };
+
 
 
 

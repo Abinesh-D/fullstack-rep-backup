@@ -245,6 +245,7 @@ const MappingProjectCreation = () => {
 
     const onRelatedDelete = (rowData) => {
         setSelectedRow(rowData);
+        console.log('rowData', rowData)
         setActiveModal("relatedReference");
     }
 
@@ -283,6 +284,7 @@ const MappingProjectCreation = () => {
 
 
     const handleRelatedReferenceDelete = async () => {
+
         try {
             const relatedIds = selectedRow?._id ? selectedRow._id : selectedRows;
 

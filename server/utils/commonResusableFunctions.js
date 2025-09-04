@@ -26,6 +26,25 @@ function convertIpc(text) {
   return match[0].replace(/\s+/g, "");
 }
 
+function normalizeNames(rawValue) {
+  if (!rawValue) return "";
+
+  return rawValue
+    .split(";") 
+    .map(name => name.replace(/,/g, " ").trim())
+    .filter(Boolean)
+    .map(name => {
+      const parts = name.split(/\s+/);
+      if (parts.length >= 2) {
+        const lastName = parts[0];
+        const firstNames = parts.slice(1).join(" ");
+        return `${firstNames} ${lastName}`;
+      }
+      return name;
+    })
+    .join("; "); 
+}
+
 
 function getFilteredCPC(classifications, classificationsIPC) {
     const cpcArray = classifications?.cpc
@@ -50,4 +69,4 @@ function getFilteredCPC(classifications, classificationsIPC) {
 
 
 
-module.exports = { formatDate, capitalize, safeArray, safeText, convertIpc, getFilteredCPC };
+module.exports = { formatDate, capitalize, safeArray, safeText, convertIpc, getFilteredCPC, normalizeNames };

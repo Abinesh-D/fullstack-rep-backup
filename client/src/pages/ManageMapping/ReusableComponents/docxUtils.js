@@ -59,12 +59,26 @@ export const sanitizeText = (text) =>
         ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" }[c])
     );
 
+// export function capitalizeEachWord(str) {
+//     console.log('str', str)
+//     return str
+//         ?.split(" ")
+//         .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+//         .join(" ");
+// }
+
 export function capitalizeEachWord(str) {
+    if (!str) return "";
+    if (Array.isArray(str)) {
+        str = str.join(", ");
+    }
+    str = String(str);
     return str
         .split(" ")
         .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
         .join(" ");
 }
+
 
 export const toTitleCase = (str) =>
     (str || "").toLowerCase()
@@ -235,13 +249,16 @@ export const createFooter = () =>
 
 
 export const createSingleColumnTableRows = (rows) => {
+    console.log('rows', rows)
     return rows.map(({ label, value, isParagraphChildren }) => {
         let children = [];
+
+        const topMargin = (label === "Publication No" || label === "Publication Date") ? 100 : 0;
 
         children.push(
             new TextRun({
                 text: `${label} – `, 
-                bold: true
+                bold: true,
             })
         );
 
@@ -260,7 +277,8 @@ export const createSingleColumnTableRows = (rows) => {
                             indent: { left: 50 },
                             children
                         }),
-                    ]
+                    ],
+                    margins: { top: topMargin },
                 }),
             ]
         });
@@ -478,17 +496,77 @@ export const createRelatedReferencesTable = (relatedReferences = []) => {
         ),
     });
 
+
+    const data = [
+        {
+            publicationNumber: "Are You Putting Liquid Detergent in a Top-Load Washing Machine the Right Way?",
+            link: "https://www.thespruce.com/putting-detergent-right-way-12345",
+            title: "",
+            assignee: "thespruce",
+            publicationDate: "12/26/24",
+            priorityDate: "",
+            familyMembers: [],
+        },
+    ];
+
+
+const createLink = (url, text) =>
+    new Paragraph({
+        children: [
+            new TextRun({
+                text,
+                style: "Hyperlink", // Blue + underline
+            }),
+        ],
+        hyperlink: url,
+    });
+
+// 🔄 Reusable row generator
+    const createTableRow = (item, index) =>
+        new TableRow({
+            children: [
+                new TableCell({
+                    borders: commonBorders,
+                    children: [
+                        new Paragraph(`${index + 1}.`)
+                    ]
+                }),
+                new TableCell({
+                    columnSpan: 2,
+                    borders: commonBorders,
+                    children: [
+                        item.link ? createLink(item.link, item.publicationNumber) : new Paragraph(item.publicationNumber || "")
+                    ],
+                }),
+                new TableCell({
+                    borders: commonBorders,
+                    children: [
+                        new Paragraph(item.assignee || "")
+                    ]
+                }),
+                new TableCell({
+                    borders: commonBorders,
+                    columnSpan: 3,
+                    children: [
+                        new Paragraph(item.publicationDate || "")
+                    ]
+                }),
+            ],
+        });
+
+const createPublicationTableRows = (data) =>
+    data.map((item, idx) => createTableRow(item, idx));
+
+// Usage:
+const nplManualRows = createPublicationTableRows(data);
+
+
     const dataRows = relatedReferences.map((pub, index) =>
         new TableRow({
             children: [
                 createCellCentered(index + 1, 5),
                 createCellWithLink(pub.relatedPublicationUrl, pub.publicationNumber, 15),
                 createCellText(toTitleCase(pub.relatedTitle), 20),
-                // createCellText(
-                //     pub.relatedAssignee?.map(formatAssigneeOrInventor).join('; ') ||
-                //     pub.relatedInventor?.map(formatAssigneeOrInventor).join('; ') || 'N/A',
-                //     20
-                // ),
                 createCellText(
                     (
                         pub.relatedAssignee?.map(formatAssigneeOrInventor) ||
@@ -534,7 +612,8 @@ export const createRelatedReferencesTable = (relatedReferences = []) => {
 
     return new Table({
         width: { size: 100, type: WidthType.PERCENTAGE },
-        rows: [headerRow, ...dataRows, tocRow],
+        rows: [headerRow, ...dataRows, ...nplManualRows, tocRow],
+        
     });
 };
 
@@ -1058,6 +1137,7 @@ export const generateBibliographicSection = ({
                                         ],
                                     }),
                                 ],
+                                spacing: { before: 20 },
                             }),
                         ],
                     }),
@@ -1084,7 +1164,37 @@ export const generateBibliographicSection = ({
                                     new ExternalHyperlink({
                                         link: pub.publicationUrl,
                                         children: [
-                                            createTextRun(capitalizeEachWord(pub.source), textStyle.arial10),
+                                            createTextRun(capitalizeEachWord(pub?.assignee), textStyle.arial10),
+                                        ],
+                                    }),
+                                ],
+                            }),
+                        ],
+                    }),
+                ],
+            }),
+             new TableRow({
+                children: [
+                    new TableCell({
+                        borders: {
+                            top: {
+                                style: BorderStyle.NONE,
+                                size: 0,
+                                color: "FFFFFF",
+                            },
+                            left: commonBorders.left,
+                            right: commonBorders.right,
+                            bottom: commonBorders.bottom
+                        },
+                        // margins: marginsStyle.margins,
+                        children: [
+                            new Paragraph({
+                                children: [
+                                    createTextRun("Publication Date: ", textStyle.arial10, { bold: true }),
+                                    new ExternalHyperlink({
+                                        link: pub.publicationUrl,
+                                        children: [
+                                            createTextRun(pub?.filingDate || "N/A", textStyle.arial10),
                                         ],
                                     }),
                                 ],
@@ -1330,7 +1440,6 @@ export const generateBibliographicSection = ({
                                             ]
                                 ),
                         ].flat(),
-
                     }),
                 ],
             }),
@@ -1344,6 +1453,7 @@ export const generateBibliographicSection = ({
         }),
         analystCommentsRow,
         relevantExcerptsRow,
+        new Paragraph({ text: "", spacing: { before: 0, after: 400 } })
     ];
 }
 

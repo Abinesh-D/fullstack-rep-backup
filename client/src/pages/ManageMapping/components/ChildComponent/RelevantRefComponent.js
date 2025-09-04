@@ -62,6 +62,7 @@ const RelevantRefComponent = ({
     const nonPatentModified = nonPatentFormData.map((item) => ({
         patentNumber: item.nplTitle,
         publicationUrl: item.nplPublicationUrl,
+        googlePublicationUrl: item.nplPublicationUrl,
         assignee: item.url,
         analystComments: item.comments,
         filingDate: item.nplPublicationDate,
@@ -104,7 +105,8 @@ const RelevantRefComponent = ({
         e.preventDefault();
         try {
             const response = await axios.post(
-                `http://localhost:8080/live/projectname/add-relevantandnpl-data/${patentSlice.singleProject._id}`, { tableData },
+                `http://localhost:8080/live/projectname/add-relevantandnpl-data/${patentSlice.singleProject._id}`, 
+                { tableData },
                 { headers: { "Content-Type": "application/json" } }
             );
             if (response.status === 200) {

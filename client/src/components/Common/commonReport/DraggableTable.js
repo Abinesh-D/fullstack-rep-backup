@@ -11,6 +11,9 @@ const DraggableTable = ({ data, columns, setData }) => {
         setData(items);
     };
 
+
+    console.log('data, columns,', data, columns,)
+
     return (
         <DragDropContext onDragEnd={handleDragEnd}>
             <table className="border table-auto w-full text-sm text-left">

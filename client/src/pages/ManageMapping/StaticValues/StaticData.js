@@ -12,9 +12,15 @@ export const appendi2_Npl = "General Google search, Google Scholar, Science dire
 
 export const Additional_Search_Text = "Semantic Search,Similarity Search,Backward & Forward Citations";
 
-
-
-
+export const normalizeField = (val) => {
+    if (Array.isArray(val)) {
+        return val.join(", ");
+    }
+    if (val === null || val === undefined) {
+        return "";
+    }
+    return String(val);
+};
 
 // Appendix2.js
 // API call for Appendix2 - Patents
@@ -53,10 +59,6 @@ export const saveAppendix2NPL = async (id, appendix2NPL) => {
     }
 };
 
-
-
-
-
 // Appendix1.js
 // Data Availability API Call
 export const staticSaveDataAvailability = async (
@@ -80,7 +82,6 @@ export const staticSaveDataAvailability = async (
     }
 };
 
-
 // Additional Search api call 
 export const handleSaveKeyStringAdditional = async ({
     id,
@@ -103,11 +104,7 @@ export const handleSaveKeyStringAdditional = async ({
     }
 };
 
-
-
-
 // initiall keystrings database name
-
 export const updateKeyStrings = async (projectId) => {
     console.log('projectId', projectId)
   try {
@@ -118,13 +115,3 @@ export const updateKeyStrings = async (projectId) => {
     throw error;
   }
 };
-
-
-
-
-
-
-
-
-
-

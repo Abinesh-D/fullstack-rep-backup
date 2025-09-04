@@ -21,9 +21,8 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 
-router.post("/", async (req, res) => {
+router.post("/project-creation", async (req, res) => {
   try {
-    console.log('req.body', req.body)
     const newProject = new cln_prior_report_schema(req.body);
     const saved = await newProject.save();
     res.status(201).json(saved);
@@ -127,8 +126,6 @@ router.get("/get-introduction/:id", async (req, res) => {
 router.post("/update-introduction/:id", async (req, res) => {
   const { id } = req.params;
   const { projectTitle, projectSubTitle, searchFeatures, projectId, executiveSummaryTotalColumn, textEditor } = req.body;
-
-  console.log(textEditor, "textEditor")
 
   try {
     const updatedProject = await cln_prior_report_schema.findByIdAndUpdate(
@@ -273,6 +270,28 @@ router.post("/add-relevantandnpl-data/:id", async (req, res) => {
   }
 });
 
+
+// Save Related and Npl Combined
+  router.post("/add-relatedandnpl-data/:id", async (req, res) => {
+    const { id } = req.params;
+    const { tableData } = req.body;
+    try {
+      const updatedProject = await cln_prior_report_schema.findByIdAndUpdate(
+        id,
+        { $push: { "stages.relatedReferences.relatedAndNplCombined": { $each: tableData } } },
+        { new: true, runValidators: true }
+      );
+
+
+      if (!updatedProject) {
+        return res.status(404).json({ message: " Project not found" });
+      }
+      res.status(200).json(updatedProject);
+    } catch (error) {
+      console.error(" Error updating tableData:", error);
+      res.status(500).json({ message: "Server error", error: error.message });
+    }
+  });
 
 // GET Publication Details for a Project
 router.get("/publication-details/:id", async (req, res) => {
@@ -802,6 +821,61 @@ router.post("/:projectId/init-databases", async (req, res) => {
 
 
 // new database name added
+// router.post("/:projectId/init-databases", async (req, res) => {
+//   const defaultDatabases = [
+//     { dbId: "addnew", databaseName: "+ Add New Database" },
+//     { dbId: "orbit", databaseName: "Orbit" },
+//     { dbId: "googlepatents", databaseName: "Google Patents" },
+//     { dbId: "espacenet", databaseName: "Espacenet" },
+//     { dbId: "uspto", databaseName: "USPTO" },
+//     { dbId: "others", databaseName: "Others" },
+//   ];
+
+//   try {
+//     const project = await cln_prior_report_schema.findById(req.params.projectId);
+//     if (!project) return res.status(404).json({ error: "Project not found" });
+
+//     // Ensure appendix1 array exists
+//     if (!project.stages.appendix1 || project.stages.appendix1.length === 0) {
+//       project.stages.appendix1 = [{ keyStrings: [] }];
+//     }
+
+//     const appendix1 = project.stages.appendix1[0];
+
+//     // Ensure keyStrings exists
+//     if (!appendix1.keyStrings) {
+//       appendix1.keyStrings = [];
+//     }
+
+//     // Add only missing databases
+//     defaultDatabases.forEach((db) => {
+//       const exists = appendix1.keyStrings.some((k) => k.dbId === db.dbId);
+//       if (!exists) {
+//         appendix1.keyStrings.push({
+//           _id: uuidv4(),
+//           dbId: db.dbId,
+//           databaseName: db.databaseName,
+//           keyStrings: []
+//         });
+//       }
+//     });
+
+//     await project.save();
+
+//     res.status(201).json({
+//       message: "Databases initialized (missing ones added only)",
+//       keyStrings: appendix1.keyStrings,
+//     });
+
+//   } catch (error) {
+//     console.error("Error initializing databases:", error);
+//     res.status(500).json({ error: error.message });
+//   }
+// });
+
+
+
+
 router.post("/:projectId/add-database", async (req, res) => {
   const { projectId } = req.params;
   const { databaseName } = req.body;

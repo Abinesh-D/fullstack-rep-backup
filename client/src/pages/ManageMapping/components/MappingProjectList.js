@@ -136,7 +136,7 @@ const MappingProjectList = () => {
         } else {
             try {
                 const response = await axios.post(
-                    "http://localhost:8080/live/projectname",
+                    "http://localhost:8080/live/projectname/project-creation",
                     payload
                 );
                 const createdProjectId = response.data?._id;
@@ -158,6 +158,7 @@ const MappingProjectList = () => {
                         () => { },
                         () => { }
                     );
+                    await updateKeyStrings(createdProjectId);
 
                     projectTypeId === "0001" &&
                         await handleSaveKeyStringAdditional({
@@ -166,9 +167,9 @@ const MappingProjectList = () => {
                             setKeyStringsAdditionalList: () => { },
                             setKeyStringAdditional: () => { }
                         });
-
-                    await updateKeyStrings(createdProjectId);
                 }
+                    
+
 
                 toggle();
                 fetchProjects();

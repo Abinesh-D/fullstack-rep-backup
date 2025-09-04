@@ -15,6 +15,7 @@ import axios from "axios"
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import CustomOffCanvas from "../../../../components/Common/commonReport/CustomOffCanvas";
+import { normalizeField } from "../../StaticValues/StaticData";
 
 
 
@@ -32,8 +33,8 @@ const RelatedRefComponent = ({
     resetRelatedForm,
     setRelatedFormData,
 
-    // selectedRows,
-    // setSelectedRows,
+    selectedRows,
+    setSelectedRows,
 
     nplPublicationFormData,
     handleNplPublicationChange,
@@ -57,26 +58,35 @@ const RelatedRefComponent = ({
     const [submitLoading, setSubmitLoading] = useState(false);
     const [generateLoading, setGenerateLoading] = useState(false);
 
-    const [selectedRows, setSelectedRows] = useState([]);
-
-
     const [tableData, setTableData] = useState([]);
+    console.log('tableData', tableData)
     const [isCanvasOpen, setIsCanvasOpen] = useState(false);
 
     const toggleCanvas = () => setIsCanvasOpen(!isCanvasOpen);
 
     const prevRelatedRef = useRef([]);
     const prevNonPatentRef = useRef([]);
+console.log('nonPublicationFormData', nonPublicationFormData)
 
     const nonPatentModified = nonPublicationFormData.map((item) => ({
+        // publicationNumber: item.nplTitle,
+        // relatedPublicationUrl: item.nplPublicationUrl,
+        // relatedAssignee: item.url,
+        // relatedInventor: item.comments,
+        // relatedPublicationDate: item.nplPublicationDate,
+        // nplId: true,
+        // relatedTitle: item.excerpts,
+        
+        _id: item._id,
         publicationNumber: item.nplTitle,
         relatedPublicationUrl: item.nplPublicationUrl,
-        relatedAssignee: item.url,
+        relatedTitle:  normalizeField(item.excerpts),
+        relatedAssignee: [item.url],
         relatedInventor: item.comments,
+        relatedFamilyMembers: [],
         relatedPublicationDate: item.nplPublicationDate,
-        _id: item._id,
+        relatedPriorityDate: "",
         nplId: true,
-        relatedTitle: item.excerpts
     }));
 
     const combinedDataValue = useMemo(() => {
@@ -112,12 +122,12 @@ const RelatedRefComponent = ({
         e.preventDefault();
         try {
             const response = await axios.post(
-                `http://localhost:8080/live/projectname/add-relevantandnpl-data/${patentSlice.singleProject._id}`,
+                `http://localhost:8080/live/projectname/add-relatedandnpl-data/${patentSlice.singleProject._id}`,
                 { tableData },
                 { headers: { "Content-Type": "application/json" } }
             );
             if (response.status === 200) {
-                const updatedDetails = response.data.stages.relevantReferences.relevantAndNplCombined;
+                const updatedDetails = response.data.stages.relatedReferences.relatedAndNplCombined;
                 setTableData(updatedDetails);
                 toggleCanvas();
                 toast.success("Order Saved");
@@ -425,7 +435,7 @@ const RelatedRefComponent = ({
             <div>
                 {selectedRows.length > 0 && (
                     <button
-                        onClick={onRelatedDelete}
+                        onClick={onRelatedDelete }
                         className="btn btn-danger mb-2"
                     >
                         Delete Selected ({selectedRows.length})

@@ -5,7 +5,6 @@ function extractNames(text) {
 }
 
 async function translateToEnglish(text) {
-  console.log("translateToEnglish", text);
   const cleanedText = text.trim();
   const names = extractNames(cleanedText);
   const nameStr = names.join(" ");
