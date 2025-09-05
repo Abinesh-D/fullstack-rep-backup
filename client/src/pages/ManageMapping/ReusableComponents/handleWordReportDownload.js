@@ -29,8 +29,11 @@ import {
     sanitizeText,
     textStyle,
     capitalizeEachWord,
+    createFirstHeader,
+    createFirstFooter,
 } from "./docxUtils";
 import HtmlDocx from "html-docx-js/dist/html-docx";
+import { normalizeField } from "../StaticValues/StaticData";
 
 
 
@@ -116,23 +119,173 @@ export const handleWordReportDownload = async ({
     relatedReferences,
     appendix1,
     appendix2,
-    overallSummary,
-    getProjectValue,
-    relevantAndNplCombined
+    projectTypeId,
 }) => {
+
+
+let relevantReferencesTableData = [];
+
+if (
+  Array.isArray(relevantReferences.relevantAndNplCombined) &&
+  relevantReferences.relevantAndNplCombined.length > 0
+) {
+  relevantReferencesTableData = relevantReferences.relevantAndNplCombined;
+} else if (
+  Array.isArray(relevantReferences.publicationDetails) &&
+  relevantReferences.publicationDetails.length > 0 &&
+  Array.isArray(relevantReferences.nonPatentLiteratures) &&
+  relevantReferences.nonPatentLiteratures.length > 0
+) {
+  const nonPatentModified = relevantReferences.nonPatentLiteratures.map(
+    (item) => ({
+      _id: item._id,
+      nplId: true,
+      patentNumber: item.nplTitle || "",
+      publicationUrl: item.nplPublicationUrl || "",
+      googlePublicationUrl: item.nplPublicationUrl || "",
+      title: "",
+      source: "",
+      abstract: "",
+      filingDate: item.nplPublicationDate || "",
+      priorityDate: "",
+      grantDate: "",
+      assignee: item.url ? item.url : [],
+      inventors: [],
+      classifications: [],
+      ipcClassifications: [],
+      cpcClassifications: [],
+      usClassification: [],
+      familyMembers: [],
+      analystComments: item.comments ? item.comments : [],
+      relevantExcerpts: item.excerpts || [],
+    })
+  );
+
+  relevantReferencesTableData = [
+    ...relevantReferences.publicationDetails,
+    ...nonPatentModified,
+  ];
+} else if (
+  Array.isArray(relevantReferences.publicationDetails) &&
+  relevantReferences.publicationDetails.length > 0
+) {
+  relevantReferencesTableData = relevantReferences.publicationDetails;
+} else if (
+  Array.isArray(relevantReferences.nonPatentLiteratures) &&
+  relevantReferences.nonPatentLiteratures.length > 0
+) {
+  relevantReferencesTableData = relevantReferences.nonPatentLiteratures.map(
+    (item) => ({
+      _id: item._id,
+      nplId: true,
+      patentNumber: item.nplTitle || "",
+      publicationUrl: item.nplPublicationUrl || "",
+      googlePublicationUrl: item.nplPublicationUrl || "",
+      title: "",
+      source: "",
+      abstract: "",
+      filingDate: item.nplPublicationDate || "",
+      priorityDate: "",
+      grantDate: "",
+      assignee: item.url ? item.url : [],
+      inventors: [],
+      classifications: [],
+      ipcClassifications: [],
+      cpcClassifications: [],
+      usClassification: [],
+      familyMembers: [],
+      analystComments: item.comments ? item.comments : [],
+      relevantExcerpts: item.excerpts || [],
+    })
+  );
+} else {
+  relevantReferencesTableData = [];
+}
+
+
+
 
     const flatFormatedmap = appendix1.keyStrings.slice(1).filter(ft => ft.keyStrings.length > 0);
 
-    const typeId1 = getProjectValue.projectTypeId === "0001";
-    const typeId2 = getProjectValue.projectTypeId === "0002";
+    const typeId1 = projectTypeId === "0001";
+    const typeId2 = projectTypeId === "0002";
 
     const header = createHeader(introduction.projectId);
     const footer = createFooter();
 
-    const tocConfig = getTocConfig(relevantReferences);
-    const tocConfigSummary = getTocConfigSummary(relevantAndNplCombined);
+    const firstHeader = await createFirstHeader();
+    const firstFooter = await createFirstFooter();
 
-    const relatedReferencesTable = createRelatedReferencesTable(relatedReferences.publicationDetails);
+    const tocConfig = getTocConfig(relevantReferencesTableData);
+    // const tocConfigSummary = getTocConfigSummary(relevantAndNplCombined);
+    const tocConfigSummary = getTocConfigSummary(relevantReferencesTableData);
+
+
+    // Related Ref Condional Logics
+    let relatedReferencesTableData = [];
+
+    if (
+      Array.isArray(relatedReferences.relatedAndNplCombined) &&
+      relatedReferences.relatedAndNplCombined.length > 0
+    ) {
+      relatedReferencesTableData = relatedReferences.relatedAndNplCombined;
+    } else if (
+      Array.isArray(relatedReferences.publicationDetails) &&
+      relatedReferences.publicationDetails.length > 0 &&
+      Array.isArray(relatedReferences.nonPatentLiteratures) &&
+      relatedReferences.nonPatentLiteratures.length > 0
+    ) {
+      const nonPatentModified = relatedReferences.nonPatentLiteratures.map(
+        (item) => ({
+          _id: item._id,
+          publicationNumber: item.nplTitle,
+          relatedPublicationUrl: item.nplPublicationUrl,
+          relatedTitle: normalizeField(item.excerpts),
+          relatedAssignee: [item.url],
+          relatedInventor: item.comments,
+          relatedFamilyMembers: [],
+          relatedPublicationDate: item.nplPublicationDate,
+          relatedPriorityDate: "",
+          nplId: true,
+        })
+      );
+
+      relatedReferencesTableData = [
+        ...relatedReferences.publicationDetails,
+        ...nonPatentModified,
+      ];
+    } else if (
+      Array.isArray(relatedReferences.publicationDetails) &&
+      relatedReferences.publicationDetails.length > 0
+    ) {
+      relatedReferencesTableData = relatedReferences.publicationDetails;
+    } else if (
+      Array.isArray(relatedReferences.nonPatentLiteratures) &&
+      relatedReferences.nonPatentLiteratures.length > 0
+    ) {
+      relatedReferencesTableData = relatedReferences.nonPatentLiteratures.map(
+        (item) => ({
+          _id: item._id,
+          publicationNumber: item.nplTitle,
+          relatedPublicationUrl: item.nplPublicationUrl,
+          relatedTitle: normalizeField(item.excerpts),
+          relatedAssignee: [item.url],
+          relatedInventor: item.comments,
+          relatedFamilyMembers: [],
+          relatedPublicationDate: item.nplPublicationDate,
+          relatedPriorityDate: "",
+          nplId: true,
+        })
+      );
+    } else {
+      relatedReferencesTableData = [];
+    }
+
+    const relatedReferencesTable = createRelatedReferencesTable(relatedReferencesTableData);
+
+
+
+
 
     const totalColumns = introduction?.executiveSummaryTotalColumn ?? 0;
 
@@ -142,7 +295,8 @@ export const handleWordReportDownload = async ({
     );
 
     const ExecutiveSummaryTable = createExecutiveSummaryTable({
-        data: relevantAndNplCombined,
+        // data: relevantAndNplCombined,
+        data: relevantReferencesTableData,
         dynamicHeadings,
     });
 
@@ -162,7 +316,7 @@ export const handleWordReportDownload = async ({
     );
     const tocItems = (typeId2 && tocConfigSummary) || (typeId1 && tocConfig);
     const tocTable = createTocTable(tocItems);
-    const relevantReferencesTable = createRelevantReferencesTable(relevantReferences, typeId1 ? "typeId1" : "typeId2");
+    const relevantReferencesTable = createRelevantReferencesTable(relevantReferencesTableData, typeId1 ? "typeId1" : "typeId2");
 
     const autoToc = new TableOfContents("Table of Contents", {
         hyperlink: true,
@@ -948,11 +1102,10 @@ export const handleWordReportDownload = async ({
     };
 
     // const publications = typeId2 ? relevantAndNplCombined : relevantReferences;
-    const publications = (Array.isArray(relevantAndNplCombined) && relevantAndNplCombined.length > 0)
-        ? relevantAndNplCombined
-        : relevantReferences;
+    // const publications = (Array.isArray(relevantAndNplCombined) && relevantAndNplCombined.length > 0)
+    //     ? relevantAndNplCombined
+    //     : relevantReferences;
 
-        console.log('publications', publications)
     const appendixTable = createTwoColumnTickTable({
         leftTitle: "Patents" || "",
         rightTitle: "Non-patent Literature" || "",
@@ -994,560 +1147,612 @@ export const handleWordReportDownload = async ({
     //   const htmlStringValue =  handleDownload();
 
     const doc = new Document({
-        styles: {
-            default: {
-                document: {
-                    run: {
-                        font: "Arial",
-                        size: 20,
-                    },
-                    paragraph: {
-                        spacing: {
-                            after: 120,
-                        },
-                    },
-
-                },
+      styles: {
+        default: {
+          document: {
+            run: {
+              font: "Arial",
+              size: 20,
             },
+            paragraph: {
+              spacing: {
+                after: 120,
+              },
+            },
+          },
         },
-        sections: [
-            // Project Title
-            {
-                properties: createPageProperties(920, "portrait"),
-                children: [
-                    createParagraph(introduction.projectTitle, {
-                        alignment: AlignmentType.CENTER,
-                        spacing: { after: 50 },
-                        textStyleOverride: { bold: true, ...textStyle.arial24 },
-                    }),
-                    createParagraph(introduction.projectSubTitle, {
-                        alignment: AlignmentType.CENTER,
-                        spacing: { before: 50, after: 50 },
-                        textStyleOverride: { bold: true, ...textStyle.arial24 },
-                    }),
-                    createParagraph(introduction.projectId, {
-                        alignment: AlignmentType.CENTER,
-                        spacing: { before: 50, after: 50 },
-                        textStyleOverride: { bold: true, ...textStyle.arial24 },
-                    }),
-                ],
-            },
-            // Table Content
-            {
-                properties: createPageProperties(920, "portrait"),
-                headers: { default: header },
-                footers: { default: footer },
-                children: [
-                    tocTitle,
-                    // tocTable,
-                    // tocTitle,
-                    autoToc,
-                    createParagraph([
-                        new ExternalHyperlink({
-                            link: "https://par.molecularconnections.com/mc-review/form/IDF-34131Top%20Load%20Washer%20with%20Flexible%20Dispenser%20and%20Serviceable%20Dosing%20System",
-                            children: [
-                                createTextRun("Please rate this search report", textStyle.arial10, {
-                                    bold: true,
-                                    color: "0000FF",
-                                    underline: { type: UnderlineType.SINGLE },
-                                }),
-                            ],
-                        }),
-                    ], {
-                        spacing: { before: 100 },
-                        indent: { left: 380 },
-                    }),
-                ],
-            },
-
-            // Search Features
-            {
-                properties: createPageProperties(920, "portrait"),
-                headers: { default: header },
-                footers: { default: footer },
-                children: [
-                    createParagraph(
-                        new Bookmark({
-                            id: typeId2 ? "typeID2-search-features" : "typeID1-search-features",
-                            children: [
-                                createTextRun("1.  Search Features", textStyle.arial14, {
-                                    bold: true,
-                                    color: "000000",
-                                }),
-                            ],
-                        }),
-                        {
-                            alignment: AlignmentType.LEFT,
-                            spacing: { before: 200, after: 300 },
-                            indent: { left: 880 },
-                            paragraphOptions: {
-                                heading: HeadingLevel.HEADING_1,
-                            },
-                        }
+      },
+      sections: [
+        // Project Title
+        {
+          properties: createPageProperties(920, "portrait"),
+          // headers: { default: firstHeader },
+          // footers: { default: firstFooter },
+          children: [
+            createParagraph(introduction.projectTitle, {
+              alignment: AlignmentType.CENTER,
+              spacing: { after: 50 },
+              textStyleOverride: { bold: true, ...textStyle.arial24 },
+            }),
+            createParagraph(introduction.projectSubTitle, {
+              alignment: AlignmentType.CENTER,
+              spacing: { before: 50, after: 50 },
+              textStyleOverride: { bold: true, ...textStyle.arial24 },
+            }),
+            createParagraph(introduction.projectId, {
+              alignment: AlignmentType.CENTER,
+              spacing: { before: 50, after: 50 },
+              textStyleOverride: { bold: true, ...textStyle.arial24 },
+            }),
+          ],
+        },
+        // Table Content
+        {
+          properties: createPageProperties(920, "portrait"),
+          headers: { default: header },
+          footers: { default: footer },
+          children: [
+            tocTitle,
+            // tocTable,
+            // tocTitle,
+            autoToc,
+            createParagraph(
+              [
+                new ExternalHyperlink({
+                  link: "https://par.molecularconnections.com/mc-review/form/IDF-34131Top%20Load%20Washer%20with%20Flexible%20Dispenser%20and%20Serviceable%20Dosing%20System",
+                  children: [
+                    createTextRun(
+                      "Please rate this search report",
+                      textStyle.arial10,
+                      {
+                        bold: true,
+                        color: "0000FF",
+                        underline: { type: UnderlineType.SINGLE },
+                      }
                     ),
+                  ],
+                }),
+              ],
+              {
+                spacing: { before: 100 },
+                indent: { left: 380 },
+              }
+            ),
+          ],
+        },
 
-
-
-
-                    // ...(introduction.searchFeatures || [])
-                    //     .filter((p) => p.trim() !== "")
-                    //     .map((para) =>
-                    //         createParagraph(sanitizeText(`${para.trim()}.`), {
-                    //             alignment: AlignmentType.JUSTIFIED,
-                    //             spacing: { before: 200, after: 200 },
-                    //             indent: { left: 380, right: 380 },
-                    //             textStyleOverride: { ...textStyle.arial10 }
-                    //         })
-                    //     ),
-
-
-                    ...(introduction.searchFeatures || [])
-                        .filter((p) => p.trim() !== "")
-                        .flatMap((para) =>
-                            para.split("\n").map(line =>
-                                createParagraph(
-                                    new TextRun({
-                                        text: sanitizeText(line),
-                                        preserveLeadingSpaces: true,
-                                        preserveTrailingSpaces: true,
-                                    }),
-                                    {
-                                        alignment: AlignmentType.LEFT,
-                                        spacing: { before: 20, after: 20 },
-                                        indent: { left: 380, right: 380 },
-                                        textStyleOverride: { ...textStyle.arial10 },
-                                    }
-                                )
-                            )
-                        ),
-
+        // Search Features
+        {
+          properties: createPageProperties(920, "portrait"),
+          headers: { default: header },
+          footers: { default: footer },
+          children: [
+            createParagraph(
+              new Bookmark({
+                id: typeId2
+                  ? "typeID2-search-features"
+                  : "typeID1-search-features",
+                children: [
+                  createTextRun("1.  Search Features", textStyle.arial14, {
+                    bold: true,
+                    color: "000000",
+                  }),
                 ],
-            },
-            // Search Mathedology
-            ...(typeId1
-                ? [
+              }),
+              {
+                alignment: AlignmentType.LEFT,
+                spacing: { before: 200, after: 300 },
+                indent: { left: 880 },
+                paragraphOptions: {
+                  heading: HeadingLevel.HEADING_1,
+                },
+              }
+            ),
+
+            // ...(introduction.searchFeatures || [])
+            //     .filter((p) => p.trim() !== "")
+            //     .map((para) =>
+            //         createParagraph(sanitizeText(`${para.trim()}.`), {
+            //             alignment: AlignmentType.JUSTIFIED,
+            //             spacing: { before: 200, after: 200 },
+            //             indent: { left: 380, right: 380 },
+            //             textStyleOverride: { ...textStyle.arial10 }
+            //         })
+            //     ),
+
+            ...(introduction.searchFeatures || [])
+              .filter((p) => p.trim() !== "")
+              .flatMap((para) =>
+                para.split("\n").map((line) =>
+                  createParagraph(
+                    new TextRun({
+                      text: sanitizeText(line),
+                      preserveLeadingSpaces: true,
+                      preserveTrailingSpaces: true,
+                    }),
                     {
-                        properties: createPageProperties(920, "portrait"),
-                        headers: { default: header },
-                        footers: { default: footer },
+                      alignment: AlignmentType.LEFT,
+                      spacing: { before: 20, after: 20 },
+                      indent: { left: 380, right: 380 },
+                      textStyleOverride: { ...textStyle.arial10 },
+                    }
+                  )
+                )
+              ),
+          ],
+        },
+        // Search Mathedology
+        ...(typeId1
+          ? [
+              {
+                properties: createPageProperties(920, "portrait"),
+                headers: { default: header },
+                footers: { default: footer },
+                children: [
+                  new Paragraph({ text: "", pageBreakBefore: true }),
+                  ...getSearchMethodology(introduction.projectTitle),
+                ],
+              },
+            ]
+          : []),
+        typeId1 && {
+          properties: createPageProperties(920, "portrait"),
+          headers: { default: header },
+          footers: { default: footer },
+          children: [
+            new Paragraph({
+              indent: { left: 880 },
+              heading: HeadingLevel.HEADING_1,
+              spacing: { after: 400, before: 500 },
+              children: [
+                new Bookmark({
+                  id: "typeID1-relevant-toc",
+                  children: [
+                    createTextRun(
+                      "3. Potentially Relevant References",
+                      textStyle.arial14,
+                      {
+                        bold: true,
+                        color: "000000",
+                      }
+                    ),
+                  ],
+                }),
+              ],
+            }),
+            relevantReferencesTable,
+            createParagraph("Overall Summary of Search and Prior Arts:", {
+              indent: { left: 520 },
+              spacing: { after: 200, before: 200 },
+              textStyleOverride: {
+                ...textStyle.arial10,
+                bold: true,
+                color: "000000",
+              },
+            }),
+
+            ...(relevantReferences.overallSummary &&
+            relevantReferences.overallSummary.length
+              ? relevantReferences.overallSummary.flatMap((item) =>
+                  item.split("\n").map(
+                    (line) =>
+                      new Paragraph({
+                        indent: { left: 520 },
+                        spacing: { after: 20 },
+                        alignment: AlignmentType.LEFT,
                         children: [
-                            new Paragraph({ text: "", pageBreakBefore: true }),
-                            ...getSearchMethodology(introduction.projectTitle),
+                          new TextRun({
+                            text: sanitizeText(line),
+                            preserveLeadingSpaces: true,
+                            preserveTrailingSpaces: true,
+                            ...textStyle.arial10,
+                          }),
                         ],
+                      })
+                  )
+                )
+              : [
+                  new Paragraph({
+                    indent: { left: 520 },
+                    spacing: { after: 20 },
+                    alignment: AlignmentType.LEFT,
+                    children: [
+                      new TextRun({
+                        text: "*No summary available",
+                        color: "FF0000",
+                        ...textStyle.arial10,
+                      }),
+                    ],
+                  }),
+                ]),
+          ],
+        },
+        typeId2 && {
+          properties: createPageProperties(920, "portrait"),
+          headers: { default: header },
+          footers: { default: footer },
+          children: [
+            createParagraph(
+              new Bookmark({
+                id: "typeID2-executive-summary",
+                children: [
+                  createTextRun("2. Executive Summary", textStyle.arial14, {
+                    bold: true,
+                    color: "000000",
+                  }),
+                ],
+              }),
+              {
+                indent: { left: 630 },
+                spacing: { after: 50 },
+                paragraphOptions: { heading: HeadingLevel.HEADING_1 },
+              }
+            ),
+
+            createParagraph(
+              "Feature- Mapping Summary of Potential Relevant References",
+              {
+                indent: indent380,
+                spacing: { after: 50 },
+                textStyleOverride: {
+                  ...textStyle.arial10,
+                  italics: true,
+                },
+              }
+            ),
+
+            ExecutiveSummaryTable,
+            ...summaryParagraphs,
+          ],
+        },
+        // Relevant
+        {
+          properties: createPageProperties(920, "portrait"),
+          headers: { default: header },
+          footers: { default: footer },
+          children: [
+            // Section heading
+            new Paragraph({
+              indent: { left: 880 },
+              children: [
+                new Bookmark({
+                  id: typeId2
+                    ? "typeID2-potentially-relevant-references"
+                    : "typeID1-relevant-biblio",
+                  children: [
+                    createTextRun(
+                      `${typeId2 ? "3" : "4"}. Potentially Relevant References`,
+                      textStyle.arial14,
+                      { bold: true, color: "000000" }
+                    ),
+                  ],
+                }),
+              ],
+              heading: HeadingLevel.HEADING_1,
+              spacing: { after: 50 },
+            }),
+            // Dynamic publications list
+            ...(Array.isArray(relevantReferencesTableData) &&
+            relevantReferencesTableData.length > 0
+              ? relevantReferencesTableData.flatMap((pub, pubIndex) => {
+                  const isNpl = pub.nplId === true;
+                  const usClass = {
+                    label: "US Classifications",
+                    value: getFamilyMembersParagraphChildren(
+                      {
+                        FamilyMembers: pub.usClassification,
+                        hyperLink: pub.publicationUrl,
+                      },
+                      textStyle
+                    ),
+                    isParagraphChildren: true,
+                  };
+                  const leftTableRows = [
+                    {
+                      label: "Publication No",
+                      value: [
+                        new ExternalHyperlink({
+                          link: pub.publicationUrl || "",
+                          children: [
+                            new TextRun({
+                              text: pub.patentNumber?.toUpperCase() || "N/A",
+                              style: "Hyperlink",
+                              color: "0000FF",
+                              underline: { type: UnderlineType.SINGLE },
+                            }),
+                          ],
+                        }),
+
+                        new TextRun({ text: "  " }),
+                        new TextRun({
+                          text: "[Google Patents Link: ",
+                          bold: true,
+                        }),
+                        new ExternalHyperlink({
+                          link: pub.googlePublicationUrl || "",
+                          children: [
+                            new TextRun({
+                              text: pub.patentNumber?.toUpperCase() || "N/A",
+                              style: "Hyperlink",
+                              color: "0000FF",
+                              underline: { type: UnderlineType.SINGLE },
+                            }),
+                          ],
+                        }),
+                        new TextRun({ text: "]", bold: true }),
+
+                        // ...(typeId1
+                        //     ? [
+                        //         new TextRun({ text: "  " }),
+                        //         new TextRun({ text: "[Google Patents Link: ", bold: true }),
+                        //         new ExternalHyperlink({
+                        //             link: pub.googlePublicationUrl || "",
+                        //             children: [
+                        //                 new TextRun({
+                        //                     text: pub.patentNumber?.toUpperCase() || "N/A",
+                        //                     style: "Hyperlink",
+                        //                     color: "0000FF",
+                        //                     underline: { type: UnderlineType.SINGLE },
+                        //                 }),
+                        //             ],
+                        //         }),
+                        //         new TextRun({ text: "]", bold: true }),
+                        //     ]
+                        //     : []),
+                      ],
+                      isParagraphChildren: true,
                     },
-                ]
-                : []),
-            typeId1 && {
-                properties: createPageProperties(920, "portrait"),
-                headers: { default: header },
-                footers: { default: footer },
-                children: [
-                    new Paragraph({
-                        indent: { left: 880 },
-                        heading: HeadingLevel.HEADING_1,
-                        spacing: { after: 400, before: 500 },
-                        children: [
-                            new Bookmark({
-                                id: "typeID1-relevant-toc",
-                                children: [
-                                    createTextRun("3. Potentially Relevant References", textStyle.arial14, {
-                                        bold: true,
-                                        color: "000000",
-                                    }),
-                                ],
-                            }),
-                        ],
-                    }),
-                    relevantReferencesTable,
-                    createParagraph("Overall Summary of Search and Prior Arts:", {
-                        indent: { left: 520 },
-                        spacing: { after: 200, before: 200 },
-                        textStyleOverride: {
-                            ...textStyle.arial10,
-                            bold: true,
-                            color: "000000",
+                    { label: "Title", value: capitalizeEachWord(pub.title) },
+                    {
+                      label: "Inventor(s)",
+                      value: capitalizeEachWord(
+                        (pub.inventors || []).join("; ")
+                      ),
+                    },
+                    {
+                      label: "Assignee(s)",
+                      value: capitalizeEachWord(
+                        (pub.assignee
+                          ? Array.isArray(pub.assignee)
+                            ? pub.assignee
+                            : [pub.assignee]
+                          : []
+                        ).join("; ")
+                      ),
+                    },
+                    {
+                      label: "Family Members",
+                      value: getFamilyMembersParagraphChildren(
+                        {
+                          FamilyMembers: pub.familyMembers,
+                          hyperLink: pub.publicationUrl,
                         },
-                    }),
-
-                    ...(overallSummary && overallSummary.length
-                        ? overallSummary.flatMap(item =>
-                            item.split("\n").map(line =>
-                                new Paragraph({
-                                    indent: { left: 520 },
-                                    spacing: { after: 20 },
-                                    alignment: AlignmentType.LEFT,
-                                    children: [
-                                        new TextRun({
-                                            text: sanitizeText(line),
-                                            preserveLeadingSpaces: true,
-                                            preserveTrailingSpaces: true,
-                                            ...textStyle.arial10,
-                                        }),
-                                    ],
-                                })
-                            )
-                        )
-                        : [
-                            new Paragraph({
-                                indent: { left: 520 },
-                                spacing: { after: 20 },
-                                alignment: AlignmentType.LEFT,
-                                children: [
-                                    new TextRun({
-                                        text: "*No summary available",
-                                        color: "FF0000",
-                                        ...textStyle.arial10,
-                                    }),
-                                ],
-                            }),
-                        ]
-                    ),
-                ],
-            },
-            typeId2 && {
-                properties: createPageProperties(920, "portrait"),
-                headers: { default: header },
-                footers: { default: footer },
-                children: [
-                    createParagraph(new Bookmark({
-                        id: "typeID2-executive-summary",
-                        children: [
-                            createTextRun("2. Executive Summary", textStyle.arial14, {
-                                bold: true,
-                                color: "000000",
-                            }),
-                        ],
-                    }), {
-                        indent: { left: 630 },
-                        spacing: { after: 50 },
-                        paragraphOptions: { heading: HeadingLevel.HEADING_1 },
-                    }),
-
-                    createParagraph("Feature- Mapping Summary of Potential Relevant References", {
-                        indent: indent380,
-                        spacing: { after: 50 },
-                        textStyleOverride: {
-                            ...textStyle.arial10,
-                            italics: true,
+                        textStyle
+                      ),
+                      isParagraphChildren: true,
+                    },
+                    // usClass,
+                  ];
+                  const rightTableRows = [
+                    {
+                      label: "Publication Date",
+                      value: sanitizeText(pub.grantDate),
+                    },
+                    {
+                      label: "Application Date",
+                      value: sanitizeText(pub.filingDate),
+                    },
+                    {
+                      label: "Priority Date",
+                      value: sanitizeText(pub.priorityDate),
+                    },
+                    {
+                      label: "IPC",
+                      value: getFamilyMembersParagraphChildren(
+                        {
+                          FamilyMembers: pub.ipcClassifications,
+                          hyperLink: pub.publicationUrl,
                         },
-                    }),
+                        textStyle
+                      ),
+                      isParagraphChildren: true,
+                    },
+                    {
+                      label: "CPC",
+                      value: getFamilyMembersParagraphChildren(
+                        {
+                          FamilyMembers: pub.cpcClassifications,
+                          hyperLink: pub.publicationUrl,
+                        },
+                        textStyle
+                      ),
+                      isParagraphChildren: true,
+                    },
+                    usClass,
+                  ];
 
-                    ExecutiveSummaryTable,
-                    ...summaryParagraphs,
-                ],
-            },
-            // Relevant
-            {
-                properties: createPageProperties(920, "portrait"),
-                headers: { default: header },
-                footers: { default: footer },
-                children: [
-                    // Section heading
+                  return [
                     new Paragraph({
-                        indent: { left: 880 },
-                        children: [
-                            new Bookmark({
-                                id: typeId2 ? "typeID2-potentially-relevant-references" : "typeID1-relevant-biblio",
-                                children: [
-                                    createTextRun(`${typeId2 ? "3" : "4"}. Potentially Relevant References`, textStyle.arial14, { bold: true, color: "000000" }),
-                                ]
-                            })
-                        ],
-                        heading: HeadingLevel.HEADING_1,
-                        spacing: { after: 50 },
-                    }),
-                    // Dynamic publications list
-                    ...(Array.isArray(publications)
-                        ? publications.flatMap((pub, pubIndex) => {
-                            const isNpl = pub.nplId === true;
-
-                            const usClass = {
-                                label: "US Classifications",
-                                value: getFamilyMembersParagraphChildren(
-                                    {
-                                        FamilyMembers: pub.usClassification,
-                                        hyperLink: pub.publicationUrl,
-                                    },
-                                    textStyle
-                                ),
-                                isParagraphChildren: true,
-                            };
-                            const leftTableRows = [
-                                {
-                                    label: "Publication No",
-                                    value: [
-                                        new ExternalHyperlink({
-                                            link: pub.publicationUrl || "",
-                                            children: [
-                                                new TextRun({
-                                                    text: pub.patentNumber?.toUpperCase() || "N/A",
-                                                    style: "Hyperlink",
-                                                    color: "0000FF",
-                                                    underline: { type: UnderlineType.SINGLE },
-                                                }),
-                                            ],
-                                        }),
-
-                                                new TextRun({ text: "  " }),
-                                                new TextRun({ text: "[Google Patents Link: ", bold: true }),
-                                                new ExternalHyperlink({
-                                                    link: pub.googlePublicationUrl || "",
-                                                    children: [
-                                                        new TextRun({
-                                                            text: pub.patentNumber?.toUpperCase() || "N/A",
-                                                            style: "Hyperlink",
-                                                            color: "0000FF",
-                                                            underline: { type: UnderlineType.SINGLE },
-                                                        }),
-                                                    ],
-                                                }),
-                                                new TextRun({ text: "]", bold: true }),
-
-                                        // ...(typeId1
-                                        //     ? [
-                                        //         new TextRun({ text: "  " }),
-                                        //         new TextRun({ text: "[Google Patents Link: ", bold: true }),
-                                        //         new ExternalHyperlink({
-                                        //             link: pub.googlePublicationUrl || "",
-                                        //             children: [
-                                        //                 new TextRun({
-                                        //                     text: pub.patentNumber?.toUpperCase() || "N/A",
-                                        //                     style: "Hyperlink",
-                                        //                     color: "0000FF",
-                                        //                     underline: { type: UnderlineType.SINGLE },
-                                        //                 }),
-                                        //             ],
-                                        //         }),
-                                        //         new TextRun({ text: "]", bold: true }),
-                                        //     ]
-                                        //     : []),
-
-
-                                    ],
-                                    isParagraphChildren: true,
-                                },
-                                { label: "Title", value: capitalizeEachWord(pub.title) },
-                                { label: "Inventor(s)", value: capitalizeEachWord((pub.inventors || []).join(", ")) },
-                                { label: "Assignee(s)", value: capitalizeEachWord((pub.assignee || []).join(", ")) },
-                                {
-                                    label: "Family Members",
-                                    value: getFamilyMembersParagraphChildren(
-                                        {
-                                            FamilyMembers: pub.familyMembers,
-                                            hyperLink: pub.publicationUrl,
-                                        },
-                                        textStyle
-                                    ),
-                                    isParagraphChildren: true,
-                                },
-                                // usClass,
-                            ];
-                            const rightTableRows = [
-                                { label: "Publication Date", value: sanitizeText(pub.grantDate) },
-                                { label: "Application Date", value: sanitizeText(pub.filingDate) },
-                                { label: "Priority Date", value: sanitizeText(pub.priorityDate) },
-                                {
-                                    label: "IPC",
-                                    value: getFamilyMembersParagraphChildren(
-                                        {
-                                            FamilyMembers: pub.ipcClassifications,
-                                            hyperLink: pub.publicationUrl,
-                                        },
-                                        textStyle
-                                    ),
-                                    isParagraphChildren: true,
-                                },
-                                {
-                                    label: "CPC",
-                                    value: getFamilyMembersParagraphChildren(
-                                        {
-                                            FamilyMembers: pub.cpcClassifications,
-                                            hyperLink: pub.publicationUrl,
-                                        },
-                                        textStyle
-                                    ),
-                                    isParagraphChildren: true,
-                                },
-                                usClass,
-                            ];
-
-                            return [
-                                new Paragraph({
-                                    alignment: AlignmentType.START,
-                                    indent: { left: 1250 },
-                                    children: [
-                                        new Bookmark({
-                                            id: typeId2 ? `typeID2-${pubIndex + 1}` : `typeID1-${pubIndex + 1}`,
-                                            children: [
-                                                createTextRun(
-                                                    `${pubIndex + 1}.       ${pub.patentNumber}`,
-                                                    textStyle.arial11,
-                                                    { bold: true, color: "000000" }
-                                                ),
-                                            ],
-                                        }),
-                                    ],
-                                    heading: HeadingLevel.HEADING_2,
-                                    spacing: { after: 20 },
-                                }),
-
-                                
-
-                                ...generateBibliographicSection({
-                                    pub,
-                                    isNpl,
-                                    typeId2,
-                                    leftTableRows,
-                                    rightTableRows,
-                                    createSingleColumnTableRows,
-                                }),
-                                // new Paragraph({ children: [], spacing: { after: 200 } }),
-                            ];
-                        })
-                        : []),
-                ],
-            },
-            // Related
-            {
-                properties: createPageProperties(920, "portrait"),
-                headers: { default: header },
-                footers: { default: footer },
-                children: [
-                    new Paragraph({
-                        indent: { left: 630 },
-                        children: [
-                            new Bookmark({
-                                id: typeId2 ? "typeID2-related-references" : "typeID1-related-references",
-                                children: [
-                                    createTextRun(`${typeId2 ? "4" : "5"}.  Related References`, textStyle.arial14, { bold: true, color: "000000" }),
-                                ]
-                            })
-                        ],
-                        spacing: { after: 50 },
-                        heading: HeadingLevel.HEADING_1,
-                    }),
-                    new Paragraph({
-                        indent: { left: 630 },
-                        children: [
+                      alignment: AlignmentType.START,
+                      indent: { left: 1250 },
+                      children: [
+                        new Bookmark({
+                          id: typeId2
+                            ? `typeID2-${pubIndex + 1}`
+                            : `typeID1-${pubIndex + 1}`,
+                          children: [
                             createTextRun(
-                                " (Note: Below references obtained from the quick search are listed as related, as these references fail to disclose at least one or more critical features)",
-                                textStyle.arial10,
-                                { italics: true }
+                              `${pubIndex + 1}.       ${pub.patentNumber}`,
+                              textStyle.arial11,
+                              { bold: true, color: "000000" }
                             ),
-                        ],
-                        spacing: { after: 50 },
-                    }),
-                    relatedReferencesTable
-                ],
-            },
-            // typeId2 Search Methodology
-            typeId2 && {
-                properties: createPageProperties(920, "portrait"),
-
-                headers: { default: header },
-                footers: { default: footer },
-                children: getSearchMethodology(typeId2),
-            },
-            (typeId1 || typeId2) && {
-                properties: createPageProperties(920, "portrait"),
-                headers: { default: header },
-                footers: { default: footer },
-                children: appendix1Childern,
-            },
-            // Appendix 2
-            {
-                properties: createPageProperties(920, "portrait"),
-                headers: { default: header },
-                footers: { default: footer },
-                children: [
-                    new Paragraph({
-                        indent: { left: 520 },
-                        children: [
-                            new Bookmark({
-                                id: typeId1 ? "typeID1-appendix2" : "typeID2-appendix",
-                                children: [
-                                    createTextRun(
-                                        typeId2 ? "Appendix" : typeId1 ? "Appendix 2" : "",
-                                        textStyle.arial14,
-                                        { bold: true, color: "000000" }
-                                    ),
-                                ],
-
-                            })
-                        ],
-                        heading: HeadingLevel.HEADING_1,
-                        alignment: AlignmentType.START,
-                        spacing: { after: 30 },
+                          ],
+                        }),
+                      ],
+                      heading: HeadingLevel.HEADING_2,
+                      spacing: { after: 20 },
                     }),
 
-                    new Paragraph({
-                        children: [
-                            new Bookmark({
-                                id: typeId2 ? "typeID2-databases" : "typeID1-databases",
-                                children: [
-                                    createTextRun("Databases", textStyle.arial11, { bold: true, color: "000000" }),
-                                ]
-                            })
-                        ],
-                        heading: HeadingLevel.HEADING_2,
-                        alignment: AlignmentType.START,
-                        spacing: { after: 0 },
-                        indent: { left: 880 },
+                    ...generateBibliographicSection({
+                      pub,
+                      isNpl,
+                      typeId2,
+                      leftTableRows,
+                      rightTableRows,
+                      createSingleColumnTableRows,
                     }),
-                    appendixTable,
-                ],
-            },
-            // Disclaimer
-            {
-                properties: createPageProperties(920, "portrait"),
-                headers: { default: header },
-                footers: { default: footer },
-                children: [
-                    new Paragraph({
-                        indent: { left: 520 },
-                        heading: HeadingLevel.HEADING_1,
-                        alignment: AlignmentType.START,
-                        spacing: { after: 100 },
-                        children: [
-                            new Bookmark({
-                                id: typeId1 ? "typeID1-disclaimer" : "typeID2-disclaimer",
-                                children: [
-                                    createTextRun("Disclaimer", textStyle.arial14, {
-                                        bold: true,
-                                        color: "000000",
-                                    }),
-                                ],
-                            }),
-                        ],
-                    }),
-
-                    // Disclaimer content paragraph
-                    ...(Array.isArray(disclaimer)
-                        ? disclaimer.map((line) =>
-                            new Paragraph({
-                                indent: { left: 520 },
-                                alignment: AlignmentType.START,
-                                spacing: { after: 50 },
-                                children: [
-                                    createTextRun(line, textStyle.arial10),
-                                ],
-                            })
-                        )
-                        : [
-                            new Paragraph({
-                                indent: { left: 520 },
-                                alignment: AlignmentType.START,
-                                spacing: { after: 50 },
-                                children: [
-                                    createTextRun(disclaimer || "N/A", textStyle.arial10),
-                                ],
-                            }),
-                        ]
+                    // new Paragraph({ children: [], spacing: { after: 200 } }),
+                  ];
+                })
+              : []),
+          ],
+        },
+        // Related
+        {
+          properties: createPageProperties(920, "portrait"),
+          headers: { default: header },
+          footers: { default: footer },
+          children: [
+            new Paragraph({
+              indent: { left: 630 },
+              children: [
+                new Bookmark({
+                  id: typeId2
+                    ? "typeID2-related-references"
+                    : "typeID1-related-references",
+                  children: [
+                    createTextRun(
+                      `${typeId2 ? "4" : "5"}.  Related References`,
+                      textStyle.arial14,
+                      { bold: true, color: "000000" }
                     ),
-                ],
-            },
+                  ],
+                }),
+              ],
+              spacing: { after: 50 },
+              heading: HeadingLevel.HEADING_1,
+            }),
+            new Paragraph({
+              indent: { left: 630 },
+              children: [
+                createTextRun(
+                  " (Note: Below references obtained from the quick search are listed as related, as these references fail to disclose at least one or more critical features)",
+                  textStyle.arial10,
+                  { italics: true }
+                ),
+              ],
+              spacing: { after: 50 },
+            }),
+            relatedReferencesTable,
+          ],
+        },
+        // typeId2 Search Methodology
+        typeId2 && {
+          properties: createPageProperties(920, "portrait"),
 
-        ].filter(Boolean),
+          headers: { default: header },
+          footers: { default: footer },
+          children: getSearchMethodology(typeId2),
+        },
+        (typeId1 || typeId2) && {
+          properties: createPageProperties(920, "portrait"),
+          headers: { default: header },
+          footers: { default: footer },
+          children: appendix1Childern,
+        },
+        // Appendix 2
+        {
+          properties: createPageProperties(920, "portrait"),
+          headers: { default: header },
+          footers: { default: footer },
+          children: [
+            new Paragraph({
+              indent: { left: 520 },
+              children: [
+                new Bookmark({
+                  id: typeId1 ? "typeID1-appendix2" : "typeID2-appendix",
+                  children: [
+                    createTextRun(
+                      typeId2 ? "Appendix" : typeId1 ? "Appendix 2" : "",
+                      textStyle.arial14,
+                      { bold: true, color: "000000" }
+                    ),
+                  ],
+                }),
+              ],
+              heading: HeadingLevel.HEADING_1,
+              alignment: AlignmentType.START,
+              spacing: { after: 30 },
+            }),
+
+            new Paragraph({
+              children: [
+                new Bookmark({
+                  id: typeId2 ? "typeID2-databases" : "typeID1-databases",
+                  children: [
+                    createTextRun("Databases", textStyle.arial11, {
+                      bold: true,
+                      color: "000000",
+                    }),
+                  ],
+                }),
+              ],
+              heading: HeadingLevel.HEADING_2,
+              alignment: AlignmentType.START,
+              spacing: { after: 0 },
+              indent: { left: 880 },
+            }),
+            appendixTable,
+          ],
+        },
+        // Disclaimer
+        {
+          properties: createPageProperties(920, "portrait"),
+          headers: { default: header },
+          footers: { default: footer },
+          children: [
+            new Paragraph({
+              indent: { left: 520 },
+              heading: HeadingLevel.HEADING_1,
+              alignment: AlignmentType.START,
+              spacing: { after: 100 },
+              children: [
+                new Bookmark({
+                  id: typeId1 ? "typeID1-disclaimer" : "typeID2-disclaimer",
+                  children: [
+                    createTextRun("Disclaimer", textStyle.arial14, {
+                      bold: true,
+                      color: "000000",
+                    }),
+                  ],
+                }),
+              ],
+            }),
+
+            // Disclaimer content paragraph
+            ...(Array.isArray(disclaimer)
+              ? disclaimer.map(
+                  (line) =>
+                    new Paragraph({
+                      indent: { left: 520 },
+                      alignment: AlignmentType.START,
+                      spacing: { after: 50 },
+                      children: [createTextRun(line, textStyle.arial10)],
+                    })
+                )
+              : [
+                  new Paragraph({
+                    indent: { left: 520 },
+                    alignment: AlignmentType.START,
+                    spacing: { after: 50 },
+                    children: [
+                      createTextRun(disclaimer || "N/A", textStyle.arial10),
+                    ],
+                  }),
+                ]),
+          ],
+        },
+      ].filter(Boolean),
     });
 
     const blob = await Packer.toBlob(doc);

@@ -171,8 +171,27 @@ console.log('normalizedNames', normalizedNames)
     return translated;
 }
 
+async function cleanAndTranslate(input) {
+  if (!input) return "";
+
+  const values = Array.isArray(input) ? input : [input];
+
+  const cleanedValues = values.map((val) => {
+    if (!val || typeof val !== "string") return "";
+
+    return val
+      .replace(/,\s*\./g, ".")
+      .replace(/,+/g, ",")
+      .replace(/,([a-z0-9])/gi, " $1")
+      .replace(/\s+/g, " ")
+      .trim();
+  });
+}
+
+
 async function getApplicantNames(biblioData) {
     const applicantsData = safeArray(biblioData?.parties?.applicants?.applicant);
+    console.log('applicantsData', applicantsData)
 
     const applicantOriginal = applicantsData.filter(
         (a) => a?.$?.["data-format"] === "original"
@@ -202,7 +221,6 @@ async function getApplicantNames(biblioData) {
     ).map((lower) => names.find((n) => n.toLowerCase() === lower));
 
     const joinedNames = uniqueNames.join("; ");
-
     return await lingaTranslateText(joinedNames);
 }
 

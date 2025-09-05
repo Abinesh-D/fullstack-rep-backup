@@ -2,19 +2,16 @@ const axios = require("axios");
 const translationCache = new Map();
 
 async function lingaTranslateText(text) {
-    console.log('text', text)
     if (!text) return "";
-
     if (translationCache.has(text)) {
         return translationCache.get(text);
     }
 
     try {
         const url = `https://lingva.ml/api/v1/auto/en/${encodeURIComponent(text)}`;
-        const response = await axios.get(url, { timeout: 5000 });
+        const response = await axios.get(url, { timeout: 10000 });
         const translated = response.data?.translation?.trim() || text;
         translationCache.set(text, translated); 
-
         return translated;
     } catch (error) {
         if (error.response) {

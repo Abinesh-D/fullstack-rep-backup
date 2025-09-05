@@ -59,24 +59,13 @@ const RelatedRefComponent = ({
     const [generateLoading, setGenerateLoading] = useState(false);
 
     const [tableData, setTableData] = useState([]);
-    console.log('tableData', tableData)
     const [isCanvasOpen, setIsCanvasOpen] = useState(false);
 
     const toggleCanvas = () => setIsCanvasOpen(!isCanvasOpen);
 
     const prevRelatedRef = useRef([]);
     const prevNonPatentRef = useRef([]);
-console.log('nonPublicationFormData', nonPublicationFormData)
-
     const nonPatentModified = nonPublicationFormData.map((item) => ({
-        // publicationNumber: item.nplTitle,
-        // relatedPublicationUrl: item.nplPublicationUrl,
-        // relatedAssignee: item.url,
-        // relatedInventor: item.comments,
-        // relatedPublicationDate: item.nplPublicationDate,
-        // nplId: true,
-        // relatedTitle: item.excerpts,
-        
         _id: item._id,
         publicationNumber: item.nplTitle,
         relatedPublicationUrl: item.nplPublicationUrl,
@@ -466,6 +455,7 @@ console.log('nonPublicationFormData', nonPublicationFormData)
                 nonPatentFormData={nonPublicationFormData}
                 nplColumns={nplColumns}
                 setNplPatentFormData={setNplPublicationFormData}
+                relatedTrue={true}
             // relevantExcerpts={relevantExcerpts}
             />
 

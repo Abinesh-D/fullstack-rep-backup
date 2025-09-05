@@ -10,6 +10,7 @@ const NonPatentLiteratureForm = ({
     nonPatentFormData,
     nplColumns,
     setNplPatentFormData,
+    relatedTrue,
 }) => {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
@@ -28,6 +29,7 @@ const NonPatentLiteratureForm = ({
     };
 
     const handleFetch = async (formData) => {
+      if(!formData.nplDoi) return ;
         setLoading(true);
         await nplReusableDataFetch({
             endpoint: "nplcorssref",
@@ -39,74 +41,78 @@ const NonPatentLiteratureForm = ({
     };
 
     const fieldGroups = [
-        [
-            {
-                id: "nplDoi",
-                label: "DOI",
-                placeholder: "Enter DOI Number",
-                type: "text",
-                colSize: 4,
-            },
-            {
-                id: "fetchButton",
-                label: "",
-                type: "button",
-                colSize: 2,
-                buttonProps: {
-                    color: "success",
-                    text: "Fetch",
-                    onClick: handleFetch,
-                },
-            },
-            {
-                id: "nplTitle",
-                label: "Title / Product Name",
-                placeholder: "Enter Title / Product Name",
-                type: "text",
-                colSize: 6,
-            },
-        ],
-        [
-            {
-                id: "url",
-                label: "Source/Author(s)",
-                placeholder: "Enter Source",
-                type: "text",
-                colSize: 4,
-            },
-            {
-                id: "nplPublicationDate",
-                label: "Publication Date",
-                placeholder: "dd-mm-yyyy",
-                type: "text",
-                colSize: 2,
-            },
-            {
-                id: "nplPublicationUrl",
-                label: "Url",
-                placeholder: "Enter URL",
-                type: "text",
-                colSize: 6,
-            },
-        ],
-        [
-            {
+      [
+        {
+          id: "nplDoi",
+          label: "DOI",
+          placeholder: "Enter DOI Number",
+          type: "text",
+          colSize: 4,
+        },
+        {
+          id: "fetchButton",
+          label: "",
+          type: "button",
+          colSize: 2,
+          buttonProps: {
+            color: "success",
+            text: "Fetch",
+            onClick: handleFetch,
+          },
+        },
+        {
+          id: "nplTitle",
+          label: "Title / Product Name",
+          placeholder: "Enter Title / Product Name",
+          type: "text",
+          colSize: 6,
+        },
+      ],
+      [
+        {
+          id: "url",
+          label: "Source/Author(s)",
+          placeholder: "Enter Source",
+          type: "text",
+          colSize: 4,
+        },
+        {
+          id: "nplPublicationDate",
+          label: "Publication Date",
+          placeholder: "dd-mm-yyyy",
+          type: "text",
+          colSize: 2,
+        },
+        {
+          id: "nplPublicationUrl",
+          label: "Url",
+          placeholder: "Enter URL",
+          type: "text",
+          colSize: 6,
+        },
+      ],
+      ...(!relatedTrue
+        ? [
+            [
+              {
                 id: "comments",
                 label: "Analyst Comments",
                 placeholder: "Enter Comments",
                 type: "textarea",
                 rows: 3,
                 colSize: 12,
-            },
-            {
+              },
+              {
                 id: "excerpts",
                 label: "Relevant Excerpts",
                 placeholder: "Enter Relevant Excerpts",
                 type: "textarea",
                 rows: 3,
                 colSize: 12,
-            },
-        ],
+              },
+            ],
+          ]
+        : []),
     ];
 
     return (

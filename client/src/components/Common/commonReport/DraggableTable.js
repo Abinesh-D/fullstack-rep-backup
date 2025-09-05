@@ -11,9 +11,6 @@ const DraggableTable = ({ data, columns, setData }) => {
         setData(items);
     };
 
-
-    console.log('data, columns,', data, columns,)
-
     return (
         <DragDropContext onDragEnd={handleDragEnd}>
             <table className="border table-auto w-full text-sm text-left">
@@ -41,7 +38,6 @@ const DraggableTable = ({ data, columns, setData }) => {
                                                         ? row[col.accessorKey]
                                                         : "-"
                                             }
-
                                         </td>
                                     ))}
                                 </DraggableTableRow>
@@ -50,7 +46,6 @@ const DraggableTable = ({ data, columns, setData }) => {
                         </tbody>
                     )}
                 </Droppable>
-
             </table>
         </DragDropContext>
     );

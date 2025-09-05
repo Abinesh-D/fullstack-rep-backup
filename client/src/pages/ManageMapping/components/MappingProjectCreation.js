@@ -22,7 +22,6 @@ import Appendix2 from "./ChildComponent/Appendix2";
 import { handleWordReportDownload } from "../ReusableComponents/handleWordReportDownload";
 import DeleteModal from "../ReusableComponents/ResuableDeleteComp";
 import usePatentData from "../ReusableFunctionsLogic/usePatentData";
-import { isEmptyArray } from "formik";
 
 
 const MappingProjectCreation = () => {
@@ -43,7 +42,7 @@ const MappingProjectCreation = () => {
     const relatedBiblioGoogleData = useSelector(state => state.patentSlice.liveGoogleRelatedData);
 
     // Control screen here
-    const [activeTab, setactiveTab] = useState(2);
+    const [activeTab, setactiveTab] = useState(5);
     const [passedSteps, setPassedSteps] = useState([1]);
 
     const [relevantForm, setRelevantForm] = useState({
@@ -1079,9 +1078,10 @@ const MappingProjectCreation = () => {
                 assignee: (data.applicantNames ||
                     releventBiblioGoogleData?.assignees ||
                     "")
-                    .split(",")
+                    .split(";")
                     .map(a => a.trim())
-                    .filter(Boolean),
+                    .filter(Boolean)
+                    .join("; "),
 
                 inventors: typeof (data.inventorNames || releventBiblioGoogleData?.inventors) === "string"
                     ? (data.inventorNames || releventBiblioGoogleData?.inventors)
@@ -1215,6 +1215,7 @@ const MappingProjectCreation = () => {
         e.preventDefault();
         console.log('relatedSubmit', relatedSubmit);
         const nplCommonData = relatedSubmit ? nplPublicationFormData : nplPatentFormData;
+        console.log('nplCommonData', nplCommonData)
         if (!nplCommonData.nplTitle.trim()) return;
 
         try {
@@ -1315,15 +1316,11 @@ const MappingProjectCreation = () => {
             console.log('getProjectValue', getProjectValue);
             handleWordReportDownload({
                 introduction: getProjectValue.stages.introduction[0] || [],
-                relevantReferences: getProjectValue.stages.relevantReferences.publicationDetails || [],
-                nonPatentLiteratures: getProjectValue.stages.relevantReferences.nonPatentLiteratures || [],
+                relevantReferences: getProjectValue.stages.relevantReferences || [],
                 relatedReferences: getProjectValue.stages.relatedReferences || [],
                 appendix1: getProjectValue.stages.appendix1[0] || [],
                 appendix2: getProjectValue.stages.appendix2[0] || [],
-                // projectImageUrl: getProjectValue.stages.introduction[0]?.projectImageUrl || ["Image"],
-                overallSummary: getProjectValue.stages.relevantReferences.overallSummary || "",
-                getProjectValue: getProjectValue,
-                relevantAndNplCombined: getProjectValue.stages.relevantReferences.relevantAndNplCombined || [],
+                projectTypeId: getProjectValue.projectTypeId,
             });
         } catch (error) {
             console.error("Error in handleReportDownload:", error);

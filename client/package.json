@@ -21,6 +21,7 @@
     "axios-mock-adapter": "^2.1.0",
     "bootstrap": "^5.3.3",
     "boxicons": "^2.1.4",
+    "canvas": "^2.11.2",
     "country-flag-icons": "^1.5.18",
     "cra-template": "1.2.0",
     "crypto-js": "^4.2.0",
