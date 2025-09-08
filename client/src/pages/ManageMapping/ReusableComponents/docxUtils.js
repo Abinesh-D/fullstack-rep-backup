@@ -371,10 +371,6 @@ export const createFooter = () =>
   new Footer({
     children: [
       new Paragraph({
-        alignment: AlignmentType.CENTER,
-        children: [new TextRun("CONFIDENTIAL")],
-      }),
-      new Paragraph({
         alignment: AlignmentType.END,
         children: [
           new TextRun("Page "),
@@ -382,6 +378,10 @@ export const createFooter = () =>
           new TextRun(" of "),
           new TextRun({ children: ["TOTAL_PAGES"], bold: true }),
         ],
+      }),
+      new Paragraph({
+        alignment: AlignmentType.CENTER,
+        children: [new TextRun("CONFIDENTIAL")],
       }),
     ],
   });
@@ -661,80 +661,10 @@ export const createRelatedReferencesTable = (relatedReferences = []) => {
       children: [
         new TextRun({
           text: text || url,
-          style: "Hyperlink", // ensures blue underline
+          style: "Hyperlink", 
         }),
       ],
     });
-
-  // NPL Row (when nplId = true)
-  //  const createNplRow = (item, index) =>
-  //    new TableRow({
-  //      children: [
-  //        new TableCell({
-  //          verticalAlign: VerticalAlign.CENTER,
-  //          borders: commonBorders,
-  //          children: [
-  //            new Paragraph({
-  //              text: `${index + 1}.`,
-  //              alignment: AlignmentType.CENTER,
-  //              spacing: { before: 20, after: 0 },
-  //              indent: { left: 50 },
-  //            }),
-  //          ],
-  //        }),
-  //        new TableCell({
-  //          columnSpan: 2,
-  //          borders: commonBorders,
-  //          verticalAlign: VerticalAlign.CENTER,
-  //          children: [
-  //            item.relatedPublicationUrl
-  //              ? new Paragraph({
-  //                  alignment: AlignmentType.LEFT,
-  //                  spacing: { before: 20, after: 0 },
-  //                  indent: { left: 50 },
-  //                  children: [
-  //                    createLink(
-  //                      item.relatedPublicationUrl,
-  //                      item.publicationNumber
-  //                    ),
-  //                  ],
-  //                })
-  //              : new Paragraph({
-  //                  text: item.publicationNumber || "",
-  //                  alignment: AlignmentType.LEFT,
-  //                  spacing: { before: 20, after: 0 },
-  //                  indent: { left: 50 },
-  //                }),
-  //          ],
-  //        }),
-  //        new TableCell({
-  //          verticalAlign: VerticalAlign.CENTER,
-  //          borders: commonBorders,
-  //          children: [
-  //            new Paragraph({
-  //              text: item.relatedAssignee?.join(", ") || "",
-  //              alignment: AlignmentType.LEFT,
-  //              spacing: { before: 20, after: 0 },
-  //              indent: { left: 50 },
-  //            }),
-  //          ],
-  //        }),
-  //        new TableCell({
-  //          verticalAlign: VerticalAlign.CENTER,
-  //          borders: commonBorders,
-  //          columnSpan: 3,
-  //          children: [
-  //            new Paragraph({
-  //              text: item.relatedPublicationDate || "",
-  //              alignment: AlignmentType.LEFT,
-  //              spacing: { before: 20, after: 0 },
-  //              indent: { left: 50 },
-  //            }),
-  //          ],
-  //        }),
-  //      ],
-  //    });
-
   const createNplRow = (item, index) =>
     new TableRow({
       children: [
@@ -801,7 +731,6 @@ export const createRelatedReferencesTable = (relatedReferences = []) => {
       ],
     });
 
-  // Normal Related References Row (when nplId = false)
   const createReferenceRow = (pub, index) =>
     new TableRow({
       children: [
@@ -868,6 +797,11 @@ export const createRelatedReferencesTable = (relatedReferences = []) => {
     rows: [headerRow, ...dataRows, tocRow],
   });
 };
+
+
+
+
+
 
 const createCellCentered = (text, width) =>
   new TableCell({

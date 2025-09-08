@@ -41,7 +41,7 @@ const ExcelPatentUploader = ({ setRelatedFormData }) => {
   const bulkBiblioApiCall = async (patentNumbers) => {
     try {
       setLoading(true);
-      await fetchBulkESPData(patentNumbers, dispatch, "related");
+      await fetchBulkESPData(patentNumbers, dispatch, "excelrelated");
     } catch (error) {
       console.error("❌ Error fetching data:", error);
     } finally {
@@ -135,7 +135,7 @@ const ExcelPatentUploader = ({ setRelatedFormData }) => {
   const handleSubmit = async () => {
     setSubmitLoading(true);
     try {
-      const relatedData = mapRelatedData(bulkmappedValue);
+      const relatedData = await mapRelatedData(bulkmappedValue);
       const response = await saveExcelRelatedReferences(id, relatedData);
       setRelatedFormData(response);
     } catch (error) {

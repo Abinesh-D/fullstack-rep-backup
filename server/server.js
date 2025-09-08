@@ -21,7 +21,6 @@ mongoose.connect(MONGODB_URI)
   .catch((err) => console.error("MongoDB connection error:", err));
 
 
-
 // API Routes
 const nodeRoutes = require("./routes/nodeRoutes");
 const edgeRoutes = require("./routes/edgeRoutes");
@@ -99,10 +98,13 @@ const feedbackPatentNumber = require("./routes/livePatentRoute/feedbackRoute");
 app.use("/live/feedback", feedbackPatentNumber);
 
 
-// TExt translation route
+// Text translation route
 const translationRoute = require("./routes/utilsRoute/translationRoute");
 app.use("/text/translate", translationRoute);
 
+// Bulk Translate
+const bulkTranlate = require("./routes/bulkTranlate");
+app.use("/translation", bulkTranlate);
 
 
 

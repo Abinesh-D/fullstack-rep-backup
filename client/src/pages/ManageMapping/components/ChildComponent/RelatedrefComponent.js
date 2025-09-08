@@ -218,9 +218,9 @@ const RelatedRefComponent = ({
         return generateTableColumns({
             columnsConfig: [
                 { header: "Publication Number", accessorKey: "publicationNumber" },
+                { header: "Title", accessorKey: "relatedTitle" },
                 // { header: "Priority Date", accessorKey: "relatedPriorityDate" },
                 { header: "Assignee", accessorKey: "relatedAssignee" },
-                { header: "Title", accessorKey: "relatedTitle" },
                 { header: "Publication Date", accessorKey: "relatedPublicationDate" },
 
             ],
@@ -239,7 +239,13 @@ const RelatedRefComponent = ({
 
 
 
-    const bulkmappedValue = mappedValue(patentSlice.multiRelated, famId);
+    // const bulkmappedValue = mappedValue(patentSlice.multiRelated, famId);
+
+    const bulkmappedValue = useMemo(
+      () => mappedValue(patentSlice.multiRelated, famId),
+      [patentSlice.multiRelated, famId]
+    );
+
 
 
     const handleClearInputFields = () => {

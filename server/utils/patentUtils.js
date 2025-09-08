@@ -165,29 +165,9 @@ async function getInventorNames(biblioData) {
 
     const joinedNames = uniqueNames.join("; ");
     const normalizedNames = normalizeNames(joinedNames);
-console.log('normalizedNames', normalizedNames)
     const translated = await lingaTranslateText(normalizedNames);
-    console.log('translated', translated)
     return translated;
 }
-
-async function cleanAndTranslate(input) {
-  if (!input) return "";
-
-  const values = Array.isArray(input) ? input : [input];
-
-  const cleanedValues = values.map((val) => {
-    if (!val || typeof val !== "string") return "";
-
-    return val
-      .replace(/,\s*\./g, ".")
-      .replace(/,+/g, ",")
-      .replace(/,([a-z0-9])/gi, " $1")
-      .replace(/\s+/g, " ")
-      .trim();
-  });
-}
-
 
 async function getApplicantNames(biblioData) {
     const applicantsData = safeArray(biblioData?.parties?.applicants?.applicant);
@@ -234,6 +214,28 @@ function getEnglishAbstract(biblio) {
     }
     return null;
 };
+
+
+
+
+// async function cleanAndTranslate(input) {
+//   if (!input) return "";
+
+//   const values = Array.isArray(input) ? input : [input];
+
+//   const cleanedValues = values.map((val) => {
+//     if (!val || typeof val !== "string") return "";
+
+//     return val
+//       .replace(/,\s*\./g, ".")
+//       .replace(/,+/g, ",")
+//       .replace(/,([a-z0-9])/gi, " $1")
+//       .replace(/\s+/g, " ")
+//       .trim();
+//   });
+// }
+
+
 
 // (async (biblioData) => {
 //   function convertIpc(text) {

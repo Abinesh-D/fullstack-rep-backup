@@ -1,6 +1,7 @@
 import {
     Document, Packer, InternalHyperlink, Paragraph, TextRun, AlignmentType, ExternalHyperlink, HeadingLevel, Bookmark, UnderlineType,
-    TableCell, VerticalAlign, TableRow, Table, WidthType, TableOfContents, BorderStyle,
+    TableCell, VerticalAlign, TableRow, Table, WidthType, TableOfContents, BorderStyle, ImageRun, Footer,
+    Header,
 } from "docx";
 import { saveAs } from "file-saver";
 import { getSearchMethodology } from "./searchMethodology";
@@ -34,9 +35,6 @@ import {
 } from "./docxUtils";
 import HtmlDocx from "html-docx-js/dist/html-docx";
 import { normalizeField } from "../StaticValues/StaticData";
-
-
-
 
 const bigHtmlString = `
   <div style="font-family: Arial, sans-serif; font-size: 12pt; line-height: 1.5;">
@@ -122,6 +120,14 @@ export const handleWordReportDownload = async ({
     projectTypeId,
 }) => {
 
+  // const generateFromUrl = async () => {
+  //   const blob = await fetch(
+  //     "https://raw.githubusercontent.com/dolanmiu/docx/master/demo/images/cat.jpg"
+  //   ).then((r) => r.blob());
+
+  // };
+
+  // await generateFromUrl();
 
 let relevantReferencesTableData = [];
 
@@ -202,9 +208,6 @@ if (
   relevantReferencesTableData = [];
 }
 
-
-
-
     const flatFormatedmap = appendix1.keyStrings.slice(1).filter(ft => ft.keyStrings.length > 0);
 
     const typeId1 = projectTypeId === "0001";
@@ -219,7 +222,6 @@ if (
     const tocConfig = getTocConfig(relevantReferencesTableData);
     // const tocConfigSummary = getTocConfigSummary(relevantAndNplCombined);
     const tocConfigSummary = getTocConfigSummary(relevantReferencesTableData);
-
 
     // Related Ref Condional Logics
     let relatedReferencesTableData = [];
@@ -283,10 +285,6 @@ if (
 
     const relatedReferencesTable = createRelatedReferencesTable(relatedReferencesTableData);
 
-
-
-
-
     const totalColumns = introduction?.executiveSummaryTotalColumn ?? 0;
 
     const dynamicHeadings = Array.from(
@@ -322,7 +320,6 @@ if (
         hyperlink: true,
         headingStyleRange: "1-3",
     });
-
 
     // const createKeyStringsTables = (dbList = []) => {
     //     if (!dbList || dbList.length === 0) return [];
@@ -415,10 +412,6 @@ if (
     //         });
     // };
 
-
-
-
-
     const createKeyStringsTables = (dbList = []) => {
         if (!dbList || dbList.length === 0) return [];
 
@@ -435,7 +428,15 @@ if (
                 const headerRow = new TableRow({
                     children: [
                         new TableCell({
-                            borders: commonBorders,
+                            // borders: commonBorders,
+                            borders: {
+      top: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+      bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+      left: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+      right: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+      insideHorizontal: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+      insideVertical: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+    },
                             shading: { fill: "353839" },
                             children: [
                                 new Paragraph({
@@ -456,7 +457,7 @@ if (
                             columnSpan: 3,
                             children: [
                                 new Paragraph({
-                                    alignment: AlignmentType.CENTER,    
+                                    alignment: AlignmentType.CENTER,
                                     spacing: { before: 30, after: 30 },
                                     children: [
                                         createTextRun(`Key Strings – ${db.databaseName}`, textStyle.arial10, {
@@ -474,7 +475,7 @@ if (
                         //     columnSpan: 3,
                         //     children: [
                         //         new Paragraph({
-                        //             alignment: AlignmentType.CENTER,    
+                        //             alignment: AlignmentType.CENTER,
                         //             spacing: { before: 30, after: 30 },
                         //             children: [
                         //                 createTextRun("Database", textStyle.arial10, {
@@ -491,7 +492,7 @@ if (
                         //     columnSpan: 3,
                         //     children: [
                         //         new Paragraph({
-                        //             alignment: AlignmentType.CENTER,    
+                        //             alignment: AlignmentType.CENTER,
                         //             spacing: { before: 30, after: 30 },
                         //             children: [
                         //                 createTextRun("Hits", textStyle.arial10, {
@@ -584,13 +585,9 @@ if (
             });
     };
 
-
-
-
     const tables = [
         ...createKeyStringsTables(flatFormatedmap),
     ];
-
 
     // ---- NPL ----
     // tables.push(
@@ -733,7 +730,6 @@ if (
     //         ],
     //     })
     // );
-
 
     const dyKeyInd = flatFormatedmap.flatMap(f => f.keyStrings).length;
     const dyNplInd = appendix1?.keyStringsNpl.length;
@@ -1043,17 +1039,6 @@ if (
                 ],
             }),
 
-
-
-
-
-
-
-
-
-
-
-
             // back-to-table-of-content
             new Paragraph({
                 alignment: AlignmentType.RIGHT,
@@ -1143,8 +1128,282 @@ if (
         return HtmlDocx.asBlob(fullHTML);
     };
 
-
     //   const htmlStringValue =  handleDownload();
+
+//  const fetchImageBuffer = async (url) => {
+//   const response = await fetch(url);
+//   if (!response.ok) throw new Error("Image not found: " + url);
+//   return await response.arrayBuffer();
+// };
+
+// // Create header with image
+// const createHeader = (headerImageBuffer) =>
+//   new Header({
+//     children: [
+//       new Paragraph({
+//         alignment: AlignmentType.CENTER,
+//         children: [
+//           new ImageRun({
+//             data: headerImageBuffer,
+//             transformation: { width: 600, height: 80 },
+//           }),
+//         ],
+//       }),
+//     ],
+//   });
+
+// // Create footer with image
+// const createFooter = (footerImageBuffer) =>
+//   new Footer({
+//     children: [
+//       new Paragraph({
+//         alignment: AlignmentType.CENTER,
+//         children: [
+//           new ImageRun({
+//             data: footerImageBuffer,
+//             transformation: { width: 600, height: 80 },
+//           }),
+//         ],
+//       }),
+//     ],
+//   });
+
+// const fetchImageBufferFunction = async (url) => {
+//   const response = await fetch(url);
+//   if (!response.ok) throw new Error("Image not found: " + url);
+//   return await response.arrayBuffer();
+// };
+
+// // Create header with image
+// const createHeaderDemo = (headerImageBuffer) =>
+//   new Header({
+//     children: [
+//       new Paragraph({
+//         alignment: AlignmentType.CENTER,
+//         children: [
+//           new ImageRun({
+//             data: headerImageBuffer,
+//             transformation: { width: 600, height: 80 },
+//           }),
+//         ],
+//       }),
+//     ],
+//   });
+
+// // Create footer with image
+// const createFooterDemo = (footerImageBuffer) =>
+//   new Footer({
+//     children: [
+//       new Paragraph({
+//         alignment: AlignmentType.CENTER,
+//         children: [
+//           new ImageRun({
+//             data: footerImageBuffer,
+//             transformation: { width: 600, height: 80 },
+//           }),
+//         ],
+//       }),
+//     ],
+//   });
+
+//     const headerImage = await fetchImageBufferFunction("/images/MCRPL/header-img-rpt.png");
+//     const footerImage = await fetchImageBufferFunction("/images/MCRPL/footer-img-rpt.png");
+
+//      const headerDemo = createHeaderDemo(headerImage);
+//      const footerDemo = createFooterDemo(footerImage);
+
+// const fetchImageBufferFunction = async (url) => {
+//   const response = await fetch(url);
+//   if (!response.ok) throw new Error("Image not found: " + url);
+//   const buffer = await response.arrayBuffer();
+//   return new Uint8Array(buffer); // ✅ ensures clean binary for docx
+// };
+
+// const createHeaderDemo = (headerImageBuffer) =>
+//   new Header({
+//     children: [
+//       new Paragraph({
+//         alignment: AlignmentType.CENTER,
+//         children: [
+//           new ImageRun({
+//             data: headerImageBuffer, // ✅ Uint8Array, not ArrayBuffer
+//             transformation: { width: 600, height: 80 },
+//           }),
+//         ],
+//       }),
+//     ],
+//   });
+
+// // Create footer with image
+// const createFooterDemo = (footerImageBuffer) =>
+  // new Footer({
+  //   children: [
+//       new Paragraph({
+//         alignment: AlignmentType.CENTER,
+//         children: [
+//           new ImageRun({
+//             data: footerImageBuffer, // ✅ Uint8Array
+//             transformation: { width: 600, height: 80 },
+//           }),
+//         ],
+//       }),
+//     ],
+//   });
+
+// const headerImage = await fetchImageBufferFunction("/images/MCRPL/header-img-rpt.png");
+// const footerImage = await fetchImageBufferFunction("/images/MCRPL/footer-img-rpt.png");
+
+// const headerDemo = createHeaderDemo(headerImage);
+// const footerDemo = createFooterDemo(footerImage);
+
+// const createFakeFooter = () => {
+//   return new Table({
+//     width: { size: 100, type: WidthType.PERCENTAGE },
+//     rows: [
+//       new TableRow({
+//         height: { value: 700, rule: HeightRule.EXACT },
+//         children: [
+//           new TableCell({
+//             width: { size: 100, type: WidthType.PERCENTAGE },
+//             shading: {
+//               type: ShadingType.CLEAR,
+//               color: "auto",
+//               fill: "0a2f63",
+//             },
+//             borders: {
+//               top: { style: BorderStyle.SINGLE, color: "000000", size: 2 },
+//               bottom: { style: BorderStyle.SINGLE, color: "000000", size: 2 },
+//               left: { style: BorderStyle.SINGLE, color: "000000", size: 2 },
+//               right: { style: BorderStyle.SINGLE, color: "000000", size: 2 },
+//             },
+//             children: [new Paragraph(" ")],
+//           }),
+//         ],
+//       }),
+//     ],
+//     border: {
+//       top: { style: BorderStyle.SINGLE, color: "000000", size: 2 },
+//       bottom: { style: BorderStyle.SINGLE, color: "000000", size: 2 },
+//       left: { style: BorderStyle.SINGLE, color: "000000", size: 2 },
+//       right: { style: BorderStyle.SINGLE, color: "000000", size: 2 },
+//     },
+//   });
+// };
+
+// const fetchImageBufferFromUrl = async (url) => {
+//   const response = await fetch(url);
+//   if (!response.ok) throw new Error("Image not found: " + url);
+//   return await response.arrayBuffer();
+// };
+
+// const createHeaderDemo = (footerImageBuffer) =>
+//   new Header({
+//     children: [
+//       new Paragraph({
+//         alignment: AlignmentType.CENTER,
+//         children: [
+//           new ImageRun({
+//             data: footerImageBuffer, // ✅ Must be ArrayBuffer
+//             transformation: { width: 600, height: 80 },
+//           }),
+//         ],
+//       }),
+//     ],
+//   });
+
+// // Create footer with image
+// const createFooterDemo = (footerImageBuffer) =>
+//   new Footer({
+//     children: [
+//       new Paragraph({
+//         alignment: AlignmentType.CENTER,
+//         children: [
+//           new ImageRun({
+//             data: footerImageBuffer, // ✅ Must be ArrayBuffer
+//             transformation: { width: 600, height: 80 },
+//           }),
+//         ],
+//       }),
+//     ],
+//   });
+
+// // Usage
+// const headerImageBuffer = await fetchImageBufferFromUrl(
+//   "/images/MCRPL/header-img-rpt.png"
+// );
+// const footerImageBuffer = await fetchImageBufferFromUrl(
+//   "/images/MCRPL/footer-img-rpt.png"
+// );
+
+// const headerDemo = createHeaderDemo(headerImageBuffer);
+// const footerDemo = createFooterDemo(footerImageBuffer);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  const fetchImageBufferFromUrl = async (url) => {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error("Image not found: " + url);
+    return await response.arrayBuffer();
+  };
+
+  const createHeaderDemo = (headerImageBuffer) =>
+    new Header({
+      children: [
+        new Paragraph({
+          alignment: AlignmentType.CENTER,
+          children: [
+            new ImageRun({
+              data: headerImageBuffer, // ✅ Must be ArrayBuffer
+              transformation: {
+                width: 600,
+                height: 80,
+              },
+            }),
+          ],
+        }),
+      ],
+    });
+
+  const createFooterDemo = (footerImageBuffer) =>
+    new Footer({
+      children: [
+        new Paragraph({
+          alignment: AlignmentType.CENTER,
+          children: [
+            new ImageRun({
+              data: footerImageBuffer, // ✅ Must be ArrayBuffer
+              transformation: {
+                width: 600,
+                height: 80,
+              },
+            }),
+          ],
+        }),
+      ],
+    });
+
+  // Usage remains the same
+  const headerImageBuffer = await fetchImageBufferFromUrl(
+    "/images/MCRPL/header-img-rpt.png"
+  );
+  const footerImageBuffer = await fetchImageBufferFromUrl(
+    "/images/MCRPL/footer-img-rpt.png"
+  );
+
+  const headerDemo = createHeaderDemo(headerImageBuffer);
+  const footerDemo = createFooterDemo(footerImageBuffer);
 
     const doc = new Document({
       styles: {
@@ -1166,8 +1425,9 @@ if (
         // Project Title
         {
           properties: createPageProperties(920, "portrait"),
-          // headers: { default: firstHeader },
-          // footers: { default: firstFooter },
+
+          // headers: { default: headerDemo },
+          // footers: { default: footerDemo },
           children: [
             createParagraph(introduction.projectTitle, {
               alignment: AlignmentType.CENTER,
@@ -1755,6 +2015,6 @@ if (
       ].filter(Boolean),
     });
 
-    const blob = await Packer.toBlob(doc);
-    saveAs(blob, `${introduction.projectTitle || "StaticData"}.docx`);
+const blob = await Packer.toBlob(doc);
+saveAs(blob, `${introduction.projectTitle || "StaticData"}.docx`);
 };

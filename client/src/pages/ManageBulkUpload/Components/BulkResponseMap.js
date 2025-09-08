@@ -1,61 +1,69 @@
+import { bulkBiblioTRanlsation } from "../../ManageEmployees/ManageBibliography/BibliographySLice/BibliographySlice";
+
 const safeSplit = (value, delimiter = ";") =>
     typeof value === "string"
         ? value.split(delimiter).map((v) => v.trim()).filter(Boolean)
         : [];
 
 const safeArray = (value) => (Array.isArray(value) ? value : value ? [value] : []);
-
 const safeText = (value) => (typeof value === "string" ? value.trim() : "");
 
 // ---- Main Mapper ----
-export const mapRelatedData = (mappedValue = []) => {
-    return mappedValue.map((item) => {
-        try {
-            return {
-                publicationNumber: safeText(item.patentNumber),
-                relatedPublicationUrl: safeText(item.publicationUrl),
-                relatedTitle: safeText(item.invention),
-                relatedAssignee: safeSplit(item.applicantNames),
-                relatedInventor: safeSplit(item.inventorNames),
-                relatedFamilyMembers: safeArray(item.familyMembersData).map(
-                    (f) => safeText(f.familyPatent)
-                ),
-                relatedPublicationDate: safeText(item.publicationDate),
-                relatedPriorityDate: safeText(item.priorityDates),
-            };
-        } catch (err) {
-            console.error("Error mapping related data:", err, item);
-            return {};
-        }
-    });
-};
-
-
-
-
-
-// export const mapRelatedData =  (mappedValue =[]) => {
-//     return mappedValue?.map((item) => ({
-//         publicationNumber: item.patentNumber || "",
-//         relatedPublicationUrl: item.publicationUrl || "",
-//         relatedTitle: item.invention || "",
-//         relatedAssignee: item.applicantNames
-//             ? item.applicantNames.split(";").map((name) => name.trim())
-//             : [],
-//         relatedInventor: item.inventorNames
-//             ? item.inventorNames.split(";").map((name) => name.trim())
-//             : [],
-//         relatedFamilyMembers: item.familyMembersData
-//             ? item.familyMembersData.map((f) => f.familyPatent)
-//             : [],
-//         relatedPublicationDate: item.publicationDate || "",
-//         relatedPriorityDate: item.priorityDates || "",
-//     }));
+// export const mapRelatedData = (mappedValue = []) => {
+//     console.log('mappedValue', mappedValue)
+//     return  mappedValue.map((item) => {
+//         try {
+//             return {
+//                 publicationNumber: safeText(item.patentNumber),
+//                 relatedPublicationUrl: safeText(item.publicationUrl),
+//                 relatedTitle: safeText(item.invention),
+//                 relatedAssignee: safeSplit(item.applicantNames),
+//                 relatedInventor: safeSplit(item.inventorNames),
+//                 relatedFamilyMembers: safeArray(item.familyMembersData).map(
+//                     (f) => safeText(f.familyPatent)
+//                 ),
+//                 relatedPublicationDate: safeText(item.publicationDate),
+//                 relatedPriorityDate: safeText(item.priorityDates),
+//             };
+//         } catch (err) {
+//             console.error("Error mapping related data:", err, item);
+//             return {};
+//         }
+//     });
 // };
 
 
+export const mapRelatedData = async (mappedValuePromise) => {
+  const mappedValue = await mappedValuePromise; 
+  if (!Array.isArray(mappedValue)) {
+    console.warn("mapRelatedData expected array, got:", mappedValue);
+    return [];
+  }
 
-// utils/espacenetHelpers.js
+  console.log('mappedValue', mappedValue)
+
+  return mappedValue.map((item) => {
+    try {
+      return {
+        publicationNumber: safeText(item.patentNumber),
+        relatedPublicationUrl: safeText(item.publicationUrl),
+        relatedTitle: safeText(item.invention),
+        relatedAssignee: safeSplit(item.applicantNames),
+        relatedInventor: safeSplit(item.inventorNames),
+        relatedFamilyMembers: safeArray(item.familyMembersData).map(
+          (f) => safeText(f.familyPatent)
+        ),
+        relatedPublicationDate: safeText(item.publicationDate),
+        relatedPriorityDate: safeText(item.priorityDates),
+      };
+    } catch (err) {
+      console.error("Error mapping related data:", err, item);
+      return {};
+    }
+  });
+};
+
+
 
 export const extractAbstractText = (abstractData) => {
     if (!abstractData) return '';
@@ -72,17 +80,58 @@ export const extractAbstractText = (abstractData) => {
     return '';
 };
 
-export const inventionTitle = (biblioArray) => {
-    const titleData = biblioArray?.['invention-title'];
 
-    if (Array.isArray(titleData)) {
-        const enTitle = titleData.find(t => t?.$?.lang === 'en');
-        return enTitle?._ || titleData[0]?._ || '';
-    } else if (titleData?.$?.lang === 'en') {
-        return titleData._ || '';
+
+// async function inventionTitle(biblioData) {
+//     const titleData = biblioData?.["invention-title"];
+//     if (!titleData) return "";
+
+//     if (Array.isArray(titleData)) {
+//         const enTitle = titleData.find(t => t?.$?.lang === "en");
+//         if (enTitle) return enTitle._ || "";
+
+//         return await bulkBiblioTRanlsation(titleData[0]._ || "");
+//     }
+
+//     if (titleData?.$?.lang === "en") {
+//         return titleData._ || "";
+//     }
+
+//     return await bulkBiblioTRanlsation(titleData?._ || "");
+// }
+
+
+async function inventionTitle(biblioData) {
+  const titleData = biblioData?.["invention-title"];
+  if (!titleData) return "";
+
+  if (Array.isArray(titleData)) {
+    const enTitle = titleData.find((t) => t?.$?.lang === "en");
+    if (enTitle) return enTitle._ || "";
+
+    const titles = titleData.map((t) => t?._).filter(Boolean);
+    let translatedTitles = [];
+    const chunks = chunkArray(titles, 10);
+
+    for (const chunk of chunks) {
+      const translatedChunk = await Promise.all(
+        chunk.map((text) => bulkBiblioTRanlsation(text))
+      );
+      translatedTitles = [...translatedTitles, ...translatedChunk];
     }
-    return titleData?._ || '';
-};
+
+    return translatedTitles.join("; ");
+  }
+
+  // Case 2: single title
+  if (titleData?.$?.lang === "en") {
+    return titleData._ || "";
+  }
+
+  return await bulkBiblioTRanlsation(titleData?._ || "");
+}
+
+
 
 export const publicationDateFunction = (biblioData) => {
     const docIds = biblioData?.['publication-reference']?.['document-id'];
@@ -187,169 +236,301 @@ export const computeFamId = (espData = []) => {
     return result;
 };
 
-export const mappedValue = (espData = [], famId = []) => {
-    return espData.map((map) => {
-        try {
-            const biblioArray =
-                map?.biblio?.["world-patent-data"]?.["exchange-documents"]?.["exchange-document"]?.[
-                "bibliographic-data"
-                ] ?? {};
 
-            const ipcrRaw = biblioArray?.["classifications-ipcr"]?.["classification-ipcr"];
-            const ipcrText = safeArray(ipcrRaw)
-                .map((item) => normalizeText(item?.text))
-                .filter(Boolean)
-                .join("; ");
-
-            const abstractData =
-                map?.biblio?.["world-patent-data"]?.["exchange-documents"]?.["exchange-document"]
-                    ?.abstract;
-            const abstractText = extractAbstractText(abstractData);
-
-            const invention = inventionTitle(biblioArray);
-
-            // const inventorsData = safeArray(biblioArray?.parties?.inventors?.inventor);
-            // const inventorNames = inventorsData
-            //     .filter((i) => i?.$?.["data-format"] === "original" || i?.$?.["data-format"] === "epodoc")
-            //     .map((i) => safeText(i?.["inventor-name"]?.name))
-            //     .join("; ");
-
-            // const applicantsData = safeArray(biblioArray?.parties?.applicants?.applicant);
-            // const applicantNames = applicantsData
-            //     .filter((a) => a?.$?.["data-format"] === "original" || a?.$?.["data-format"] === "epodoc" )
-            //     .map((a) => safeText(a?.["applicant-name"]?.name))
-            //     .join("; ");
-
-            // Inventors
-            
-            // const inventorsData = safeArray(biblioArray?.parties?.inventors?.inventor);
-
-            // const inventorOriginal = inventorsData.filter(i => i?.$?.["data-format"] === "original");
-            // const inventorEpodoc = inventorsData.filter(i => i?.$?.["data-format"] === "epodoc");
-
-            // const inventorNames = (inventorOriginal.length > 0 ? inventorOriginal : inventorEpodoc)
-            //     .map(i => safeText(i?.["inventor-name"]?.name))
-            //     .join("; ");
-
-
-            // const applicantsData = safeArray(biblioArray?.parties?.applicants?.applicant);
-
-            // const applicantOriginal = applicantsData.filter(a => a?.$?.["data-format"] === "original");
-            // const applicantEpodoc = applicantsData.filter(a => a?.$?.["data-format"] === "epodoc");
-
-            // const applicantNames = (applicantOriginal.length > 0 ? applicantOriginal : applicantEpodoc)
-            //     .map(a => safeText(a?.["applicant-name"]?.name))
-            //     .join("; ");
+function chunkArray(array, size) {
+  const result = [];
+  for (let i = 0; i < array.length; i += size) {
+    result.push(array.slice(i, i + size));
+  }
+  return result;
+}
 
 
 
-            const inventorsData = safeArray(biblioArray?.parties?.inventors?.inventor);
+export const mappedValue = async (espData = [], famId = []) => {
+    return await Promise.all(
+        espData.map(async (map) => {
+            try {
+                const biblioArray =
+                    map?.biblio?.["world-patent-data"]?.["exchange-documents"]?.["exchange-document"]?.[
+                        "bibliographic-data"
+                    ] ?? {};
 
-            const inventorOriginal = inventorsData.filter(i => i?.$?.["data-format"] === "original");
-            const inventorEpodoc = inventorsData.filter(i => i?.$?.["data-format"] === "epodoc");
+                const ipcrRaw = biblioArray?.["classifications-ipcr"]?.["classification-ipcr"];
+                const ipcrText = safeArray(ipcrRaw)
+                    .map((item) => normalizeText(item?.text))
+                    .filter(Boolean)
+                    .join("; ");
 
-            const inventorNames = (inventorOriginal.length > 0 ? inventorOriginal : inventorEpodoc)
-                .map(i => safeText(i?.["inventor-name"]?.name)?.replace(/,+$/g, "").trim())
-                .filter(Boolean)
-                .join("; ");
+                const abstractData =
+                    map?.biblio?.["world-patent-data"]?.["exchange-documents"]?.["exchange-document"]
+                        ?.abstract;
+                const abstractText = extractAbstractText(abstractData);
 
+                const invention = await inventionTitle(biblioArray);
 
-            const applicantsData = safeArray(biblioArray?.parties?.applicants?.applicant);
-
-            const applicantOriginal = applicantsData.filter(a => a?.$?.["data-format"] === "original");
-            const applicantEpodoc = applicantsData.filter(a => a?.$?.["data-format"] === "epodoc");
-
-            const applicantNames = (applicantOriginal.length > 0 ? applicantOriginal : applicantEpodoc)
+                // Assignees
+                const applicantsData = safeArray(biblioArray?.parties?.applicants?.applicant);
+                const applicantOriginal = applicantsData.filter(a => a?.$?.["data-format"] === "original");
+                const applicantEpodoc = applicantsData.filter(a => a?.$?.["data-format"] === "epodoc");
+                const applicantArray = (applicantOriginal.length > 0 ? applicantOriginal : applicantEpodoc)
                 .map(a => safeText(a?.["applicant-name"]?.name)?.replace(/,+$/g, "").trim())
-                .filter(Boolean)
-                .join("; ");
+                .filter(Boolean);
 
-// ---------------------------------------------------
+                let translatedApplicants = [];
+                const applicantChunks = chunkArray(applicantArray, 10);
 
-            // const inventorsData = safeArray(biblioArray?.parties?.inventors?.inventor);
+                for (const chunk of applicantChunks) {
+                const translatedChunk = await Promise.all(chunk.map(name => bulkBiblioTRanlsation(name)));
+                translatedApplicants = [...translatedApplicants, ...translatedChunk];
+                }
+                const applicantNames = translatedApplicants.join("; ");
+                console.log('applicantNames', applicantNames)
 
-            // const inventorOriginal = inventorsData.filter(i => i?.$?.["data-format"] === "original");
-            // const inventorEpodoc = inventorsData.filter(i => i?.$?.["data-format"] === "epodoc");
+                // Inventors
+                const inventorsData = safeArray(biblioArray?.parties?.inventors?.inventor);
+                const inventorOriginal = inventorsData.filter(i => i?.$?.["data-format"] === "original");
+                const inventorEpodoc = inventorsData.filter(i => i?.$?.["data-format"] === "epodoc");
+                const inventorArray = (inventorOriginal.length > 0 ? inventorOriginal : inventorEpodoc)
+                .map(i => safeText(i?.["inventor-name"]?.name)?.replace(/,+$/g, "").trim())
+                .filter(Boolean);
 
-            // const inventorNames = inventorOriginal.length > 0
-            //     ? [inventorOriginal[0]].map(i => safeText(i?.["inventor-name"]?.name)).join("; ")
-            //     : inventorEpodoc.map(i => safeText(i?.["inventor-name"]?.name)).join("; ");
+                let translatedInventors = [];
+                const inventorChunks = chunkArray(inventorArray, 10);
+                for (const chunk of inventorChunks) {
+                const translatedChunk = await Promise.all(chunk.map(name => bulkBiblioTRanlsation(name)));
+                translatedInventors = [...translatedInventors, ...translatedChunk];
+                }
+                const inventorNames = translatedInventors.join("; ");
+                console.log('inventorNames', inventorNames)
+               
 
+                const publicationDate = publicationDateFunction(biblioArray);
+                const applicationDate = applicationDateFunction(biblioArray);
+                const priorityDates = getPriorityDates(biblioArray);
+                const cpcClass = classifications(biblioArray);
 
-            // const applicantsData = safeArray(biblioArray?.parties?.applicants?.applicant);
-
-            // const applicantOriginal = applicantsData.filter(a => a?.$?.["data-format"] === "original");
-            // const applicantEpodoc = applicantsData.filter(a => a?.$?.["data-format"] === "epodoc");
-
-            // const applicantNames = applicantOriginal.length > 0
-            //     ? [applicantOriginal[0]].map(a => safeText(a?.["applicant-name"]?.name)).join("; ")
-            //     : applicantEpodoc.map(a => safeText(a?.["applicant-name"]?.name)).join("; ");
-
-
-
-            const publicationDate = publicationDateFunction(biblioArray);
-            const applicationDate = applicationDateFunction(biblioArray);
-            const priorityDates = getPriorityDates(biblioArray);
-            const cpcClass = classifications(biblioArray);
-
-            const familyMembers = safeArray(
-                map?.family?.["world-patent-data"]?.["patent-family"]?.["family-member"]
-            );
-            // const familyMembersData = familyMembers.map((fm) => {
-            //     const publications = safeArray(fm?.["publication-reference"]?.["document-id"]);
-            //     const publicationInfo = publications
-            //         .filter((doc) => doc?.["$"]?.["document-id-type"] === "docdb")
-            //         .map((doc) => `${doc["country"]}${doc["doc-number"]}${doc["kind"]}`)
-            //         .join("");
-            //     return {
-            //         familyId: fm?.["$"]?.["family-id"] || "",
-            //         familyPatent: publicationInfo,
-            //     };
-            // });
-
-            const familyMembersData = familyMembers.map((fm) => {
-                const publications = safeArray(fm?.["publication-reference"]?.["document-id"]);
-
-                let publicationInfo = publications
-                    .filter((doc) => doc?.["$"]?.["document-id-type"] === "docdb")
-                    .map((doc) => ({
-                        familyId: fm?.["$"]?.["family-id"] || "",
-                        familyPatent: `${doc["country"]}${doc["doc-number"]}${doc["kind"]}`.trim().toUpperCase(),
-                    }));
-
-                const uniqueInfo = Array.from(
-                    new Map(publicationInfo.map(item => [item.familyPatent, item])).values()
+                const familyMembers = safeArray(
+                    map?.family?.["world-patent-data"]?.["patent-family"]?.["family-member"]
                 );
 
-                let filteredInfo = uniqueInfo;
-                if (map?.patentNumber) {
-                    const patentNumber = map.patentNumber.trim().toUpperCase();
-                    filteredInfo = uniqueInfo.filter(item => item.familyPatent !== patentNumber);
-                }
+                const familyMembersData = familyMembers
+                    .map((fm) => {
+                        const publications = safeArray(fm?.["publication-reference"]?.["document-id"]);
 
-                return filteredInfo;
-            }).flat();
+                        let publicationInfo = publications
+                            .filter((doc) => doc?.["$"]?.["document-id-type"] === "docdb")
+                            .map((doc) => ({
+                                familyId: fm?.["$"]?.["family-id"] || "",
+                                familyPatent: `${doc["country"]}${doc["doc-number"]}${doc["kind"]}`.trim().toUpperCase(),
+                            }));
 
-            return {
-                patentNumber: safeText(map.patentNumber),
-                publicationUrl: famId.find((obj) => obj[map.patentNumber])?.[map.patentNumber] || "",
-                familyMembersData,
-                abstractText,
-                ipcrText,
-                cpcClass,
-                invention,
-                inventorNames,
-                applicantNames,
-                publicationDate,
-                applicationDate,
-                priorityDates,
-            };
-        } catch (err) {
-            console.error("Error mapping espData:", err, map);
-            return {};
-        }
-    });
+                        const uniqueInfo = Array.from(
+                            new Map(publicationInfo.map(item => [item.familyPatent, item])).values()
+                        );
+
+                        let filteredInfo = uniqueInfo;
+                        if (map?.patentNumber) {
+                            const patentNumber = map.patentNumber.trim().toUpperCase();
+                            filteredInfo = uniqueInfo.filter(item => item.familyPatent !== patentNumber);
+                        }
+
+                        return filteredInfo;
+                    })
+                    .flat();
+
+                return {
+                    patentNumber: safeText(map.patentNumber),
+                    publicationUrl: famId.find((obj) => obj[map.patentNumber])?.[map.patentNumber] || "",
+                    familyMembersData,
+                    abstractText,
+                    ipcrText,
+                    cpcClass,
+                    invention,
+                    inventorNames,
+                    applicantNames,
+                    publicationDate,
+                    applicationDate,
+                    priorityDates,
+                };
+            } catch (err) {
+                console.error("Error mapping espData:", err, map);
+                return {};
+            }
+        })
+    );
 };
+
+
+
+
+
+
+
+
+// export const mappedValue = (espData = [], famId = []) => {
+//     return espData.map((map) => {
+//         try {
+//             const biblioArray =
+//                 map?.biblio?.["world-patent-data"]?.["exchange-documents"]?.["exchange-document"]?.[
+//                 "bibliographic-data"
+//                 ] ?? {};
+
+//             const ipcrRaw = biblioArray?.["classifications-ipcr"]?.["classification-ipcr"];
+//             const ipcrText = safeArray(ipcrRaw)
+//                 .map((item) => normalizeText(item?.text))
+//                 .filter(Boolean)
+//                 .join("; ");
+
+//             const abstractData =
+//                 map?.biblio?.["world-patent-data"]?.["exchange-documents"]?.["exchange-document"]
+//                     ?.abstract;
+//             const abstractText = extractAbstractText(abstractData);
+
+//             const invention = inventionTitle(biblioArray);
+
+//             // const inventorsData = safeArray(biblioArray?.parties?.inventors?.inventor);
+//             // const inventorNames = inventorsData
+//             //     .filter((i) => i?.$?.["data-format"] === "original" || i?.$?.["data-format"] === "epodoc")
+//             //     .map((i) => safeText(i?.["inventor-name"]?.name))
+//             //     .join("; ");
+
+//             // const applicantsData = safeArray(biblioArray?.parties?.applicants?.applicant);
+//             // const applicantNames = applicantsData
+//             //     .filter((a) => a?.$?.["data-format"] === "original" || a?.$?.["data-format"] === "epodoc" )
+//             //     .map((a) => safeText(a?.["applicant-name"]?.name))
+//             //     .join("; ");
+
+//             // Inventors
+            
+//             // const inventorsData = safeArray(biblioArray?.parties?.inventors?.inventor);
+
+//             // const inventorOriginal = inventorsData.filter(i => i?.$?.["data-format"] === "original");
+//             // const inventorEpodoc = inventorsData.filter(i => i?.$?.["data-format"] === "epodoc");
+
+//             // const inventorNames = (inventorOriginal.length > 0 ? inventorOriginal : inventorEpodoc)
+//             //     .map(i => safeText(i?.["inventor-name"]?.name))
+//             //     .join("; ");
+
+
+//             // const applicantsData = safeArray(biblioArray?.parties?.applicants?.applicant);
+
+//             // const applicantOriginal = applicantsData.filter(a => a?.$?.["data-format"] === "original");
+//             // const applicantEpodoc = applicantsData.filter(a => a?.$?.["data-format"] === "epodoc");
+
+//             // const applicantNames = (applicantOriginal.length > 0 ? applicantOriginal : applicantEpodoc)
+//             //     .map(a => safeText(a?.["applicant-name"]?.name))
+//             //     .join("; ");
+
+
+
+//             const inventorsData = safeArray(biblioArray?.parties?.inventors?.inventor);
+
+//             const inventorOriginal = inventorsData.filter(i => i?.$?.["data-format"] === "original");
+//             const inventorEpodoc = inventorsData.filter(i => i?.$?.["data-format"] === "epodoc");
+
+//             const inventorNames = (inventorOriginal.length > 0 ? inventorOriginal : inventorEpodoc)
+//                 .map(i => safeText(i?.["inventor-name"]?.name)?.replace(/,+$/g, "").trim())
+//                 .filter(Boolean)
+//                 .join("; ");
+
+
+//             const applicantsData = safeArray(biblioArray?.parties?.applicants?.applicant);
+
+//             const applicantOriginal = applicantsData.filter(a => a?.$?.["data-format"] === "original");
+//             const applicantEpodoc = applicantsData.filter(a => a?.$?.["data-format"] === "epodoc");
+
+//             const applicantNames = (applicantOriginal.length > 0 ? applicantOriginal : applicantEpodoc)
+//                 .map(a => safeText(a?.["applicant-name"]?.name)?.replace(/,+$/g, "").trim())
+//                 .filter(Boolean)
+//                 .join("; ");
+
+// // ---------------------------------------------------
+
+//             // const inventorsData = safeArray(biblioArray?.parties?.inventors?.inventor);
+
+//             // const inventorOriginal = inventorsData.filter(i => i?.$?.["data-format"] === "original");
+//             // const inventorEpodoc = inventorsData.filter(i => i?.$?.["data-format"] === "epodoc");
+
+//             // const inventorNames = inventorOriginal.length > 0
+//             //     ? [inventorOriginal[0]].map(i => safeText(i?.["inventor-name"]?.name)).join("; ")
+//             //     : inventorEpodoc.map(i => safeText(i?.["inventor-name"]?.name)).join("; ");
+
+
+//             // const applicantsData = safeArray(biblioArray?.parties?.applicants?.applicant);
+
+//             // const applicantOriginal = applicantsData.filter(a => a?.$?.["data-format"] === "original");
+//             // const applicantEpodoc = applicantsData.filter(a => a?.$?.["data-format"] === "epodoc");
+
+//             // const applicantNames = applicantOriginal.length > 0
+//             //     ? [applicantOriginal[0]].map(a => safeText(a?.["applicant-name"]?.name)).join("; ")
+//             //     : applicantEpodoc.map(a => safeText(a?.["applicant-name"]?.name)).join("; ");
+
+
+
+//             const publicationDate = publicationDateFunction(biblioArray);
+//             const applicationDate = applicationDateFunction(biblioArray);
+//             const priorityDates = getPriorityDates(biblioArray);
+//             const cpcClass = classifications(biblioArray);
+
+//             const familyMembers = safeArray(
+//                 map?.family?.["world-patent-data"]?.["patent-family"]?.["family-member"]
+//             );
+//             // const familyMembersData = familyMembers.map((fm) => {
+//             //     const publications = safeArray(fm?.["publication-reference"]?.["document-id"]);
+//             //     const publicationInfo = publications
+//             //         .filter((doc) => doc?.["$"]?.["document-id-type"] === "docdb")
+//             //         .map((doc) => `${doc["country"]}${doc["doc-number"]}${doc["kind"]}`)
+//             //         .join("");
+//             //     return {
+//             //         familyId: fm?.["$"]?.["family-id"] || "",
+//             //         familyPatent: publicationInfo,
+//             //     };
+//             // });
+
+//             const familyMembersData = familyMembers.map((fm) => {
+//                 const publications = safeArray(fm?.["publication-reference"]?.["document-id"]);
+
+//                 let publicationInfo = publications
+//                     .filter((doc) => doc?.["$"]?.["document-id-type"] === "docdb")
+//                     .map((doc) => ({
+//                         familyId: fm?.["$"]?.["family-id"] || "",
+//                         familyPatent: `${doc["country"]}${doc["doc-number"]}${doc["kind"]}`.trim().toUpperCase(),
+//                     }));
+
+//                 const uniqueInfo = Array.from(
+//                     new Map(publicationInfo.map(item => [item.familyPatent, item])).values()
+//                 );
+
+//                 let filteredInfo = uniqueInfo;
+//                 if (map?.patentNumber) {
+//                     const patentNumber = map.patentNumber.trim().toUpperCase();
+//                     filteredInfo = uniqueInfo.filter(item => item.familyPatent !== patentNumber);
+//                 }
+
+//                 return filteredInfo;
+//             }).flat();
+
+//             return {
+//                 patentNumber: safeText(map.patentNumber),
+//                 publicationUrl: famId.find((obj) => obj[map.patentNumber])?.[map.patentNumber] || "",
+//                 familyMembersData,
+//                 abstractText,
+//                 ipcrText,
+//                 cpcClass,
+//                 invention,
+//                 inventorNames,
+//                 applicantNames,
+//                 publicationDate,
+//                 applicationDate,
+//                 priorityDates,
+//             };
+//         } catch (err) {
+//             console.error("Error mapping espData:", err, map);
+//             return {};
+//         }
+//     });
+// };
 
 
 
@@ -447,3 +628,19 @@ export const mappedValue = (espData = [], famId = []) => {
 //         };
 //     });
 // };
+
+
+
+// export const inventionTitle = (biblioArray) => {
+//     const titleData = biblioArray?.['invention-title'];
+
+//     if (Array.isArray(titleData)) {
+//         const enTitle = titleData.find(t => t?.$?.lang === 'en');
+//         return enTitle?._ || titleData[0]?._ || '';
+//     } else if (titleData?.$?.lang === 'en') {
+//         return titleData._ || '';
+//     }
+//     return titleData?._ || '';
+// };
+
+

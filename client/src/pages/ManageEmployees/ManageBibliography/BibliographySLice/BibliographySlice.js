@@ -325,7 +325,7 @@ export const fetchBulkESPData = async (patentNumber, dispatch, type) => {
       if (type === 'relevant') {
         dispatch(setBulkESPData(response.data));
 
-      } else if (type === 'related') {
+      } else if (type === 'excelrelated') {
         dispatch(setESPData(response.data));
       } else if (type === "multiRelated") {
         dispatch(setMultiRelated(response.data));
@@ -340,7 +340,7 @@ export const fetchBulkESPData = async (patentNumber, dispatch, type) => {
 
     if (type === 'relevant') {
       dispatch(setFetchESPData([]));
-    } else if (type === 'related') {
+    } else if (type === 'excelrelated') {
       dispatch(setESPData([]));
     } else if (type === "multiRelated") {
       dispatch(setMultiRelated([]));
@@ -706,6 +706,38 @@ export const nplReusableDataFetch = async ({
   //   setError("Failed to fetch data. Please check DOI.");
   // }
 };
+
+export const bulkBiblioTRanlsation = async (text) => {
+  try {
+    const response = await urlSocket.post("/translation/bulk", {
+      text: text,
+    });
+
+    return response.data.translated || text;
+  } catch (err) {
+    console.error("Translation fetch error:", err);
+    return text;
+  }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 export const { setPatentData, setEspaceApiData, setBulkESPData, resetPatentData, setGoogleApiData, setLensOrgApiData, setFreePatentApiData,
