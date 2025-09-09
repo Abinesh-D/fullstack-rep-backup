@@ -35,25 +35,47 @@ export const textStyle = {
 };
 
 /* ---------------------------------- Borders ---------------------------------- */
+// export const commonBorders = {
+//   top: { style: BorderStyle.SINGLE, size: 1, color: "D3D3D3" },
+//   bottom: { style: BorderStyle.SINGLE, size: 1, color: "D3D3D3" },
+//   left: { style: BorderStyle.SINGLE, size: 1, color: "D3D3D3" },
+//   right: { style: BorderStyle.SINGLE, size: 1, color: "D3D3D3" },
+// };
+
 export const commonBorders = {
-  top: { style: BorderStyle.SINGLE, size: 1, color: "D3D3D3" },
-  bottom: { style: BorderStyle.SINGLE, size: 1, color: "D3D3D3" },
-  left: { style: BorderStyle.SINGLE, size: 1, color: "D3D3D3" },
-  right: { style: BorderStyle.SINGLE, size: 1, color: "D3D3D3" },
+  top: { style: BorderStyle.SINGLE, size: 2, color: "D3D3D3" },
+  bottom: { style: BorderStyle.SINGLE, size: 2, color: "D3D3D3" },
+  left: { style: BorderStyle.SINGLE, size: 2, color: "D3D3D3" },
+  right: { style: BorderStyle.SINGLE, size: 2, color: "D3D3D3" },
 };
+
+// export const blackBorders = {
+//   top: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+//   bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+//   left: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+//   right: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+// };
 
 export const blackBorders = {
-  top: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-  bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-  left: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-  right: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+  top: { style: BorderStyle.SINGLE, size: 2, color: "000000" },
+  bottom: { style: BorderStyle.SINGLE, size: 2, color: "000000" },
+  left: { style: BorderStyle.SINGLE, size: 2, color: "000000" },
+  right: { style: BorderStyle.SINGLE, size: 2, color: "000000" },
 };
 
+// export const borderNone = {
+//   top: { style: BorderStyle.SINGLE, size: 1, color: "FFFFFF" },
+//   bottom: { style: BorderStyle.SINGLE, size: 1, color: "FFFFFF" },
+//   left: { style: BorderStyle.SINGLE, size: 1, color: "FFFFFF" },
+//   right: { style: BorderStyle.SINGLE, size: 1, color: "FFFFFF" },
+// };
+
+
 export const borderNone = {
-  top: { style: BorderStyle.SINGLE, size: 1, color: "FFFFFF" },
-  bottom: { style: BorderStyle.SINGLE, size: 1, color: "FFFFFF" },
-  left: { style: BorderStyle.SINGLE, size: 1, color: "FFFFFF" },
-  right: { style: BorderStyle.SINGLE, size: 1, color: "FFFFFF" },
+  top: { style: BorderStyle.SINGLE, size: 2, color: "FFFFFF" },
+  bottom: { style: BorderStyle.SINGLE, size: 2, color: "FFFFFF" },
+  left: { style: BorderStyle.SINGLE, size: 2, color: "FFFFFF" },
+  right: { style: BorderStyle.SINGLE, size: 2, color: "FFFFFF" },
 };
 
 export const disclaimer =
@@ -142,45 +164,49 @@ export const createParagraph = (
   });
 };
 
-export const createPageProperties = (
-  margin = 920,
-  orientation = "portrait"
-) => ({
+
+const widthTwips = Math.round(27.94 * 566.929);
+const heightTwips = Math.round(21.59 * 566.929);
+
+const margins = 930;
+
+export const createPageProperties = (orientation = "portrait") => ({
   page: {
     margin: {
-      top: margin,
-      bottom: margin,
-      left: margin,
-      right: margin,
+      top: margins,
+      bottom: margins,
+      left: margins,
+      right: margins,
     },
+    footerDistance: 0,
     size: {
       orientation,
-      width: 15800,
-      height: 11573,
+      width: widthTwips,
+      height: heightTwips,
     },
     borders: {
       pageBorderTop: {
         style: BorderStyle.THIN_THICK_SMALL_GAP,
-        size: 22,
+        size: 25,
         space: 18,
         color: "002060",
       },
 
       pageBorderBottom: {
         style: BorderStyle.THICK_THIN_SMALL_GAP,
-        size: 22,
+        size: 25,
         space: 18,
         color: "002060",
       },
       pageBorderLeft: {
         style: BorderStyle.THIN_THICK_SMALL_GAP,
-        size: 22,
+        size: 25,
         space: 18,
         color: "002060",
       },
       pageBorderRight: {
         style: BorderStyle.THICK_THIN_SMALL_GAP,
-        size: 22,
+        size: 25,
         space: 18,
         color: "002060",
       },
@@ -912,6 +938,7 @@ export const createTickedParagraphs = (input) => {
   );
 };
 
+
 export function createExecutiveSummaryTable({ data, dynamicHeadings }) {
   const columnHeaders = ["S. No", "Patents Literatures", ...dynamicHeadings];
 
@@ -934,7 +961,7 @@ export function createExecutiveSummaryTable({ data, dynamicHeadings }) {
               ],
             }),
           ],
-          borders: blackBorders,
+          borders: commonBorders,
         })
     ),
   });
@@ -1394,7 +1421,7 @@ if (remainingAssigneesCount > 0) {
           children: [
             new TableCell({
               borders: {
-                top: { style: BorderStyle.NONE, size: 1, color: "FFFFFF" },
+                top: { style: BorderStyle.NONE, size: 2, color: "FFFFFF" },
                 left: commonBorders.left,
                 right: commonBorders.right,
                 bottom: commonBorders.bottom,

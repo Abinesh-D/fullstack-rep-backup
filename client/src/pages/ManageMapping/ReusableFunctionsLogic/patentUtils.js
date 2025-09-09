@@ -1,5 +1,37 @@
 import { handleTranslateText } from "../../ManageEmployees/ManageBibliography/BibliographySLice/BibliographySlice";
 
+
+export const safeArray = (value) => (Array.isArray(value) ? value : value ? [value] : []);
+export const safeText = (val) => (typeof val === "string" ? val : val?._ || "");
+
+export function capitalize(str) {
+    return str
+        .toLowerCase()
+        .replace(/\b\w/g, (ch) => ch.toUpperCase())
+        .trim();
+}
+
+
+export function normalizeNames(rawValue) {
+  if (!rawValue) return "";
+
+  return rawValue
+    .split(";") 
+    .map(name => name.replace(/,/g, " ").trim())
+    .filter(Boolean)
+    .map(name => {
+      const parts = name.split(/\s+/);
+      if (parts.length >= 2) {
+        const lastName = parts[0];
+        const firstNames = parts.slice(1).join(" ");
+        return `${firstNames} ${lastName}`;
+      }
+      return name;
+    })
+    .join("; "); 
+}
+
+
 export const mapFamilyMemberData = (data) => {
     const familyMembers = data?.familyData?.["world-patent-data"]?.["patent-family"]?.["family-member"];
 

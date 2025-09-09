@@ -855,8 +855,13 @@ const MappingProjectCreation = () => {
 
 
     // const { title, publicationUrl, googlePublicationUrl, abstractData, aplDate, pubDate, priorityDates, inventorNames, applicantNames,
-    //     classData, classData, familyMemData, formattedDescriptions, ipcClass, cpcClass
+    //     classData, familyMemData, formattedDescriptions, ipcClass, cpcClass, classificationsSymbol 
     // } = usePatentData(data, "relevant", relevantForm.patentNumber);
+
+
+
+    
+
 
 
 
@@ -1004,25 +1009,10 @@ const MappingProjectCreation = () => {
     ]);
 
 
-    // const filteredCPC = useMemo(() => {
-    //     const cpcArray = data?.cpcClass ? data.cpcClass.split(/[;,]/).map(item => item.trim()).filter(Boolean) : [];
-    //     const ipcArray = data?.ipcClass ? data.ipcClass.split(/[;,]/).map(item => item.trim()).filter(Boolean) : [];
 
-    //     if (cpcArray.length === 0) {
-    //         return ipcArray.join(", ");
-    //     }
 
-    //     const uniqueCPCSet = new Set(cpcArray.map(cpc => cpc.toUpperCase()));
-    //     const normalizedIPCSet = new Set(ipcArray.map(ipc => ipc.toUpperCase()));
 
-    //     const uniqueCPC = Array.from(uniqueCPCSet).filter(
-    //         cpc => !normalizedIPCSet.has(cpc)
-    //     );
 
-    //     return uniqueCPC.length ? uniqueCPC.join(", ") : ipcArray.join(", ");
-    // }, [data?.cpcClass, data?.ipcClass]);
-
-    
     useEffect(() => {
         const allFieldsExceptPatentEmpty = Object.entries(relevantForm).every(
             ([key, value]) => key === "patentNumber" || value === ""
@@ -1127,6 +1117,104 @@ const MappingProjectCreation = () => {
             setRelevantForm(combinedForm);
         }
     }, [data, releventBiblioGoogleData]);
+
+
+        //  useEffect(() => {
+        //    const allFieldsExceptPatentEmpty = Object.entries(
+        //      relevantForm
+        //    ).every(([key, value]) => key === "patentNumber" || value === "");
+
+        //    if (
+        //      (data?.patentNumber || releventBiblioGoogleData?.patentNumber) &&
+        //      relevantForm.patentNumber &&
+        //      allFieldsExceptPatentEmpty
+        //    ) {
+        //      console.log(
+        //        "✅ Populating relevantForm from bibliographic sources..."
+        //      );
+
+        //      const combinedForm = {
+        //        patentNumber: relevantForm.patentNumber.trim(),
+
+        //        publicationUrl:
+        //          publicationUrl || releventBiblioGoogleData?.pageUrl || "",
+        //        googlePublicationUrl:
+        //          googlePublicationUrl ||
+        //          releventBiblioGoogleData?.pageUrl ||
+        //          "",
+
+        //        title: title || releventBiblioGoogleData?.title?.trim() || "",
+
+        //        abstract:
+        //          abstractData?.trim() ||
+        //          releventBiblioGoogleData?.abstract?.trim() ||
+        //          "",
+
+        //        filingDate:
+        //          aplDate || releventBiblioGoogleData?.applicationDate || "",
+
+        //        grantDate:
+        //          pubDate || releventBiblioGoogleData?.publicationDate || "",
+
+        //        priorityDate:
+        //          priorityDates || releventBiblioGoogleData?.priorityDate || "",
+
+        //        assignee: (
+        //          applicantNames ||
+        //          releventBiblioGoogleData?.assignees ||
+        //          ""
+        //        )
+        //          .split(",")
+        //          .map((a) => a.trim())
+        //          .filter(Boolean),
+
+        //        inventors:
+        //          typeof (
+        //            inventorNames || releventBiblioGoogleData?.inventors
+        //          ) === "string"
+        //            ? (inventorNames || releventBiblioGoogleData?.inventors)
+        //                .split(";")
+        //                .map((i) => i.trim())
+        //                .filter(Boolean)
+        //            : [],
+
+        //        classifications: (classificationsSymbol || googleClassCPC || "")
+        //          .split(",")
+        //          .map((c) => c.trim())
+        //          .filter(Boolean),
+
+        //        ipcClassifications: (ipcClass || googleClassCPC || "")
+        //          .split(",")
+        //          .map((c) => c.trim())
+        //          .filter(Boolean),
+
+        //        cpcClassifications: (cpcClass || googleClassCPC || "")
+        //          .split(",")
+        //          .map((c) => c.trim())
+        //          .filter(Boolean),
+
+        //        usClassification: (
+        //          classData?.US_Classification ||
+        //          releventBiblioGoogleData?.usClassification ||
+        //          ""
+        //        )
+        //          .split(",")
+        //          .map((u) => u.trim())
+        //          .filter(Boolean),
+
+        //        familyMembers: (familyMemData || "")
+        //          .split(",")
+        //          .map((f) => f.trim())
+        //          .filter(Boolean),
+
+        //        analystComments: relevantForm.analystComments || "",
+        //        relevantExcerpts: relevantForm.relevantExcerpts || "",
+        //      };
+
+        //      setRelevantForm(combinedForm);
+        //    }
+        //  }, [data, releventBiblioGoogleData]);
+
 
 
     useEffect(() => {
