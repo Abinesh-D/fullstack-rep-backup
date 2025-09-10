@@ -748,7 +748,7 @@ export const createRelatedReferencesTable = (relatedReferences = []) => {
           columnSpan: 3,
           children: [
             createParagraph(item.relatedPublicationDate || "", {
-              alignment: AlignmentType.LEFT,
+              alignment: AlignmentType.CENTER,
               spacing: { before: 100, after: 100 },
               indent: { left: 50 },
             }),

@@ -42,7 +42,7 @@ const MappingProjectCreation = () => {
     const relatedBiblioGoogleData = useSelector(state => state.patentSlice.liveGoogleRelatedData);
 
     // Control screen here
-    const [activeTab, setactiveTab] = useState(5);
+    const [activeTab, setactiveTab] = useState(4);
     const [passedSteps, setPassedSteps] = useState([1]);
 
     const [relevantForm, setRelevantForm] = useState({

@@ -39,6 +39,7 @@ import { normalizeField } from "../StaticValues/StaticData";
 
 import myImageHeader from '../../../assets/images/MCRPL/header-img-rpt.png';
 import myImageFooter from '../../../assets/images/MCRPL/footer-img-rpt.png';
+import myMcrplImageFooter from '../../../assets/images/MCRPL/mcrpl-main-logo.png';
 
 
 
@@ -134,8 +135,6 @@ export const handleWordReportDownload = async ({
     appendix2,
     projectTypeId,
 }) => {
-
-
 let relevantReferencesTableData = [];
 
 if (
@@ -319,8 +318,14 @@ if (
             spacing: { after: 200, before: 100 },
         }
     );
-    const tocItems = (typeId2 && tocConfigSummary) || (typeId1 && tocConfig);
-    const tocTable = createTocTable(tocItems);
+
+
+    
+    // const tocItems = (typeId2 && tocConfigSummary) || (typeId1 && tocConfig);
+    // const tocTable = createTocTable(tocItems);
+
+
+
     const relevantReferencesTable = createRelevantReferencesTable(relevantReferencesTableData, typeId1 ? "typeId1" : "typeId2");
 
     const autoToc = new TableOfContents("Table of Contents", {
@@ -1135,6 +1140,7 @@ if (
 
   const headerArray = await getUint8Array(myImageHeader);
   const footerArray = await getUint8Array(myImageFooter);
+  const footerMcrplArray = await getUint8Array(myMcrplImageFooter);
 
     const doc = new Document({
       styles: {
@@ -1192,69 +1198,228 @@ if (
             }),
           },
           footers: {
-            default: new Footer({
-              children: [
-                new Paragraph({
-                  children: [
-                    new ImageRun({
-                      data: footerArray,
-                      transformation: {
-                        width: (25.88 * 96) / 2.54,
-                        height: (1.33 * 96) / 2.54,
-                      },
-                      floating: {
-                        horizontalPosition: {
-                          relative: HorizontalPositionRelativeFrom.PAGE,
-                          align: HorizontalPositionAlign.CENTER,
-                        },
-                        verticalPosition: {
-                          relative: VerticalPositionRelativeFrom.PAGE,
-                          offset: 6950000,
-                        },
-                        behindDocument: true,
-                      },
-                    }),
-                  ],
-                }),
+  default: new Footer({
+    children: [
+      new Paragraph({
+        alignment: AlignmentType.CENTER,
+        spacing: { before: 0, after: 0, line: 240 }, // keep tight
+        children: [
+          new TextRun({
+            size: 28,
+            text: "Prepared by,",
+            color: "000000",
+            bold: true,
+          }),
+        ],
+      }),
 
-                new Paragraph({
-                  alignment: AlignmentType.CENTER,
-                  spacing: { before: 10, after: 30 },
-                  indent: { left: 200, right: 30 },
-                  children: [
-                    new TextRun({
-                      text: "Heritage Building, #59/2, Kaderanahalli, 100 Feet Rd, Banashankari 2nd Stage, Bangalore - 560070, INDIA, Ph: +91 80 40907929 / 40939955 / 40939693,",
-                      size: 20,
-                      color: "FFFFFF",
-                    }),
-                  ],
-                }),
-                new Paragraph({
-                  alignment: AlignmentType.CENTER,
-                  spacing: { after: 0, before: 0 },
-                  indent: { left: 100, right: 30 },
-                  children: [
-                    new TextRun({
-                      size: 20,
-                      text: "https://ipr.molecularconnections.co/ | ",
-                      color: "FFFFFF",
-                    }),
-                    new TextRun({
-                      text: "Follow us on ",
-                      color: "FFFFFF",
-                      size: 20,
-                    }),
-                    new TextRun({
-                      text: "LinkedIn",
-                      color: "FFFFFF",
-                      size: 20,
-                      underline: { type: "single", color: "FFFFFF" },
-                    }),
-                  ],
-                }),
-              ],
-            }),
-          },
+      new Paragraph({
+        alignment: AlignmentType.CENTER,
+        spacing: { before: 0, after: 0, line: 240 },
+        children: [
+          new ImageRun({
+            data: footerMcrplArray,
+            transformation: {
+              width: (6.25 * 96) / 2.54,
+              height: (1.81 * 96) / 2.54,
+            },
+          }),
+        ],
+      }),
+
+      new Paragraph({
+        alignment: AlignmentType.END,
+        spacing: { before: 0, after: 0, line: 240 },
+        children: [
+          new TextRun({
+            size: 20,
+            text: "Date: ",
+            color: "000000",
+            bold: true,
+          }),
+          new TextRun({
+            size: 20,
+            text: "MM DD, YY",
+            color: "000000",
+          }),
+        ],
+      }),
+
+      new Paragraph({
+        spacing: { before: 0, after: 0, line: 240 },
+        children: [
+          new ImageRun({
+            data: footerArray,
+            transformation: {
+              width: (25.88 * 96) / 2.54,
+              height: (1.33 * 96) / 2.54,
+            },
+            floating: {
+              horizontalPosition: {
+                relative: HorizontalPositionRelativeFrom.PAGE,
+                align: HorizontalPositionAlign.CENTER,
+              },
+              verticalPosition: {
+                relative: VerticalPositionRelativeFrom.PAGE,
+                offset: 6950000,
+              },
+              behindDocument: true,
+            },
+          }),
+        ],
+      }),
+
+      new Paragraph({
+        alignment: AlignmentType.CENTER,
+        spacing: { before: 0, after: 0, line: 240 },
+        indent: { left: 200, right: 30 },
+        children: [
+          new TextRun({
+            text: "Heritage Building, #59/2, Kaderanahalli, 100 Feet Rd, Banashankari 2nd Stage, Bangalore - 560070, INDIA, Ph: +91 80 40907929 / 40939955 / 40939693,",
+            size: 20,
+            color: "FFFFFF",
+          }),
+        ],
+      }),
+
+      new Paragraph({
+        alignment: AlignmentType.CENTER,
+        spacing: { before: 0, after: 0, line: 240 },
+        indent: { left: 100, right: 30 },
+        children: [
+          new TextRun({
+            size: 20,
+            text: "https://ipr.molecularconnections.co/ | ",
+            color: "FFFFFF",
+          }),
+          new TextRun({
+            text: "Follow us on ",
+            color: "FFFFFF",
+            size: 20,
+          }),
+          new TextRun({
+            text: "LinkedIn",
+            color: "FFFFFF",
+            size: 20,
+            underline: { type: "single", color: "FFFFFF" },
+          }),
+        ],
+      }),
+    ],
+  }),
+},
+
+
+          // footers: {
+          //   default: new Footer({
+          //     children: [
+          //       new Paragraph({
+          //         alignment: AlignmentType.CENTER,
+          //         spacing: { after: 0, before: 0 },
+          //         children: [
+          //           new TextRun({
+          //             size: 28,
+          //             text: "Prepared by,",
+          //             color: "000000",
+          //             bold: true,
+          //           }),
+          //         ],
+          //       }),
+
+          //       new Paragraph({
+          //         alignment: AlignmentType.CENTER,
+          //         spacing: { after: 0, before: 0 },
+          //         children: [
+          //           new ImageRun({
+          //             data: footerMcrplArray,
+          //             transformation: {
+          //               width: (6.25 * 96) / 2.54,
+          //               height: (1.81 * 96) / 2.54,
+          //             },
+          //           }),
+          //         ],
+          //       }),
+          //       new Paragraph({
+          //         alignment: AlignmentType.END,
+          //         children: [
+          //           new TextRun({
+          //             size: 20,
+          //             text: "Date: ",
+          //             color: "000000",
+          //             bold: true,
+          //           }),
+          //           new TextRun({
+          //             size: 20,
+          //             text: "MM DD, YY",
+          //             color: "000000",
+          //             bold: false,
+          //           }),
+          //         ],
+          //       }),
+
+          //       new Paragraph({
+          //         spacing: { after: 0, before: 0 },
+          //         children: [
+          //           new ImageRun({
+          //             data: footerArray,
+          //             transformation: {
+          //               width: (25.88 * 96) / 2.54,
+          //               height: (1.33 * 96) / 2.54,
+          //             },
+          //             floating: {
+          //               horizontalPosition: {
+          //                 relative: HorizontalPositionRelativeFrom.PAGE,
+          //                 align: HorizontalPositionAlign.CENTER,
+          //               },
+          //               verticalPosition: {
+          //                 relative: VerticalPositionRelativeFrom.PAGE,
+          //                 offset: 6950000,
+          //               },
+          //               behindDocument: true,
+          //             },
+          //           }),
+          //         ],
+          //       }),
+
+          //       new Paragraph({
+          //         alignment: AlignmentType.CENTER,
+          //         spacing: { before: 10, after: 30 },
+          //         indent: { left: 200, right: 30 },
+          //         children: [
+          //           new TextRun({
+          //             text: "Heritage Building, #59/2, Kaderanahalli, 100 Feet Rd, Banashankari 2nd Stage, Bangalore - 560070, INDIA, Ph: +91 80 40907929 / 40939955 / 40939693,",
+          //             size: 20,
+          //             color: "FFFFFF",
+          //           }),
+          //         ],
+          //       }),
+          //       new Paragraph({
+          //         alignment: AlignmentType.CENTER,
+          //         spacing: { after: 0, before: 0 },
+          //         indent: { left: 100, right: 30 },
+          //         children: [
+          //           new TextRun({
+          //             size: 20,
+          //             text: "https://ipr.molecularconnections.co/ | ",
+          //             color: "FFFFFF",
+          //           }),
+          //           new TextRun({
+          //             text: "Follow us on ",
+          //             color: "FFFFFF",
+          //             size: 20,
+          //           }),
+          //           new TextRun({
+          //             text: "LinkedIn",
+          //             color: "FFFFFF",
+          //             size: 20,
+          //             underline: { type: "single", color: "FFFFFF" },
+          //           }),
+          //         ],
+          //       }),
+          //     ],
+          //   }),
+          // },
+
           children: [
             createParagraph(introduction.projectTitle, {
               alignment: AlignmentType.CENTER,
