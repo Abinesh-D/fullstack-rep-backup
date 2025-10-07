@@ -1,0 +1,101 @@
+.react-flow__edge.animated path {
+    stroke-dasharray: none;
+    animation: custom-dashdraw 1s linear infinite !important;
+}
+
+@keyframes custom-dashdraw {
+    to {
+        stroke-dashoffset: -20;
+    }
+}
+
+.react-flow__edge-path {
+    transition: stroke-dashoffset 0.3s ease-in-out;
+    stroke: #007bff;
+    stroke-width: 2px;
+    fill: transparent;
+  }
+
+  
+  
+
+/* 
+.custom-textarea {
+    width: 150px;
+    height: 60px;
+    min-width: 100px;
+    min-height: 40px;
+    max-width: 300px;
+    max-height: 200px;
+    resize: both;
+    
+    border: 2px solid #9ed56b;
+    border-radius: 5px;
+    padding: 5px;
+    font-size: 10px; 
+    color: #4f6f31; 
+    outline: none;
+    transition: all 0.2s ease-in-out;
+}
+
+.custom-textarea:focus {
+    border-color: #5aaf2b; 
+    box-shadow: 0 0 5px rgba(90, 175, 43, 0.5);
+}
+
+.custom-textarea::placeholder {
+    font-size: 8px;
+    color: #6c8b47;
+} */
+
+
+
+
+
+
+
+
+
+/* 
+.custom-textarea {
+    width: 120px;
+    height: 50px;
+    min-width: 100px;
+    min-height: 40px;
+    max-width: 300px;
+    max-height: 200px;
+    resize: both;
+    
+    border: 2px solid #9ed56b;
+    border-radius: 8px; 
+    padding: 8px;
+    font-size: 10px;
+    color: #4f6f31;
+    background-color: #f9fff3; 
+    
+    outline: none;
+    transition: all 0.3s ease-in-out; 
+    overflow: hidden;
+    animation: smoothResize 0.2s ease-in-out;
+}
+
+@keyframes smoothResize {
+    from {
+        transform: scale(1.02);
+    }
+    to {
+        transform: scale(1);
+    }
+}
+
+.custom-textarea:focus {
+    border-color: #5aaf2b;
+    box-shadow: 0 0 8px rgba(90, 175, 43, 0.5);
+    background: linear-gradient(white, #f5ffe0);
+}
+
+.custom-textarea::placeholder {
+    font-size: 9px; 
+    color: #6c8b47;
+    font-style: italic;
+} */

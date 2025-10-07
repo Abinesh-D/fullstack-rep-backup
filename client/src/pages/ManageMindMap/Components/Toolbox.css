@@ -1,0 +1,56 @@
+.toolbox {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    /* gap: 10px; */
+    /* padding: 6px 10px; */
+    background: #fffffff2;
+    border-radius: 8px;
+    box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
+    position: absolute;
+    top: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    transition: all 0.2s ease-in-out;
+}
+
+.toolbox-group {
+    display: flex;
+    align-items: center;
+    /* gap: 8px; */
+}
+
+.toolbox button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 8px;
+    /* padding: 5px; */
+    transition: all 0.2s;
+}
+
+.toolbox button:hover {
+    color: #007bff;
+}
+
+.toolbox select {
+    font-size: 6px;
+    /* padding: 3px 5px; */
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    outline: none;
+    cursor: pointer;
+}
+
+.file-upload {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 8px;
+    /* padding: 5px; */
+}
+
+.file-upload input {
+    display: none;
+}

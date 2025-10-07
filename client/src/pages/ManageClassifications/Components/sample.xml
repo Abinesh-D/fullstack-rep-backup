@@ -1,0 +1,74 @@
+<definitions>
+  <definition-item>
+    <classification-symbol>G06F17/30</classification-symbol>
+    <definition-title>
+      <text>Information retrieval; Database structures; File systems</text>
+    </definition-title>
+    <references>
+      <informative-references>
+        <section-body>
+          <table>
+            <table-row>
+              <table-column>
+                <paragraph-text>
+                  See also <class-ref>G06F7/00</class-ref> for basic data-processing operations
+                </paragraph-text>
+              </table-column>
+            </table-row>
+          </table>
+        </section-body>
+      </informative-references>
+    </references>
+    <special-rules>
+      <section-body>
+        <paragraph-text>
+          This group does not cover aspects relating to hardware implementation.
+        </paragraph-text>
+      </section-body>
+    </special-rules>
+    <glossary-of-terms>
+      <section-body>
+        <table>
+          <table-row>
+            <table-column>
+              <paragraph-text>Database: A structured collection of data.</paragraph-text>
+            </table-column>
+          </table-row>
+        </table>
+      </section-body>
+    </glossary-of-terms>
+  </definition-item>
+
+  <definition-item>
+    <classification-symbol>H04L29/08</classification-symbol>
+    <definition-title>
+      <text>Communication control; Protocols</text>
+    </definition-title>
+    <references>
+      <informative-references>
+        <section-body>
+          <table>
+            <table-row>
+              <table-column>
+                <paragraph-text>
+                  See also <class-ref>H04L12/00</class-ref> for data switching
+                </paragraph-text>
+              </table-column>
+            </table-row>
+          </table>
+        </section-body>
+      </informative-references>
+    </references>
+    <glossary-of-terms>
+      <section-body>
+        <table>
+          <table-row>
+            <table-column>
+              <paragraph-text>Protocol: A set of rules for data exchange between devices.</paragraph-text>
+            </table-column>
+          </table-row>
+        </table>
+      </section-body>
+    </glossary-of-terms>
+  </definition-item>
+</definitions>

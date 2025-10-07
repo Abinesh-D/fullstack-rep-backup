@@ -1,0 +1,293 @@
+{
+    "ops:world-patent-data": {
+        "@xmlns": {
+            "ops": "http://ops.epo.org",
+            "$": "http://www.epo.org/exchange",
+            "xlink": "http://www.w3.org/1999/xlink"
+        },
+        "exchange-documents": {
+            "exchange-document": {
+                "@system": "ops.epo.org",
+                "@family-id": "51862676",
+                "@country": "ES",
+                "@doc-number": "2521340",
+                "@kind": "B1",
+                "bibliographic-data": {
+                    "publication-reference": {
+                        "document-id": [
+                            {
+                                "@document-id-type": "docdb",
+                                "country": {
+                                    "$": "ES"
+                                },
+                                "doc-number": {
+                                    "$": "2521340"
+                                },
+                                "kind": {
+                                    "$": "B1"
+                                },
+                                "date": {
+                                    "$": "20151013"
+                                }
+                            },
+                            {
+                                "@document-id-type": "epodoc",
+                                "doc-number": {
+                                    "$": "ES2521340"
+                                },
+                                "date": {
+                                    "$": "20151013"
+                                }
+                            }
+                        ]
+                    },
+                    "classifications-ipcr": {
+                        "classification-ipcr": [
+                            {
+                                "@sequence": "1",
+                                "text": {
+                                    "$": "B62H   3/    08            A I"
+                                }
+                            },
+                            {
+                                "@sequence": "2",
+                                "text": {
+                                    "$": "G06Q  50/    30            A I"
+                                }
+                            }
+                        ]
+                    },
+                    "patent-classifications": {
+                        "patent-classification": [
+                            {
+                                "@sequence": "1",
+                                "classification-scheme": {
+                                    "@office": "EP",
+                                    "@scheme": "CPCI"
+                                },
+                                "section": {
+                                    "$": "B"
+                                },
+                                "class": {
+                                    "$": "62"
+                                },
+                                "subclass": {
+                                    "$": "H"
+                                },
+                                "main-group": {
+                                    "$": "3"
+                                },
+                                "subgroup": {
+                                    "$": "08"
+                                },
+                                "classification-value": {
+                                    "$": "I"
+                                },
+                                "generating-office": {
+                                    "$": "ES"
+                                }
+                            },
+                            {
+                                "@sequence": "2",
+                                "classification-scheme": {
+                                    "@office": "EP",
+                                    "@scheme": "CPCI"
+                                },
+                                "section": {
+                                    "$": "G"
+                                },
+                                "class": {
+                                    "$": "06"
+                                },
+                                "subclass": {
+                                    "$": "Q"
+                                },
+                                "main-group": {
+                                    "$": "50"
+                                },
+                                "subgroup": {
+                                    "$": "40"
+                                },
+                                "classification-value": {
+                                    "$": "I"
+                                },
+                                "generating-office": {
+                                    "$": "ES"
+                                }
+                            }
+                        ]
+                    },
+                    "application-reference": {
+                        "@doc-id": "423579902",
+                        "document-id": [
+                            {
+                                "@document-id-type": "docdb",
+                                "country": {
+                                    "$": "ES"
+                                },
+                                "doc-number": {
+                                    "$": "201300021"
+                                },
+                                "kind": {
+                                    "$": "A"
+                                }
+                            },
+                            {
+                                "@document-id-type": "epodoc",
+                                "doc-number": {
+                                    "$": "ES20130000021"
+                                },
+                                "date": {
+                                    "$": "20121226"
+                                }
+                            },
+                            {
+                                "@document-id-type": "original",
+                                "doc-number": {
+                                    "$": "201300021"
+                                }
+                            }
+                        ]
+                    },
+                    "priority-claims": {
+                        "priority-claim": {
+                            "@sequence": "1",
+                            "@kind": "national",
+                            "document-id": {
+                                "@document-id-type": "epodoc",
+                                "doc-number": {
+                                    "$": "ES20130000021"
+                                },
+                                "date": {
+                                    "$": "20121226"
+                                }
+                            }
+                        }
+                    },
+                    "parties": {
+                        "applicants": {
+                            "applicant": [
+                                {
+                                    "@sequence": "1",
+                                    "@data-format": "epodoc",
+                                    "applicant-name": {
+                                        "name": {
+                                            "$": "BREEZEGROUP INTERNAT S L [ES]"
+                                        }
+                                    }
+                                },
+                                {
+                                    "@sequence": "2",
+                                    "@data-format": "epodoc",
+                                    "applicant-name": {
+                                        "name": {
+                                            "$": "ECOTEC ELECTRICA S L [ES]"
+                                        }
+                                    }
+                                },
+                                {
+                                    "@sequence": "1",
+                                    "@data-format": "original",
+                                    "applicant-name": {
+                                        "name": {
+                                            "$": "BREEZEGROUP INTERNATIONAL S.L,"
+                                        }
+                                    }
+                                },
+                                {
+                                    "@sequence": "2",
+                                    "@data-format": "original",
+                                    "applicant-name": {
+                                        "name": {
+                                            "$": "ECOTEC ELECTRICA S.L"
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        "inventors": {
+                            "inventor": [
+                                {
+                                    "@sequence": "1",
+                                    "@data-format": "epodoc",
+                                    "inventor-name": {
+                                        "name": {
+                                            "$": "LARS TORSTEN BERGER [DE]"
+                                        }
+                                    }
+                                },
+                                {
+                                    "@sequence": "2",
+                                    "@data-format": "epodoc",
+                                    "inventor-name": {
+                                        "name": {
+                                            "$": "FERRARI MAGLIA MAXIMILIANO FLAVIO [AR]"
+                                        }
+                                    }
+                                },
+                                {
+                                    "@sequence": "3",
+                                    "@data-format": "epodoc",
+                                    "inventor-name": {
+                                        "name": {
+                                            "$": "MORELL GARCIA ALEJANDRO [ES]"
+                                        }
+                                    }
+                                },
+                                {
+                                    "@sequence": "4",
+                                    "@data-format": "epodoc",
+                                    "inventor-name": {
+                                        "name": {
+                                            "$": "RAMOS DOMINGO PATRICIA [ES]"
+                                        }
+                                    }
+                                },
+                                {
+                                    "@sequence": "1",
+                                    "@data-format": "original",
+                                    "inventor-name": {
+                                        "name": {
+                                            "$": "LARS TORSTEN, BERGER,"
+                                        }
+                                    }
+                                },
+                                {
+                                    "@sequence": "2",
+                                    "@data-format": "original",
+                                    "inventor-name": {
+                                        "name": {
+                                            "$": "FERRARI MAGLIA, MAXIMILIANO FLAVIO,"
+                                        }
+                                    }
+                                },
+                                {
+                                    "@sequence": "3",
+                                    "@data-format": "original",
+                                    "inventor-name": {
+                                        "name": {
+                                            "$": "MORELL GARCIA, ALEJANDRO,"
+                                        }
+                                    }
+                                },
+                                {
+                                    "@sequence": "4",
+                                    "@data-format": "original",
+                                    "inventor-name": {
+                                        "name": {
+                                            "$": "RAMOS DOMINGO, PATRICIA"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "invention-title": {
+                        "$": "Procedimiento para la gestión, uso y control de vehículo liviano y vehículo liviano gestionado y controlado por ese procedimiento",
+                        "@lang": "ol"
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,22 @@
+.nodes {
+    position: absolute;
+  }
+  
+  .node-container {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    padding: 5px;
+    font-size: 8px;
+    text-align: center;
+  }
+  
+  .comment-count {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-left: 5px;
+  }
+  

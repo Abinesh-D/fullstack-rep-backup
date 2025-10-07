@@ -1,0 +1,46 @@
+{
+    "ops:world-patent-data": {
+        "@xmlns": {
+            "reg": "http://www.epo.org/register",
+            "xlink": "http://www.w3.org/1999/xlink",
+            "cpc": "http://www.epo.org/cpcexport",
+            "cpcdef": "http://www.epo.org/cpcdefinition",
+            "ops": "http://ops.epo.org"
+        },
+        "ops:classification-scheme": {
+            "ops:cpc": {
+                "cpc:class-scheme": {
+                    "@scheme-type": "cpc",
+                    "@export-date": "2025-05-01",
+                    "cpc:classification-item": {
+                        "@level": "8",
+                        "@additional-only": "false",
+                        "@sort-key": "A47B47/02",
+                        "@not-allocatable": "false",
+                        "@breakdown-code": "false",
+                        "@status": "published",
+                        "@link-file": "classification/cpc/A47B47/02",
+                        "@ipc-concordant": "A47B47/02",
+                        "@definition-exists": "false",
+                        "@c-set-subsequent-allowed": "true",
+                        "@date-revised": "2013-01-01",
+                        "cpc:classification-symbol": {
+                            "$": "A47B47/02"
+                        },
+                        "cpc:class-title": {
+                            "@date-revised": "2013-01-01",
+                            "cpc:title-part": {
+                                "cpc:text": {
+                                    "$": "made of metal only"
+                                }
+                            }
+                        },
+                        "cpc:meta-data": {
+                            "$": "+"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

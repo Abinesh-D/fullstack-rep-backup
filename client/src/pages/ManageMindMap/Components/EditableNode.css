@@ -1,0 +1,358 @@
+.react-flow__handle {
+    background: transparent !important;
+    border: none !important; 
+    width: 0px !important;  
+    height: 0px !important;
+  }
+
+
+  .editable-node-wrapper {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transform-style: preserve-3d;
+    will-change: transform;
+  }
+  
+  .editable-node-wrapper:hover {
+    transform: perspective(1000px) rotateX(5deg) rotateY(10deg) scale(1.05);
+    box-shadow: 0 20px 30px rgba(0, 0, 0, 0.2);
+    z-index: 10;
+  }
+
+  
+  
+  
+
+.editable-textarea {
+    width: 100%;
+    min-height: 30px;
+    font-size: 8px;
+    font-family: "Arial", sans-serif;
+    color: #333;
+    background: #fff;
+    border: 2px solid #007bff;
+    border-radius: 5px;
+    outline: none;
+    resize: none;
+    box-shadow: 0 4px 6px rgba(0, 123, 255, 0.2);
+    transition: all 0.3s ease-in-out;
+}
+
+.editable-textarea:focus {
+    border-color: #0056b3;
+    box-shadow: 0 4px 8px rgba(0, 86, 179, 0.3);
+    background: #f8f9fa;
+}
+
+.editable-textarea::placeholder {
+    color: #aaa;
+    opacity: 0.8;
+    transition: opacity 0.2s ease-in-out;
+}
+editable-node
+.editable-textarea:focus::placeholder {
+    opacity: 0.4;
+}
+
+.editable-textarea:disabled {
+    background: #e9ecef;
+    cursor: not-allowed;
+    border-color: #ced4da;
+}
+
+
+
+.edit-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 6px;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  
+
+.editable-input {
+    border: none;
+    text-align: center;
+    width: 100%;
+    outline: none;
+    background: transparent;
+}
+
+.delete-btn {
+    position: absolute;
+    top: -7px;
+    right: -7px;
+    background: red;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 14px;
+    height: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: bold;
+    z-index: 10;
+}
+
+.add-btn {
+    position: absolute;
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 11px;
+    cursor: pointer;
+    width: 15px;
+    height: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    z-index: 10;
+}
+.editor-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .text-editor-box {
+    position: relative;
+    width: 70px;
+    height: 35px;
+    border: 2px solid #9ed56b;
+    border-radius: 3px;
+    background: #fff;
+    padding: 3px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1);
+  }
+  
+  .custom-textarea {
+    width: 100%;
+    height: 12px;
+    border: none;
+    outline: none;
+    resize: both;
+    padding: 1px 0px 0px 0px;
+    font-size: 7px;
+    color: #4f6f31;
+    display: block;
+  }
+  
+  .edit-icon {
+    position: absolute;
+    bottom: -4px;
+    right: -4px;
+    background: #9ed56b;
+    border: none;
+    border-radius: 50%;
+    padding: 3px;
+    cursor: pointer;
+    color: white;
+    font-size: 10px; 
+    width: 14px;
+    height: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  }
+  
+  @media (max-width: 480px) {
+    .text-editor-box {
+      width: 140px;
+    }
+    
+    .custom-textarea {
+      font-size: 7px;
+    }
+    
+    .edit-icon {
+      width: 12px;
+      height: 12px;
+      font-size: 8px;
+    }
+  }
+  
+  .toolbar {
+    display: flex;
+    gap: 3px;
+    padding: 3px;
+  }
+  
+  .toolbar-container {
+    display: inline-block;
+  }
+  
+  .toolbar, .toolbar-hover {
+    display: flex;
+    gap: 3px;
+    padding: 2px;
+    background-color: #e0e0e0;
+    border-radius: 3px;
+    height: 16px;
+    align-items: center;
+  }
+  
+  .toolbar-hover {
+    background-color: #9ed56b;
+  }
+  
+  .toolbar button, .toolbar-hover button {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 7px;
+    width: 9px;
+    height: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+  }
+  
+  .toolbar-hover button {
+    cursor: pointer;
+    color: white;
+  }
+  
+
+
+
+
+
+
+
+
+/* .custom-textarea {
+    width: 120px;
+    height: 50px;
+    min-width: 100px;
+    min-height: 40px;
+    max-width: 300px;
+    max-height: 200px;
+    resize: both;
+    
+    border: 2px solid #9ed56b;
+    border-radius: 8px; 
+    padding: 8px;
+    font-size: 10px;
+    color: #4f6f31;
+    background-color: #f9fff3; 
+    
+    outline: none;
+    transition: all 0.3s ease-in-out; 
+    overflow: hidden;
+    animation: smoothResize 0.2s ease-in-out;
+}
+
+@keyframes smoothResize {
+    from {
+        transform: scale(1.02);
+    }
+    to {
+        transform: scale(1);
+    }
+}
+
+.custom-textarea:focus {
+    border-color: #5aaf2b;
+    box-shadow: 0 0 8px rgba(90, 175, 43, 0.5);
+    background: linear-gradient(white, #f5ffe0);
+}
+
+.custom-textarea::placeholder {
+    font-size: 9px; 
+    color: #6c8b47;
+    font-style: italic;
+} */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.starcbutton {
+    position: absolute;
+    background-image: url("https://static.coggle.it/img/addbutton.svg");
+    background-color: #d0d0d0;
+    background-position: 50% 50%;
+    background-repeat: no-repeat;
+    background-size: 10px auto;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-radius: 50%;
+    box-sizing: content-box;
+    height: 12px;
+    width: 12px;
+    pointer-events: auto;
+    transition: transform 0.3s ease-out;
+    z-index: 99999;
+    cursor: pointer;
+    opacity: 1;
+}
+
+
+.shapebackground {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  right: 43px;
+  bottom: -137px;
+
+}
+
+
+
+/* 
+.starcbutton.top {
+    top: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.starcbutton.right {
+    top: 50%;
+    right: -15px;
+    transform: translateY(-50%);
+}
+
+
+.starcbutton.bottom {
+    bottom: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.starcbutton.left {
+    top: 50%;
+    left: -5px;
+    transform: translateY(-50%);
+} */
+
+.starcbutton:hover {
+    opacity: 0.8;
+}

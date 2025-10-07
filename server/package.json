@@ -1,0 +1,53 @@
+{
+  "name": "api",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "set NODE_ENV=development && nodemon server.js",
+    "start:prod": "set NODE_ENV=production && node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@google-cloud/bigquery": "^7.9.4",
+    "@google-cloud/translate": "^9.0.1",
+    "@vitalets/google-translate-api": "^9.2.1",
+    "apollo-server-express": "^3.13.0",
+    "axios": "^1.11.0",
+    "axios-retry": "^4.5.0",
+    "cheerio": "^1.0.0",
+    "chokidar": "^4.0.3",
+    "cloudinary": "^2.7.0",
+    "cors": "^2.8.5",
+    "country-flag-icons": "^1.5.18",
+    "docx": "^9.5.1",
+    "dotenv": "^16.5.0",
+    "express": "^4.21.2",
+    "fast-xml-parser": "^5.2.5",
+    "franc": "^5.0.0",
+    "google-translate-api-x": "^10.7.2",
+    "graphql": "^16.11.0",
+    "html-to-docx": "^1.8.0",
+    "https": "^1.0.0",
+    "langs": "^2.0.0",
+    "mongoose": "^8.16.1",
+    "multer": "^2.0.1",
+    "node-cache": "^5.1.2",
+    "node-fetch": "^2.7.0",
+    "openai": "^5.1.0",
+    "p-limit": "^6.2.0",
+    "puppeteer": "^24.6.1",
+    "qs": "^6.14.0",
+    "react-world-flags": "^1.6.0",
+    "streamifier": "^0.1.1",
+    "uuid": "^11.1.0",
+    "xml2js": "^0.6.2"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "nodemon": "^3.1.10"
+  }
+}
