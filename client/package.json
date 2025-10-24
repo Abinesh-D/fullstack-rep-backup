@@ -96,11 +96,11 @@
     "xlsx": "^0.18.5",
     "yup": "^1.6.1"
   },
- "scripts": {
-  "start": "react-scripts start",
-  "build": "react-scripts build",
-  "test": "react-scripts test"
-},
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test"
+  },
   "eslintConfig": {
     "extends": [
       "react-app",
